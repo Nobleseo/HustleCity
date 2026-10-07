@@ -311,6 +311,16 @@ const SUPABASE_URL = 'https://xlyefqzqxfjhsigtxgnc.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_kxWD40ojQTuXWiKeLiRzxg_fLaC_G2V';
 const sb = (typeof supabase !== 'undefined') ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
+// Signed-in player id (null = guest)
+let playerId = localStorage.getItem('hc_player_id') || null;
+if (sb) {
+  sb.auth.getSession().then(({ data }) => {
+    if (data && data.session && data.session.user) {
+      playerId = data.session.user.id;
+      localStorage.setItem('hc_player_id', playerId);
+    }
+  });
+}
 function getGuestId() {
   let g = localStorage.getItem('hc_guest_id');
   if (!g) { g = 'g_' + Math.random().toString(36).slice(2,10) + Date.now().toString(36); localStorage.setItem('hc_guest_id', g); }
@@ -622,9 +632,12 @@ function endRound(){
   const playBtn=document.getElementById('btn-play-again');
   if(state.roundsToday>=CONFIG.roundsPerDay){playBtn.textContent='NO ROUNDS LEFT';playBtn.disabled=true;playBtn.style.opacity='0.5';}
   else{playBtn.textContent=state.boostTokens>0?'PLAY AGAIN (⚡ x2 BOOST)':'PLAY AGAIN';playBtn.disabled=false;playBtn.style.opacity='1';}
-  syncRoundToServer(earned,game.served,game.missed,game.bestCombo);
+    syncRoundToServer(earned,game.served,game.missed,game.bestCombo);
   trackEvent('round_end',{score:earned,stall:selectedProduct});
   showScreen('result');
+  if(!playerId && state.roundsToday>=CONFIG.roundsPerDay){
+    setTimeout(showAuthModal,3000);
+  }
 }
 document.getElementById('btn-play-again').addEventListener('click',()=>{if(state.roundsToday>=CONFIG.roundsPerDay)return;startRound();});
 document.querySelectorAll('.shelf-btn').forEach(btn=>{btn.addEventListener('click',()=>{if(!game||!game.running)return;serveItem(btn.dataset.item,btn);});});
@@ -657,7 +670,8 @@ document.getElementById('btn-share').addEventListener('click',()=>{
 
 // REFERRAL
 document.getElementById('btn-refer').addEventListener('click',()=>{
-  const link=location.origin+location.pathname+'?ref='+GUEST_ID;
+    const refCode=(state.playerName&&state.playerName.trim())?state.playerName.trim():GUEST_ID;
+  const link=location.origin+location.pathname+'?ref='+encodeURIComponent(refCode);
   if(navigator.clipboard){navigator.clipboard.writeText(link).then(()=>alert('Link copied! Send to friends:\n'+link)).catch(()=>prompt('Copy this:',link));}
   else{prompt('Copy this:',link);}
   trackEvent('referral_link_opened',{referrer_id:GUEST_ID});
@@ -868,6 +882,73 @@ if(sb){
 }
 
 refreshHome();
+  refreshHome();
+
+// ============ AUTH ============
+let authMode = 'signup';
+
+function showAuthModal() {
+  document.getElementById('auth-modal').style.display = 'flex';
+  updateAuthUI();
+}
+function hideAuthModal() {
+  document.getElementById('auth-modal').style.display = 'none';
+}
+function updateAuthUI() {
+  const isSignup = authMode === 'signup';
+  document.getElementById('auth-tab-signup').classList.toggle('active', isSignup);
+  document.getElementById('auth-tab-signin').classList.toggle('active', !isSignup);
+  document.getElementById('auth-submit').textContent = isSignup ? 'Create Account' : 'Sign In';
+  document.getElementById('auth-error').textContent = '';
+}
+document.getElementById('auth-tab-signup').addEventListener('click', () => { authMode = 'signup'; updateAuthUI(); });
+document.getElementById('auth-tab-signin').addEventListener('click', () => { authMode = 'signin'; updateAuthUI(); });
+document.getElementById('auth-skip').addEventListener('click', hideAuthModal);
+
+document.getElementById('auth-submit').addEventListener('click', async () => {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const errEl = document.getElementById('auth-error');
+  if (!email || !password) { errEl.textContent = 'Enter email and password.'; return; }
+  if (password.length < 6) { errEl.textContent = 'Password must be 6+ characters.'; return; }
+  errEl.textContent = 'Working…';
+
+  const result = (authMode === 'signup')
+    ? await sb.auth.signUp({ email, password })
+    : await sb.auth.signInWithPassword({ email, password });
+
+  if (result.error) { errEl.textContent = result.error.message; return; }
+
+  const user = result.data.user;
+  if (!user) { errEl.textContent = 'Check your email to confirm, then Sign In.'; return; }
+
+  playerId = user.id;
+  localStorage.setItem('hc_player_id', playerId);
+
+  try {
+    await sb.from('players').upsert({
+      id: user.id,
+      email: user.email,
+      display_name: state.playerName || (user.email || '').split('@')[0] || 'Player',
+      wallet_balance: state.wallet,
+      lifetime_earned: state.lifetime,
+      division: state.division,
+      country: 'NG',
+      last_play_date: todayKey()
+    }, { onConflict: 'id' });
+
+    await sb.from('guests').upsert({
+      guest_id: GUEST_ID,
+      wallet_balance: state.wallet,
+      player_name: state.playerName || null,
+      merged_into_player: user.id
+    }, { onConflict: 'guest_id' });
+  } catch (e) { console.warn('player upsert failed', e); }
+
+  trackEvent('signup_done', { method: authMode });
+  hideAuthModal();
+  refreshHome();
+});
 </script>
 
 <!-- Floating: WhatsApp (right), FAQ (left) — must be OUTSIDE <script> -->
