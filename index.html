@@ -143,11 +143,47 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .fab-faq{left:16px;background:var(--oxblood);color:#F5EBDC}
 .fab svg{width:28px;height:28px;fill:currentColor}
 body.in-round .fab{display:none}
-</style>
+
+/* Camera + scenery */
+.game-area{background:linear-gradient(180deg,var(--bg) 0%,var(--surface) 45%,#c2a878 100%)}
+.scene{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.scene-sky{position:absolute;inset:0;background:linear-gradient(180deg,#f8e9c8 0%,#f1dda8 40%,#e6cc8a 100%)}
+[data-theme="dark"] .scene-sky{background:linear-gradient(180deg,#2a1d14 0%,#1e140c 100%)}
+.scene-stalls{position:absolute;bottom:38%;left:-5%;right:-5%;height:22%;
+  background:repeating-linear-gradient(90deg,#8a5a2b 0 40px,#7a4f24 40px 44px,#8a5a2b 44px 84px);
+  opacity:0.35;border-radius:6px}
+.scene-ground{position:absolute;left:0;right:0;bottom:0;height:42%;background:linear-gradient(180deg,#c2a878 0%,#a8895c 100%)}
+[data-theme="dark"] .scene-ground{background:linear-gradient(180deg,#3a2a1c 0%,#241a11 100%)}
+.billboard{position:absolute;top:10px;left:50%;transform:translateX(-50%);
+  width:min(72%,340px);height:70px;border-radius:8px;background:rgba(255,255,255,0.85);
+  border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:800;color:var(--muted);letter-spacing:0.5px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.08);overflow:hidden;z-index:1}
+[data-theme="dark"] .billboard{background:rgba(42,29,20,0.9);color:var(--muted)}
+.billboard img{width:100%;height:100%;object-fit:cover;border-radius:6px}
+.stall-front{position:absolute;left:0;right:0;bottom:0;height:34%;background:linear-gradient(180deg,#7a4f24 0%,#5d3b1a 100%);
+  border-top:4px solid #4a2f13;z-index:2;display:flex;align-items:flex-start;justify-content:center;padding-top:6px}
+.trader{position:absolute;left:50%;bottom:22%;transform:translateX(-50%);font-size:56px;
+  filter:drop-shadow(0 4px 4px rgba(0,0,0,0.25));z-index:1}
+.tool-belt{position:absolute;left:0;right:0;bottom:36%;display:flex;justify-content:center;gap:14px;z-index:3;pointer-events:none}
+.tool-belt .tool{width:52px;height:52px;border-radius:10px;background:rgba(255,255,255,0.9);
+  border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:800;color:var(--muted);text-align:center;line-height:1.05;padding:2px;overflow:hidden}
+[data-theme="dark"] .tool-belt .tool{background:rgba(42,29,20,0.9)}
+.tool-belt .tool img{width:100%;height:100%;object-fit:cover;border-radius:8px}
+.tool-belt .tool.has-brand{border-style:solid;border-color:var(--gold)}
+
+/* Theme toggle top-right */
+.theme-toggle{position:absolute;top:12px;right:16px;width:38px;height:38px;border-radius:50%;
+  background:var(--surface);border:1px solid var(--border);cursor:pointer;display:flex;
+  align-items:center;justify-content:center;font-size:18px;z-index:40;font-family:inherit}
+body.in-round .theme-toggle{display:none}
+#screen-home{position:relative}
 </head>
 <body>
 
 <div id="screen-home" class="screen active">
+  <button class="theme-toggle" id="theme-toggle-home" aria-label="Toggle theme">🌙</button>
   <h1 class="logo">HUSTLE<br>CITY</h1>
   <p class="tagline">Make your money. Rule the market.</p>
   <div class="wallet-bar">
@@ -228,7 +264,17 @@ body.in-round .fab{display:none}
     <span class="hud-money" id="hud-money">₦0</span>
     <span class="hud-combo" id="hud-combo">x1</span>
   </div>
-  <div class="game-area" id="game-area"></div>
+    <div class="game-area" id="game-area">
+    <div class="scene">
+      <div class="scene-sky"></div>
+      <div class="scene-stalls"></div>
+      <div class="scene-ground"></div>
+    </div>
+    <div class="billboard" id="in-game-billboard">PLACE YOUR AD HERE</div>
+    <div class="trader">🧑‍🍳</div>
+    <div class="tool-belt" id="tool-belt"></div>
+    <div class="stall-front" id="stall-front"></div>
+  </div>
   <div class="shelf" id="shelf">
     <button class="shelf-btn" data-item="tomatoes"><span class="icon">🍅</span><span class="label">Tomato</span></button>
     <button class="shelf-btn" data-item="pepper"><span class="icon">🌶️</span><span class="label">Pepper</span></button>
@@ -407,9 +453,41 @@ async function syncRoundToServer(earned,served,missed,bestCombo){
   }catch(e){console.warn('sync failed',e);const q=JSON.parse(localStorage.getItem('hc_sync_queue')||'[]');q.push({earned,served,missed,bestCombo,ts:Date.now()});localStorage.setItem('hc_sync_queue',JSON.stringify(q));}
 }
 async function syncVoteToServer(hustleKey,writeInText){
-  if(!sb)return;
-  try{await sb.from('votes').insert({guest_id:GUEST_ID,hustle_key:hustleKey||null,write_in_text:writeInText||null});}
-  catch(e){console.warn('vote sync failed',e);}
+  if(!sb){console.warn('no supabase client');return false;}
+  const { data, error } = await sb.from('votes').insert({
+    guest_id: GUEST_ID,
+    player_id: playerId || null,
+    hustle_key: hustleKey || null,
+    write_in_text: writeInText || null
+  }).select();
+  if (error) {
+    console.error('vote insert failed:', error.message, error.details, error.hint);
+    const q = JSON.parse(localStorage.getItem('hc_vote_queue') || '[]');
+    q.push({ hustleKey, writeInText, ts: Date.now() });
+    localStorage.setItem('hc_vote_queue', JSON.stringify(q));
+    return false;
+  }
+  console.log('vote saved:', data);
+  return true;
+}
+
+async function flushVoteQueue(){
+  if(!sb) return;
+  const q = JSON.parse(localStorage.getItem('hc_vote_queue') || '[]');
+  if (!q.length) return;
+  const remaining = [];
+  for (const v of q) {
+    const { error } = await sb.from('votes').insert({
+      guest_id: GUEST_ID,
+      player_id: playerId || null,
+      hustle_key: v.hustleKey || null,
+      write_in_text: v.writeInText || null
+    });
+    if (error) remaining.push(v);
+  }
+  localStorage.setItem('hc_vote_queue', JSON.stringify(remaining));
+  if (q.length !== remaining.length) console.log('flushed ' + (q.length - remaining.length) + ' queued votes');
+}
 }
 async function syncFeedback(mood,message){
   if(!sb)return;
@@ -865,6 +943,96 @@ async function loadAnnouncement() {
   } catch (e) {}
 }
 loadAnnouncement();
+  // ============ PRESENCE: report what this player is doing ============
+let presenceChannel = null;
+let currentActivity = 'home';
+function updateActivity(activity) {
+  currentActivity = activity;
+  if (presenceChannel) {
+    presenceChannel.track({
+      guest_id: GUEST_ID,
+      player_id: playerId || null,
+      name: state.playerName || 'Guest',
+      activity: activity,
+      ts: Date.now()
+    }).catch(() => {});
+  }
+}
+if (sb) {
+  presenceChannel = sb.channel('hc-presence', {
+    config: { presence: { key: playerId || GUEST_ID } }
+  });
+  presenceChannel.subscribe(async (status) => {
+    if (status === 'SUBSCRIBED') updateActivity(currentActivity);
+  });
+  setInterval(() => updateActivity(currentActivity), 25000);
+}
+// Update activity on screen change
+const _origShowScreen = showScreen;
+showScreen = function(id) {
+  _origShowScreen.apply(this, arguments);
+  updateActivity(id);
+};
+
+// ============ BRAND SLOTS (render in-game) ============
+let brandSlots = {};
+async function loadBrandSlots() {
+  if (!sb) return;
+  try {
+    const { data } = await sb.from('brand_slots')
+      .select('slot_key, slot_number, brand_name, brand_art_url, brand_color, active')
+      .eq('active', true);
+    brandSlots = {};
+    (data || []).forEach(s => {
+      const key = s.slot_key + (s.slot_number ? '_' + s.slot_number : '');
+      brandSlots[key] = s;
+    });
+    renderBrandSlots();
+  } catch (e) { console.warn('brand slots load failed', e); }
+}
+
+function renderBrandSlots() {
+  // Billboard
+  const bb = document.getElementById('in-game-billboard');
+  if (bb) {
+    const b = brandSlots['billboard'];
+    if (b && b.brand_art_url) {
+      bb.innerHTML = '<img src="' + escapeHtml(b.brand_art_url) + '" alt="' + escapeHtml(b.brand_name || '') + '" onerror="this.parentNode.textContent=\'' + (b.brand_name || 'Ad') + '\'">';
+      bb.style.borderColor = b.brand_color || 'var(--gold)';
+    } else {
+      bb.textContent = 'PLACE YOUR AD HERE';
+    }
+  }
+  // Tool belt: umbrella, handcart, loudspeaker, bigger_shelf
+  const belt = document.getElementById('tool-belt');
+  if (belt) {
+    const tools = [];
+    if (brandSlots['umbrella'] || state.upgrades.includes('loudspeaker')) {
+      // Only show tools the player has equipped OR that are sponsored
+    }
+    // Show all active brand slots that map to tools
+    Object.keys(brandSlots).forEach(k => {
+      if (k.startsWith('tool_')) {
+        tools.push(brandSlots[k]);
+      }
+    });
+    // Fallback placeholder tools so the strip isn't empty
+    if (tools.length === 0) {
+      tools.push({ slot_key: 'tool_1', brand_name: '', brand_art_url: '', brand_color: '#D4A017' });
+      tools.push({ slot_key: 'tool_2', brand_name: '', brand_art_url: '', brand_color: '#D4A017' });
+      tools.push({ slot_key: 'tool_3', brand_name: '', brand_art_url: '', brand_color: '#D4A017' });
+    }
+    belt.innerHTML = tools.map(t => {
+      if (t.brand_art_url) {
+        return '<div class="tool has-brand" style="border-color:' + escapeHtml(t.brand_color || '#D4A017') + '"><img src="' + escapeHtml(t.brand_art_url) + '" alt="' + escapeHtml(t.brand_name || '') + '"></div>';
+      }
+      return '<div class="tool">PLACE<br>AD<br>HERE</div>';
+    }).join('');
+  }
+}
+
+// Refresh brand slots every 60 seconds (so admin toggles propagate)
+setInterval(loadBrandSlots, 60000);
 
 // ============ REALTIME LEADERBOARD ============
 let lbDebounce=null;
