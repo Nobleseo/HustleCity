@@ -47,9 +47,11 @@ th{font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--mute
 <div id="login-view" class="wrap">
   <div class="card">
     <h1>Hustle City Admin</h1>
-    <p class="sub">Sign in with your allowlisted email. We'll send a magic link.</p>
+    <p class="sub">Sign in with your admin email and password.</p>
     <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email">
-    <button class="btn btn-primary" id="btn-login" style="width:100%">Send magic link</button>
+    <input type="password" id="login-password" placeholder="Password" autocomplete="current-password">
+    <button class="btn btn-primary" id="btn-login" style="width:100%">Sign in</button>
+    <button class="btn btn-outline" id="btn-create-admin" style="width:100%;margin-top:8px;font-size:12px;padding:8px">First time? Create admin account</button>
     <p class="sub" id="login-msg" style="margin-top:12px;margin-bottom:0"></p>
   </div>
 </div>
@@ -163,16 +165,30 @@ function esc(s) {
 function fmtN(n) { return '₦' + Number(n || 0).toLocaleString('en-NG'); }
 
 // ---------------- AUTH ----------------
-document.getElementById('btn-login').addEventListener('click', async () => {
+async function doLogin() {
   const email = document.getElementById('login-email').value.trim();
-  if (!email) return;
-  const { error } = await sb.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: location.origin + location.pathname }
-  });
+  const password = document.getElementById('login-password').value;
+  if (!email || !password) return;
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  document.getElementById('login-msg').textContent = error ? 'Error: ' + error.message : 'Signing in…';
+}
+
+document.getElementById('btn-login').addEventListener('click', doLogin);
+document.getElementById('login-password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+document.getElementById('btn-create-admin').addEventListener('click', async () => {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  if (!email || !password || password.length < 6) {
+    document.getElementById('login-msg').textContent = 'Enter email + password (6+ characters).';
+    return;
+  }
+  const { error } = await sb.auth.signUp({ email, password });
   document.getElementById('login-msg').textContent = error
     ? 'Error: ' + error.message
-    : 'Check your email for the magic link.';
+    : 'Account created. Now click Sign in.';
 });
 
 document.getElementById('btn-logout').addEventListener('click', async () => {
