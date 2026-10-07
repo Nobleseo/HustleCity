@@ -886,6 +886,29 @@ refreshHome();
     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
   </svg>
 </a>
+  <!-- AUTH MODAL -->
+<div id="auth-modal" class="modal-bg" style="display:none">
+  <div class="modal">
+    <h3 id="auth-title">Save your money</h3>
+    <p id="auth-sub">Sign in to keep your wallet, rank and progress. Free forever.</p>
+
+    <div class="lb-tabs" style="margin-bottom:12px">
+      <button class="lb-tab active" id="auth-tab-signup">Create Account</button>
+      <button class="lb-tab" id="auth-tab-signin">Sign In</button>
+    </div>
+
+    <input type="email" id="auth-email" placeholder="Email" autocomplete="email"
+      style="width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text);margin-bottom:8px">
+    <input type="password" id="auth-password" placeholder="Password (6+ characters)" autocomplete="current-password"
+      style="width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text);margin-bottom:8px">
+    <p id="auth-error" style="font-size:12px;color:var(--red);min-height:16px;margin-bottom:8px"></p>
+
+    <div class="modal-actions">
+      <button class="btn btn-gold" id="auth-submit" style="font-size:15px;padding:14px">Create Account</button>
+      <button class="btn btn-ghost" id="auth-skip">Continue as guest</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
 
