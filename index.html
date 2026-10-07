@@ -391,7 +391,7 @@ async function syncRoundToServer(earned,served,missed,bestCombo){
   if(!sb)return;
   try{
     await sb.from('guests').upsert({guest_id:GUEST_ID,wallet_balance:state.wallet},{onConflict:'guest_id'});
-    await sb.from('runs').insert({guest_id:GUEST_ID,hustle_key:'market_trader',stall_key:selectedProduct,seed:'client_'+Date.now(),score:earned,duration_ms:CONFIG.roundDuration*1000,valid:true,boost_used:game.boosted||false,action_log:{served,missed,bestCombo,ts:Date.now()}});
+    await sb.from('runs').insert({guest_id:GUEST_ID,player_name:state.playerName||null,hustle_key:'market_trader',stall_key:selectedProduct,seed:'client_'+Date.now(),score:earned,duration_ms:CONFIG.roundDuration*1000,valid:true,boost_used:game.boosted||false,action_log:{served,missed,bestCombo,ts:Date.now()}});
     if(pendingReferrer && state.roundsToday===1){
       await sb.from('referrals').insert({referrer_id:pendingReferrer,referred_id:GUEST_ID,status:'completed',completed_at:new Date().toISOString()});
     }
@@ -693,46 +693,84 @@ document.querySelectorAll('.lb-tab').forEach(tab=>{
     tab.classList.add('active');lbScope=tab.dataset.scope;refreshLeaderboard();
   });
 });
-function generateNPCs(){
-  const seed=todayKey()+lbScope;let rng=0;
-  for(let i=0;i<seed.length;i++)rng=(rng*31+seed.charCodeAt(i))>>>0;
-  function rand(){rng=(rng*1664525+1013904223)>>>0;return rng/4294967296;}
-  const count=15+Math.floor(rand()*10);const rows=[];
-  for(let i=0;i<count;i++){
-    const name=NPC_NAMES[Math.floor(rand()*NPC_NAMES.length)];let score;
-    if(lbScope==='today')score=Math.floor(500+rand()*4000);
-    else if(lbScope==='division')score=Math.floor(10000+rand()*400000);
-    else score=Math.floor(1000000+rand()*8000000);
-    rows.push({name,score,isNPC:true});
-  }
-  return rows;
+function watStartOfDay(d){
+  const watMs=60*60*1000;
+  const wat=new Date(d.getTime()+watMs);
+  return new Date(Date.UTC(wat.getUTCFullYear(),wat.getUTCMonth(),wat.getUTCDate(),0,0,0)-watMs);
 }
+
+function escapeHtml(s){
+  return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function aggregateRuns(data){
+  const byGuest={};
+  for(const r of data){
+    const k=r.guest_id||'anon';
+    if(!byGuest[k])byGuest[k]={guest_id:k,name:(r.player_name||k.slice(0,8)),score:0,nameLocked:false};
+    byGuest[k].score+=(r.score||0);
+    if(!byGuest[k].nameLocked&&r.player_name){byGuest[k].name=r.player_name;byGuest[k].nameLocked=true;}
+  }
+  return Object.values(byGuest).sort((a,b)=>b.score-a.score);
+}
+
 async function refreshLeaderboard(){
   const list=document.getElementById('lb-list');
   list.innerHTML='<p class="small" style="padding:16px;text-align:center">Loading…</p>';
+
+  if(!sb){
+    list.innerHTML='<p class="small" style="padding:32px 16px;text-align:center">Offline — the board needs internet.</p>';
+    return;
+  }
+
   let rows=[];
-  if(lbScope==='today'&&sb){
-    const now=new Date();const watMs=60*60*1000;const wat=new Date(now.getTime()+watMs);
-    const startWAT=new Date(Date.UTC(wat.getUTCFullYear(),wat.getUTCMonth(),wat.getUTCDate(),0,0,0)-watMs);
-    try{
-      const {data,error}=await sb.from('runs').select('guest_id, score, created_at').gte('created_at',startWAT.toISOString()).order('score',{ascending:false}).limit(200);
-      if(!error&&data&&data.length){
-        const best={};
-        for(const r of data){const k=r.guest_id||'anon';if(!best[k]||r.score>best[k])best[k]=r.score;}
-        rows=Object.entries(best).map(([gid,score])=>({name:gid===GUEST_ID?(state.playerName||'You'):gid.slice(0,6),score,isSelf:gid===GUEST_ID})).sort((a,b)=>b.score-a.score).slice(0,50);
-      }
-    }catch(e){console.warn('lb fetch failed',e);}
+  try{
+    const q=sb.from('runs').select('guest_id, player_name, score, created_at').order('created_at',{ascending:false});
+    const {data,error}=(lbScope==='today')
+      ? await q.gte('created_at',watStartOfDay(new Date()).toISOString()).limit(2000)
+      : await q.limit(5000);
+    if(error)throw error;
+    if(data&&data.length)rows=aggregateRuns(data);
+  }catch(e){
+    console.warn('leaderboard fetch failed',e);
   }
+
   if(rows.length===0){
-    const npcs=generateNPCs();
-    rows=[...npcs,{name:state.playerName||'You',score:lbScope==='today'?state.todayScore:lbScope==='division'?state.lifetime:state.wallet,isSelf:true}].sort((a,b)=>b.score-a.score);
+    list.innerHTML='<p class="small" style="padding:32px 16px;text-align:center;line-height:1.5">'+
+      (lbScope==='today'
+        ?'No rounds yet today.<br><strong>Be the first to play.</strong> 🏁'
+        :'No history yet.<br>Play a round to enter the board.')+
+      '</p>';
+    return;
   }
+
   list.innerHTML='';
-  rows.forEach((row,i)=>{
-    const el=document.createElement('div');el.className='lb-row'+(row.isSelf?' self':'');
-    el.innerHTML='<div class="lb-rank'+(i<3?' top':'')+'">#'+(i+1)+'</div><div class="lb-avatar">'+(row.name||'?').charAt(0).toUpperCase()+'</div><div class="lb-name">'+row.name+'</div><div class="lb-score">₦'+row.score.toLocaleString('en-NG')+'</div>';
+  rows.slice(0,50).forEach((row,i)=>{
+    const isSelf=row.guest_id===GUEST_ID;
+    const el=document.createElement('div');
+    el.className='lb-row'+(isSelf?' self':'');
+    el.innerHTML='<div class="lb-rank'+(i<3?' top':'')+'">#'+(i+1)+'</div>'+
+      '<div class="lb-avatar">'+escapeHtml((row.name||'?').charAt(0).toUpperCase())+'</div>'+
+      '<div class="lb-name">'+escapeHtml(row.name)+(isSelf?' (you)':'')+'</div>'+
+      '<div class="lb-score">₦'+row.score.toLocaleString('en-NG')+'</div>';
     list.appendChild(el);
   });
+
+  const selfRank=rows.findIndex(r=>r.guest_id===GUEST_ID);
+  if(selfRank>=50){
+    const div=document.createElement('div');
+    div.style.cssText='padding:6px;text-align:center;color:var(--muted);font-size:11px';
+    div.textContent='· · ·';
+    list.appendChild(div);
+    const row=rows[selfRank];
+    const el=document.createElement('div');
+    el.className='lb-row self';
+    el.innerHTML='<div class="lb-rank">#'+(selfRank+1)+'</div>'+
+      '<div class="lb-avatar">'+escapeHtml((row.name||'?').charAt(0).toUpperCase())+'</div>'+
+      '<div class="lb-name">'+escapeHtml(row.name)+' (you)</div>'+
+      '<div class="lb-score">₦'+row.score.toLocaleString('en-NG')+'</div>';
+    list.appendChild(el);
+  }
 }
 
 // SHOP
@@ -830,6 +868,20 @@ loadAnnouncement();
     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
   </svg>
 </a>
+  // ============ REALTIME LEADERBOARD ============
+let lbDebounce=null;
+function scheduleLbRefresh(){
+  clearTimeout(lbDebounce);
+  lbDebounce=setTimeout(()=>{
+    const active=document.getElementById('screen-leaderboard').classList.contains('active');
+    if(active)refreshLeaderboard();
+  },1200);
+}
+if(sb){
+  sb.channel('lb-runs-live')
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'runs'},scheduleLbRefresh)
+    .subscribe();
+}
 
 refreshHome();
 </script>
