@@ -200,12 +200,12 @@ sb.auth.onAuthStateChange((_event, session) => {
   if (session) showDash(session);
   else showLogin();
 });
-
 async function showDash(session) {
   const email = session.user.email;
-  // Verify admin via RLS — this will return empty if not admin
-  const { data, error } = await sb.from('admins').select('email').eq('email', email).maybeSingle();
-  if (error || !data) {
+  // Case-insensitive admin check via RPC — bypasses RLS
+  const { data: isAdmin, error } = await sb.rpc('check_is_admin');
+  if (error || !isAdmin) {
+    console.log('admin check failed:', { email, isAdmin, error });
     toast('Not an admin');
     await sb.auth.signOut();
     return;
@@ -213,7 +213,7 @@ async function showDash(session) {
   document.getElementById('login-view').style.display = 'none';
   document.getElementById('dash-view').style.display = 'block';
   document.getElementById('whoami').textContent = 'Signed in as ' + email;
-  loadMetrics();
+  loadMetrics()
 }
 
 function showLogin() {
