@@ -5,40 +5,62 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>Hustle City — Admin</title>
+<script>
+(function(){var t=localStorage.getItem('hc_theme')||'system';var d=t==='dark'||(t==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.setAttribute('data-theme',d?'dark':'light');})();
+</script>
 <style>
 :root{--bg:#F5EBDC;--surface:#E8D9BE;--text:#2E1F14;--muted:#7A6A55;--primary:#1F4A2E;--gold:#D4A017;--terra:#C86B3C;--danger:#A52818;--border:#DFD0B0}
+[data-theme="dark"]{--bg:#1A120B;--surface:#2A1D14;--text:#F5EBDC;--muted:#A89680;--primary:#D4A017;--border:#3D2A1C;--danger:#D65A4A}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:20px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:20px;transition:background 0.2s,color 0.2s}
 .wrap{max-width:1100px;margin:0 auto}
 h1{color:var(--primary);font-size:26px;margin-bottom:4px}
 .sub{color:var(--muted);font-size:13px;margin-bottom:24px}
-.card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;transition:background 0.2s}
+[data-theme="dark"] .card{background:#2A1D14}
 .card h2{font-size:16px;color:var(--primary);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
 .metric{background:var(--surface);border-radius:10px;padding:14px;text-align:center}
+[data-theme="dark"] .metric{background:#3D2A1C}
 .metric .v{font-size:26px;font-weight:900;color:var(--primary);font-variant-numeric:tabular-nums}
 .metric .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;font-weight:700;margin-top:2px}
-.btn{padding:10px 16px;border-radius:8px;font-size:14px;font-weight:800;cursor:pointer;border:none;font-family:inherit}
+.btn{padding:10px 16px;border-radius:8px;font-size:14px;font-weight:800;cursor:pointer;border:none;font-family:inherit;transition:transform 0.1s}
+.btn:active{transform:scale(0.97)}
 .btn-primary{background:var(--primary);color:#fff}
+[data-theme="dark"] .btn-primary{background:var(--gold);color:#2E1F14}
 .btn-gold{background:var(--gold);color:#2E1F14}
 .btn-danger{background:var(--danger);color:#fff}
 .btn-outline{background:transparent;border:2px solid var(--primary);color:var(--primary)}
-input,textarea,select{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:#fff;margin-bottom:8px}
+input,textarea,select{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:#fff;color:var(--text);margin-bottom:8px}
+[data-theme="dark"] input,[data-theme="dark"] textarea,[data-theme="dark"] select{background:#3D2A1C;color:#F5EBDC}
 .tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
-.tab{padding:10px 16px;border-radius:8px;background:var(--surface);border:none;font-family:inherit;font-weight:700;font-size:13px;color:var(--muted);cursor:pointer}
+.tab{padding:10px 16px;border-radius:8px;background:var(--surface);border:none;font-family:inherit;font-weight:700;font-size:13px;color:var(--muted);cursor:pointer;transition:all 0.15s}
+[data-theme="dark"] .tab{background:#3D2A1C;color:#A89680}
 .tab.active{background:var(--primary);color:#fff}
+[data-theme="dark"] .tab.active{background:var(--gold);color:#2E1F14}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--border)}
 th{font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted)}
 .pill{display:inline-block;padding:3px 8px;border-radius:10px;font-size:11px;font-weight:800;background:var(--surface);color:var(--text)}
 .pill.good{background:#D5E8D9;color:#1F4A2E}
 .pill.bad{background:#F2D5D1;color:#A52818}
+[data-theme="dark"] .pill.good{background:#2E5B3A;color:#D5E8D9}
+[data-theme="dark"] .pill.bad{background:#4A1F18;color:#F2D5D1}
 #login-view{max-width:400px;margin:80px auto}
 #dash-view{display:none}
 .empty{color:var(--muted);font-size:13px;padding:20px;text-align:center}
 .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#2E1F14;color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:100}
 .toast.show{opacity:1}
+.theme-toggle{position:fixed;top:20px;right:20px;width:40px;height:40px;border-radius:50%;
+  background:#fff;border:1px solid var(--border);cursor:pointer;display:flex;
+  align-items:center;justify-content:center;font-size:18px;z-index:60;font-family:inherit;
+  box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+[data-theme="dark"] .theme-toggle{background:#2A1D14;border-color:#3D2A1C}
+.live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#2E5B3A;margin-right:6px;vertical-align:middle;
+  animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+code{background:var(--surface);padding:2px 6px;border-radius:4px;font-size:12px}
 </style>
 </head>
 <body>
@@ -63,11 +85,16 @@ th{font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--mute
       <h1>Welcome Eng. Iniubong!</h1>
       <p class="sub" id="whoami" style="margin-bottom:0"></p>
     </div>
-    <button class="btn btn-outline" id="btn-logout">Sign out</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-outline" id="btn-change-pw">Change password</button>
+      <button class="btn btn-outline" id="btn-logout">Sign out</button>
+    </div>
   </div>
 
   <div class="tabs">
     <button class="tab active" data-tab="metrics">Metrics</button>
+    <button class="tab" data-tab="live">🟢 Live</button>
+    <button class="tab" data-tab="hustles">Hustles</button>
     <button class="tab" data-tab="players">Players</button>
     <button class="tab" data-tab="runs">Runs</button>
     <button class="tab" data-tab="votes">Votes &amp; Ideas</button>
@@ -83,6 +110,18 @@ th{font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--mute
     <div class="grid" id="metrics-grid"><div class="empty">Loading…</div></div>
     <h2 style="margin-top:24px">Top events (last 24h)</h2>
     <div id="events-top"><div class="empty">Loading…</div></div>
+  </div>
+
+  <div id="panel-live" class="panel card" style="display:none">
+    <h2><span class="live-dot"></span>Active players right now</h2>
+    <p class="sub" style="margin-bottom:12px">Auto-refreshes every 5 seconds. Open the game on another device to see it appear here.</p>
+    <div id="live-list"><div class="empty">Loading…</div></div>
+  </div>
+
+  <div id="panel-hustles" class="panel card" style="display:none">
+    <h2>Hustle unlock toggles</h2>
+    <p class="sub" style="margin-bottom:12px">Flip to open a hustle to all players. Vote counts are shown inline.</p>
+    <div id="hustles-list"><div class="empty">Loading…</div></div>
   </div>
 
   <div id="panel-players" class="panel card" style="display:none">
@@ -121,10 +160,23 @@ th{font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--mute
   </div>
 
   <div id="panel-brand" class="panel card" style="display:none">
-    <h2>Brand slots</h2>
-    <input id="brand-tool" placeholder="tool_key (e.g. loudspeaker)">
+    <h2>Brand ad slots</h2>
+    <p class="sub" style="margin-bottom:12px">Assign a sponsor to any visible surface in the game. Slot key picks the position. Slot number orders multiple ads on the same surface.</p>
+    <select id="brand-tool">
+      <option value="billboard">Billboard (top of game)</option>
+      <option value="tool_1">Tool slot 1 (left)</option>
+      <option value="tool_2">Tool slot 2 (center)</option>
+      <option value="tool_3">Tool slot 3 (right)</option>
+      <option value="umbrella">Umbrella (during rain)</option>
+      <option value="handcart">Handcart</option>
+      <option value="loudspeaker">Loudspeaker</option>
+      <option value="shelf">Shelf back</option>
+      <option value="stall_front">Stall front</option>
+    </select>
+    <input id="brand-number" type="number" placeholder="Slot number (1, 2, 3...)" value="1">
     <input id="brand-name" placeholder="Brand name (e.g. Dangote)">
     <input id="brand-url" placeholder="Art URL (https://...)">
+    <input id="brand-color" placeholder="Brand color hex (e.g. #D4A017)" value="#D4A017">
     <button class="btn btn-primary" id="btn-brand-add">Create slot</button>
     <h2 style="margin-top:24px">All slots</h2>
     <div id="brand-list"><div class="empty">Loading…</div></div>
@@ -140,6 +192,7 @@ th{font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--mute
   </div>
 </div>
 
+<button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">🌙</button>
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -163,6 +216,20 @@ function esc(s) {
 }
 
 function fmtN(n) { return '₦' + Number(n || 0).toLocaleString('en-NG'); }
+
+// ---------------- THEME ----------------
+(function(){
+  const btn = document.getElementById('theme-toggle');
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+  btn.textContent = dark ? '☀️' : '🌙';
+  btn.addEventListener('click', () => {
+    const current = localStorage.getItem('hc_theme') || 'system';
+    const next = current === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('hc_theme', next);
+    document.documentElement.setAttribute('data-theme', next);
+    btn.textContent = next === 'dark' ? '☀️' : '🌙';
+  });
+})();
 
 // ---------------- AUTH ----------------
 async function doLogin() {
@@ -196,13 +263,24 @@ document.getElementById('btn-logout').addEventListener('click', async () => {
   location.reload();
 });
 
+document.getElementById('btn-change-pw').addEventListener('click', async () => {
+  const newPw = prompt('Enter new password (min 8 characters):');
+  if (!newPw) return;
+  if (newPw.length < 8) return toast('Password must be 8+ characters');
+  const confirmPw = prompt('Confirm new password:');
+  if (confirmPw !== newPw) return toast('Passwords do not match');
+  const { error } = await sb.auth.updateUser({ password: newPw });
+  if (error) return toast('Error: ' + error.message);
+  toast('Password updated. Use it next time you sign in.');
+});
+
 sb.auth.onAuthStateChange((_event, session) => {
   if (session) showDash(session);
   else showLogin();
 });
+
 async function showDash(session) {
   const email = session.user.email;
-  // Case-insensitive admin check via RPC — bypasses RLS
   const { data: isAdmin, error } = await sb.rpc('check_is_admin');
   if (error || !isAdmin) {
     console.log('admin check failed:', { email, isAdmin, error });
@@ -213,7 +291,7 @@ async function showDash(session) {
   document.getElementById('login-view').style.display = 'none';
   document.getElementById('dash-view').style.display = 'block';
   document.getElementById('whoami').textContent = 'Signed in as ' + email;
-  loadMetrics()
+  loadMetrics();
 }
 
 function showLogin() {
@@ -229,9 +307,18 @@ document.querySelectorAll('.tab').forEach(t => {
     document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
     const panel = document.getElementById('panel-' + t.dataset.tab);
     if (panel) panel.style.display = 'block';
-    const fn = { metrics: loadMetrics, players: loadPlayers, runs: loadRuns,
-      votes: loadVotes, feedback: loadFeedback, referrals: loadReferrals,
-      announce: loadAnnouncements, brand: loadBrandSlots }[t.dataset.tab];
+    const fn = {
+      metrics: loadMetrics,
+      live: loadLive,
+      hustles: loadHustles,
+      players: loadPlayers,
+      runs: loadRuns,
+      votes: loadVotes,
+      feedback: loadFeedback,
+      referrals: loadReferrals,
+      announce: loadAnnouncements,
+      brand: loadBrandSlots
+    }[t.dataset.tab];
     if (fn) fn();
   });
 });
@@ -261,7 +348,6 @@ async function loadMetrics() {
   ];
   grid.innerHTML = m.map(x => '<div class="metric"><div class="v">' + x.v + '</div><div class="l">' + x.l + '</div></div>').join('');
 
-  // Top events
   const { data: events } = await sb.from('events')
     .select('name').gte('created_at', dayAgo).limit(1000);
   const counts = {};
@@ -274,12 +360,76 @@ async function loadMetrics() {
     : '<div class="empty">No events yet.</div>';
 }
 
+// ---------------- LIVE PRESENCE ----------------
+let liveChannel = null;
+let liveUsers = {};
+
+function loadLive() {
+  const el = document.getElementById('live-list');
+  if (!liveChannel) {
+    liveChannel = sb.channel('hc-presence');
+    liveChannel.on('presence', { event: 'sync' }, () => {
+      const state = liveChannel.presenceState();
+      liveUsers = {};
+      Object.keys(state).forEach(key => {
+        const metas = state[key];
+        if (metas && metas.length) liveUsers[key] = metas[metas.length - 1];
+      });
+      renderLive();
+    });
+    liveChannel.subscribe();
+  }
+  renderLive();
+}
+
+function renderLive() {
+  const el = document.getElementById('live-list');
+  if (!el) return;
+  const entries = Object.values(liveUsers).sort((a, b) => (b.ts || 0) - (a.ts || 0));
+  if (!entries.length) {
+    el.innerHTML = '<div class="empty">Nobody online right now. Open the game in another tab or device and it will appear here.</div>';
+    return;
+  }
+  el.innerHTML = '<table><tr><th>Name</th><th>Guest</th><th>Activity</th><th>Last seen</th></tr>' +
+    entries.map(u => {
+      const seen = u.ts ? Math.floor((Date.now() - u.ts) / 1000) + 's ago' : '—';
+      return '<tr><td>' + esc(u.name || 'Guest') + '</td><td><code>' + esc((u.guest_id || '').slice(0, 10)) + '</code></td><td><span class="pill good">' + esc(u.activity || '?') + '</span></td><td>' + seen + '</td></tr>';
+    }).join('') + '</table>';
+}
+
+setInterval(() => {
+  const panel = document.getElementById('panel-live');
+  if (panel && panel.style.display !== 'none') renderLive();
+}, 5000);
+
+// ---------------- HUSTLES ----------------
+async function loadHustles() {
+  const el = document.getElementById('hustles-list');
+  el.innerHTML = '<div class="empty">Loading…</div>';
+  const [{ data: hustles }, { data: votes }] = await Promise.all([
+    sb.from('hustles').select('*').order('sort_order'),
+    sb.from('votes').select('hustle_key')
+  ]);
+  const voteCounts = {};
+  (votes || []).forEach(v => { if (v.hustle_key) voteCounts[v.hustle_key] = (voteCounts[v.hustle_key] || 0) + 1; });
+  if (!hustles || !hustles.length) return el.innerHTML = '<div class="empty">No hustles in registry. Run the SQL migration.</div>';
+  el.innerHTML = '<table><tr><th>Icon</th><th>Name</th><th>Key</th><th>Votes</th><th>Status</th><th></th></tr>' +
+    hustles.map(h => '<tr><td style="font-size:20px">' + esc(h.icon || '') + '</td><td>' + esc(h.name) + '</td><td><code>' + esc(h.key) + '</code></td><td>' + (voteCounts[h.key] || 0) + '</td><td>' + (h.unlocked ? '<span class="pill good">Unlocked</span>' : '<span class="pill">Locked</span>') + '</td><td><button class="btn ' + (h.unlocked ? 'btn-outline' : 'btn-primary') + '" data-toggle-hustle="' + esc(h.key) + '" data-unlocked="' + h.unlocked + '" style="padding:6px 12px;font-size:12px">' + (h.unlocked ? 'Lock' : 'Unlock') + '</button></td></tr>').join('') +
+    '</table>';
+  el.querySelectorAll('[data-toggle-hustle]').forEach(b => b.addEventListener('click', async () => {
+    const next = b.dataset.unlocked !== 'true';
+    await sb.from('hustles').update({ unlocked: next }).eq('key', b.dataset.toggleHustle);
+    toast(next ? 'Unlocked' : 'Locked');
+    loadHustles();
+  }));
+}
+
 // ---------------- PLAYERS ----------------
 async function loadPlayers() {
   const el = document.getElementById('players-list');
   el.innerHTML = '<div class="empty">Loading…</div>';
   const { data } = await sb.from('players').select('*').order('created_at', { ascending: false }).limit(100);
-  if (!data || !data.length) return el.innerHTML = '<div class="empty">No signed-in players yet (SSO not launched).</div>';
+  if (!data || !data.length) return el.innerHTML = '<div class="empty">No signed-in players yet.</div>';
   el.innerHTML = '<table><tr><th>Name</th><th>Email</th><th>Division</th><th>Wallet</th><th>Lifetime</th><th>Banned</th></tr>' +
     data.map(p => '<tr><td>' + esc(p.display_name) + '</td><td>' + esc(p.email) + '</td><td>' + esc(p.division) + '</td><td>' + fmtN(p.wallet_balance) + '</td><td>' + fmtN(p.lifetime_earned) + '</td><td>' + (p.banned ? '<span class="pill bad">Yes</span>' : '<span class="pill good">No</span>') + '</td></tr>').join('') +
     '</table>';
@@ -291,8 +441,8 @@ async function loadRuns() {
   el.innerHTML = '<div class="empty">Loading…</div>';
   const { data } = await sb.from('runs').select('*').order('created_at', { ascending: false }).limit(50);
   if (!data || !data.length) return el.innerHTML = '<div class="empty">No runs yet.</div>';
-  el.innerHTML = '<table><tr><th>When</th><th>Guest</th><th>Stall</th><th>Score</th><th>Valid</th><th>Boost</th></tr>' +
-    data.map(r => '<tr><td>' + esc(new Date(r.created_at).toLocaleString()) + '</td><td>' + esc((r.guest_id || '').slice(0, 8)) + '</td><td>' + esc(r.stall_key) + '</td><td>' + fmtN(r.score) + '</td><td>' + (r.valid ? '<span class="pill good">✓</span>' : '<span class="pill bad">✗</span>') + '</td><td>' + (r.boost_used ? '⚡' : '—') + '</td></tr>').join('') +
+  el.innerHTML = '<table><tr><th>When</th><th>Guest</th><th>Name</th><th>Stall</th><th>Score</th><th>Valid</th><th>Boost</th></tr>' +
+    data.map(r => '<tr><td>' + esc(new Date(r.created_at).toLocaleString()) + '</td><td><code>' + esc((r.guest_id || '').slice(0, 8)) + '</code></td><td>' + esc(r.player_name || '—') + '</td><td>' + esc(r.stall_key) + '</td><td>' + fmtN(r.score) + '</td><td>' + (r.valid ? '<span class="pill good">✓</span>' : '<span class="pill bad">✗</span>') + '</td><td>' + (r.boost_used ? '⚡' : '—') + '</td></tr>').join('') +
     '</table>';
 }
 
@@ -302,7 +452,12 @@ async function loadVotes() {
   const writeEl = document.getElementById('votes-writein');
   totalsEl.innerHTML = '<div class="empty">Loading…</div>';
   writeEl.innerHTML = '<div class="empty">Loading…</div>';
-  const { data } = await sb.from('votes').select('*').order('created_at', { ascending: false }).limit(1000);
+  const { data, error } = await sb.from('votes').select('*').order('created_at', { ascending: false }).limit(1000);
+  if (error) {
+    totalsEl.innerHTML = '<div class="empty" style="color:var(--danger)">Query error: ' + esc(error.message) + '</div>';
+    writeEl.innerHTML = '<div class="empty" style="color:var(--danger)">' + esc(error.details || '') + '</div>';
+    return;
+  }
   if (!data || !data.length) {
     totalsEl.innerHTML = '<div class="empty">No votes yet.</div>';
     writeEl.innerHTML = '<div class="empty">No write-ins yet.</div>';
@@ -341,7 +496,7 @@ async function loadReferrals() {
   const { data } = await sb.from('referrals').select('*').order('created_at', { ascending: false }).limit(100);
   if (!data || !data.length) return el.innerHTML = '<div class="empty">No referrals yet.</div>';
   el.innerHTML = '<table><tr><th>When</th><th>Referrer</th><th>Referred</th><th>Status</th></tr>' +
-    data.map(r => '<tr><td>' + esc(new Date(r.created_at).toLocaleString()) + '</td><td>' + esc((r.referrer_id || '').slice(0, 10)) + '</td><td>' + esc((r.referred_id || '').slice(0, 10)) + '</td><td>' + esc(r.status) + '</td></tr>').join('') +
+    data.map(r => '<tr><td>' + esc(new Date(r.created_at).toLocaleString()) + '</td><td>' + esc((r.referrer_id || '').slice(0, 12)) + '</td><td>' + esc((r.referred_id || '').slice(0, 12)) + '</td><td>' + esc(r.status) + '</td></tr>').join('') +
     '</table>';
 }
 
@@ -380,8 +535,8 @@ async function loadBrandSlots() {
   el.innerHTML = '<div class="empty">Loading…</div>';
   const { data } = await sb.from('brand_slots').select('*').order('created_at', { ascending: false }).limit(50);
   if (!data || !data.length) return el.innerHTML = '<div class="empty">No slots yet.</div>';
-  el.innerHTML = '<table><tr><th>Tool</th><th>Brand</th><th>Art</th><th>Active</th><th></th></tr>' +
-    data.map(s => '<tr><td>' + esc(s.tool_key) + '</td><td>' + esc(s.brand_name || '') + '</td><td>' + (s.brand_art_url ? '🔗' : '—') + '</td><td>' + (s.active ? '<span class="pill good">Yes</span>' : '<span class="pill">No</span>') + '</td><td><button class="btn btn-outline" data-toggle="' + s.id + '" data-active="' + s.active + '" style="padding:4px 10px;font-size:11px">Toggle</button></td></tr>').join('') +
+  el.innerHTML = '<table><tr><th>Slot</th><th>#</th><th>Brand</th><th>Color</th><th>Art</th><th>Active</th><th></th></tr>' +
+    data.map(s => '<tr><td><code>' + esc(s.slot_key || s.tool_key || '—') + '</code></td><td>' + (s.slot_number || '—') + '</td><td>' + esc(s.brand_name || '') + '</td><td>' + (s.brand_color ? '<span style="display:inline-block;width:16px;height:16px;border-radius:4px;background:' + esc(s.brand_color) + ';vertical-align:middle;border:1px solid var(--border)"></span> ' + esc(s.brand_color) : '—') + '</td><td>' + (s.brand_art_url ? '🔗' : '—') + '</td><td>' + (s.active ? '<span class="pill good">Yes</span>' : '<span class="pill">No</span>') + '</td><td><button class="btn btn-outline" data-toggle="' + s.id + '" data-active="' + s.active + '" style="padding:4px 10px;font-size:11px">Toggle</button></td></tr>').join('') +
     '</table>';
   el.querySelectorAll('[data-toggle]').forEach(b => b.addEventListener('click', async () => {
     const active = b.dataset.active === 'true';
@@ -391,14 +546,16 @@ async function loadBrandSlots() {
 }
 
 document.getElementById('btn-brand-add').addEventListener('click', async () => {
-  const tool_key = document.getElementById('brand-tool').value.trim();
+  const slot_key = document.getElementById('brand-tool').value;
+  const slot_number = parseInt(document.getElementById('brand-number').value || '1', 10);
   const brand_name = document.getElementById('brand-name').value.trim();
   const brand_art_url = document.getElementById('brand-url').value.trim();
-  if (!tool_key) return toast('Tool key required');
+  const brand_color = document.getElementById('brand-color').value.trim() || '#D4A017';
   if (brand_art_url && !/^https:\/\//i.test(brand_art_url)) return toast('Art URL must be https://');
-  const { error } = await sb.from('brand_slots').insert({ tool_key, brand_name, brand_art_url, active: false });
+  const { error } = await sb.from('brand_slots').insert({
+    slot_key, slot_number, brand_name, brand_art_url, brand_color, active: false, tool_key: slot_key
+  });
   if (error) return toast('Error: ' + error.message);
-  document.getElementById('brand-tool').value = '';
   document.getElementById('brand-name').value = '';
   document.getElementById('brand-url').value = '';
   toast('Created'); loadBrandSlots();
