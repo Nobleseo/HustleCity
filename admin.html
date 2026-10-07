@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Hustle City — Admin</title>
+<style>
+:root{--bg:#F5EBDC;--surface:#E8D9BE;--text:#2E1F14;--muted:#7A6A55;--primary:#1F4A2E;--gold:#D4A017;--terra:#C86B3C;--danger:#A52818;--border:#DFD0B0}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:20px}
+.wrap{max-width:1100px;margin:0 auto}
+h1{color:var(--primary);font-size:26px;margin-bottom:4px}
+.sub{color:var(--muted);font-size:13px;margin-bottom:24px}
+.card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{font-size:16px;color:var(--primary);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.metric{background:var(--surface);border-radius:10px;padding:14px;text-align:center}
+.metric .v{font-size:26px;font-weight:900;color:var(--primary);font-variant-numeric:tabular-nums}
+.metric .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;font-weight:700;margin-top:2px}
+.btn{padding:10px 16px;border-radius:8px;font-size:14px;font-weight:800;cursor:pointer;border:none;font-family:inherit}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-gold{background:var(--gold);color:#2E1F14}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-outline{background:transparent;border:2px solid var(--primary);color:var(--primary)}
+input,textarea,select{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:#fff;margin-bottom:8px}
+.tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.tab{padding:10px 16px;border-radius:8px;background:var(--surface);border:none;font-family:inherit;font-weight:700;font-size:13px;color:var(--muted);cursor:pointer}
+.tab.active{background:var(--primary);color:#fff}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--border)}
+th{font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted)}
+.pill{display:inline-block;padding:3px 8px;border-radius:10px;font-size:11px;font-weight:800;background:var(--surface);color:var(--text)}
+.pill.good{background:#D5E8D9;color:#1F4A2E}
+.pill.bad{background:#F2D5D1;color:#A52818}
+#login-view{max-width:400px;margin:80px auto}
+#dash-view{display:none}
+.empty{color:var(--muted);font-size:13px;padding:20px;text-align:center}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#2E1F14;color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:100}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-view" class="wrap">
+  <div class="card">
+    <h1>Hustle City Admin</h1>
+    <p class="sub">Sign in with your allowlisted email. We'll send a magic link.</p>
+    <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email">
+    <button class="btn btn-primary" id="btn-login" style="width:100%">Send magic link</button>
+    <p class="sub" id="login-msg" style="margin-top:12px;margin-bottom:0"></p>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dash-view" class="wrap">
+  <div class="top">
+    <div>
+      <h1>Hustle City Admin</h1>
+      <p class="sub" id="whoami" style="margin-bottom:0"></p>
+    </div>
+    <button class="btn btn-outline" id="btn-logout">Sign out</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="metrics">Metrics</button>
+    <button class="tab" data-tab="players">Players</button>
+    <button class="tab" data-tab="runs">Runs</button>
+    <button class="tab" data-tab="votes">Votes &amp; Ideas</button>
+    <button class="tab" data-tab="feedback">Feedback</button>
+    <button class="tab" data-tab="referrals">Referrals</button>
+    <button class="tab" data-tab="announce">Announce</button>
+    <button class="tab" data-tab="brand">Brand slots</button>
+    <button class="tab" data-tab="export">Export</button>
+  </div>
+
+  <div id="panel-metrics" class="panel card">
+    <h2>Metrics</h2>
+    <div class="grid" id="metrics-grid"><div class="empty">Loading…</div></div>
+    <h2 style="margin-top:24px">Top events (last 24h)</h2>
+    <div id="events-top"><div class="empty">Loading…</div></div>
+  </div>
+
+  <div id="panel-players" class="panel card" style="display:none">
+    <h2>Players (recent 100)</h2>
+    <div id="players-list"><div class="empty">Loading…</div></div>
+  </div>
+
+  <div id="panel-runs" class="panel card" style="display:none">
+    <h2>Latest runs (50)</h2>
+    <div id="runs-list"><div class="empty">Loading…</div></div>
+  </div>
+
+  <div id="panel-votes" class="panel card" style="display:none">
+    <h2>Locked-hustle votes</h2>
+    <div id="votes-totals"><div class="empty">Loading…</div></div>
+    <h2 style="margin-top:24px">Write-in ideas</h2>
+    <div id="votes-writein"><div class="empty">Loading…</div></div>
+  </div>
+
+  <div id="panel-feedback" class="panel card" style="display:none">
+    <h2>Player feedback (50)</h2>
+    <div id="feedback-list"><div class="empty">Loading…</div></div>
+  </div>
+
+  <div id="panel-referrals" class="panel card" style="display:none">
+    <h2>Referrals</h2>
+    <div id="referrals-list"><div class="empty">Loading…</div></div>
+  </div>
+
+  <div id="panel-announce" class="panel card" style="display:none">
+    <h2>Post an announcement</h2>
+    <textarea id="announce-msg" rows="3" placeholder="Message shown at the top of the home screen"></textarea>
+    <button class="btn btn-primary" id="btn-announce">Post live</button>
+    <h2 style="margin-top:24px">Recent</h2>
+    <div id="announce-list"><div class="empty">Loading…</div></div>
+  </div>
+
+  <div id="panel-brand" class="panel card" style="display:none">
+    <h2>Brand slots</h2>
+    <input id="brand-tool" placeholder="tool_key (e.g. loudspeaker)">
+    <input id="brand-name" placeholder="Brand name (e.g. Dangote)">
+    <input id="brand-url" placeholder="Art URL (https://...)">
+    <button class="btn btn-primary" id="btn-brand-add">Create slot</button>
+    <h2 style="margin-top:24px">All slots</h2>
+    <div id="brand-list"><div class="empty">Loading…</div></div>
+  </div>
+
+  <div id="panel-export" class="panel card" style="display:none">
+    <h2>Export CSVs</h2>
+    <p class="sub">Download raw data for offline analysis.</p>
+    <button class="btn btn-primary" data-export="runs" style="margin-right:8px">Runs</button>
+    <button class="btn btn-primary" data-export="votes" style="margin-right:8px">Votes</button>
+    <button class="btn btn-primary" data-export="feedback" style="margin-right:8px">Feedback</button>
+    <button class="btn btn-primary" data-export="referrals">Referrals</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+'use strict';
+
+const SUPABASE_URL = 'https://xlyefqzqxfjhsigtxgnc.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhseWVmMXpxeGZqaHNpZ3R4Z25jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzMDg4NTIsImV4cCI6MjEwNjg4NDg1Mn0.EzrZtCNlWCAGgbGFRG668WsAUSXbnrENxexBFMUNzH0';
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+}
+
+function fmtN(n) { return '₦' + Number(n || 0).toLocaleString('en-NG'); }
+
+// ---------------- AUTH ----------------
+document.getElementById('btn-login').addEventListener('click', async () => {
+  const email = document.getElementById('login-email').value.trim();
+  if (!email) return;
+  const { error } = await sb.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: location.origin + location.pathname }
+  });
+  document.getElementById('login-msg').textContent = error
+    ? 'Error: ' + error.message
+    : 'Check your email for the magic link.';
+});
+
+document.getElementById('btn-logout').addEventListener('click', async () => {
+  await sb.auth.signOut();
+  location.reload();
+});
+
+sb.auth.onAuthStateChange((_event, session) => {
+  if (session) showDash(session);
+  else showLogin();
+});
+
+async function showDash(session) {
+  const email = session.user.email;
+  // Verify admin via RLS — this will return empty if not admin
+  const { data, error } = await sb.from('admins').select('email').eq('email', email).maybeSingle();
+  if (error || !data) {
+    toast('Not an admin');
+    await sb.auth.signOut();
+    return;
+  }
+  document.getElementById('login-view').style.display = 'none';
+  document.getElementById('dash-view').style.display = 'block';
+  document.getElementById('whoami').textContent = 'Signed in as ' + email;
+  loadMetrics();
+}
+
+function showLogin() {
+  document.getElementById('login-view').style.display = 'block';
+  document.getElementById('dash-view').style.display = 'none';
+}
+
+// ---------------- TABS ----------------
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
+    const panel = document.getElementById('panel-' + t.dataset.tab);
+    if (panel) panel.style.display = 'block';
+    const fn = { metrics: loadMetrics, players: loadPlayers, runs: loadRuns,
+      votes: loadVotes, feedback: loadFeedback, referrals: loadReferrals,
+      announce: loadAnnouncements, brand: loadBrandSlots }[t.dataset.tab];
+    if (fn) fn();
+  });
+});
+
+// ---------------- METRICS ----------------
+async function loadMetrics() {
+  const grid = document.getElementById('metrics-grid');
+  grid.innerHTML = '<div class="empty">Loading…</div>';
+  const dayAgo = new Date(Date.now() - 86400000).toISOString();
+
+  const [guests, runs24, runsTotal, votes, feedback, referralsDone] = await Promise.all([
+    sb.from('guests').select('guest_id', { count: 'exact', head: true }),
+    sb.from('runs').select('*', { count: 'exact', head: true }).gte('created_at', dayAgo),
+    sb.from('runs').select('*', { count: 'exact', head: true }),
+    sb.from('votes').select('*', { count: 'exact', head: true }),
+    sb.from('feedback').select('*', { count: 'exact', head: true }),
+    sb.from('referrals').select('*', { count: 'exact', head: true }).eq('status', 'completed')
+  ]);
+
+  const m = [
+    { v: guests.count || 0, l: 'Total guests' },
+    { v: runs24.count || 0, l: 'Runs (24h)' },
+    { v: runsTotal.count || 0, l: 'Runs (all time)' },
+    { v: votes.count || 0, l: 'Votes' },
+    { v: feedback.count || 0, l: 'Feedback' },
+    { v: referralsDone.count || 0, l: 'Referrals done' }
+  ];
+  grid.innerHTML = m.map(x => '<div class="metric"><div class="v">' + x.v + '</div><div class="l">' + x.l + '</div></div>').join('');
+
+  // Top events
+  const { data: events } = await sb.from('events')
+    .select('name').gte('created_at', dayAgo).limit(1000);
+  const counts = {};
+  (events || []).forEach(e => { counts[e.name] = (counts[e.name] || 0) + 1; });
+  const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+  const evEl = document.getElementById('events-top');
+  evEl.innerHTML = top.length
+    ? '<table><tr><th>Event</th><th>Count (24h)</th></tr>' +
+      top.map(([n, c]) => '<tr><td>' + esc(n) + '</td><td>' + c + '</td></tr>').join('') + '</table>'
+    : '<div class="empty">No events yet.</div>';
+}
+
+// ---------------- PLAYERS ----------------
+async function loadPlayers() {
+  const el = document.getElementById('players-list');
+  el.innerHTML = '<div class="empty">Loading…</div>';
+  const { data } = await sb.from('players').select('*').order('created_at', { ascending: false }).limit(100);
+  if (!data || !data.length) return el.innerHTML = '<div class="empty">No signed-in players yet (SSO not launched).</div>';
+  el.innerHTML = '<table><tr><th>Name</th><th>Email</th><th>Division</th><th>Wallet</th><th>Lifetime</th><th>Banned</th></tr>' +
+    data.map(p => '<tr><td>' + esc(p.display_name) + '</td><td>' + esc(p.email) + '</td><td>' + esc(p.division) + '</td><td>' + fmtN(p.wallet_balance) + '</td><td>' + fmtN(p.lifetime_earned) + '</td><td>' + (p.banned ? '<span class="pill bad">Yes</span>' : '<span class="pill good">No</span>') + '</td></tr>').join('') +
+    '</table>';
+}
+
+// ---------------- RUNS ----------------
+async function loadRuns() {
+  const el = document.getElementById('runs-list');
+  el.innerHTML = '<div class="empty">Loading…</div>';
+  const { data } = await sb.from('runs').select('*').order('created_at', { ascending: false }).limit(50);
+  if (!data || !data.length) return el.innerHTML = '<div class="empty">No runs yet.</div>';
+  el.innerHTML = '<table><tr><th>When</th><th>Guest</th><th>Stall</th><th>Score</th><th>Valid</th><th>Boost</th></tr>' +
+    data.map(r => '<tr><td>' + esc(new Date(r.created_at).toLocaleString()) + '</td><td>' + esc((r.guest_id || '').slice(0, 8)) + '</td><td>' + esc(r.stall_key) + '</td><td>' + fmtN(r.score) + '</td><td>' + (r.valid ? '<span class="pill good">✓</span>' : '<span class="pill bad">✗</span>') + '</td><td>' + (r.boost_used ? '⚡' : '—') + '</td></tr>').join('') +
+    '</table>';
+}
+
+// ---------------- VOTES ----------------
+async function loadVotes() {
+  const totalsEl = document.getElementById('votes-totals');
+  const writeEl = document.getElementById('votes-writein');
+  totalsEl.innerHTML = '<div class="empty">Loading…</div>';
+  writeEl.innerHTML = '<div class="empty">Loading…</div>';
+  const { data } = await sb.from('votes').select('*').order('created_at', { ascending: false }).limit(1000);
+  if (!data || !data.length) {
+    totalsEl.innerHTML = '<div class="empty">No votes yet.</div>';
+    writeEl.innerHTML = '<div class="empty">No write-ins yet.</div>';
+    return;
+  }
+  const totals = {};
+  const writeins = [];
+  data.forEach(v => {
+    if (v.hustle_key) totals[v.hustle_key] = (totals[v.hustle_key] || 0) + 1;
+    if (v.write_in_text) writeins.push(v);
+  });
+  const tot = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+  totalsEl.innerHTML = tot.length
+    ? '<table><tr><th>Hustle</th><th>Votes</th></tr>' + tot.map(([h, c]) => '<tr><td>' + esc(h) + '</td><td>' + c + '</td></tr>').join('') + '</table>'
+    : '<div class="empty">No locked-hustle votes yet.</div>';
+  writeEl.innerHTML = writeins.length
+    ? '<table><tr><th>When</th><th>Idea</th></tr>' + writeins.map(w => '<tr><td>' + esc(new Date(w.created_at).toLocaleString()) + '</td><td>' + esc(w.write_in_text) + '</td></tr>').join('') + '</table>'
+    : '<div class="empty">No write-in ideas yet.</div>';
+}
+
+// ---------------- FEEDBACK ----------------
+async function loadFeedback() {
+  const el = document.getElementById('feedback-list');
+  el.innerHTML = '<div class="empty">Loading…</div>';
+  const { data } = await sb.from('feedback').select('*').order('created_at', { ascending: false }).limit(50);
+  if (!data || !data.length) return el.innerHTML = '<div class="empty">No feedback yet.</div>';
+  el.innerHTML = '<table><tr><th>When</th><th>Mood</th><th>Message</th></tr>' +
+    data.map(f => '<tr><td>' + esc(new Date(f.created_at).toLocaleString()) + '</td><td style="font-size:20px">' + esc(f.mood || '—') + '</td><td>' + esc(f.message || '') + '</td></tr>').join('') +
+    '</table>';
+}
+
+// ---------------- REFERRALS ----------------
+async function loadReferrals() {
+  const el = document.getElementById('referrals-list');
+  el.innerHTML = '<div class="empty">Loading…</div>';
+  const { data } = await sb.from('referrals').select('*').order('created_at', { ascending: false }).limit(100);
+  if (!data || !data.length) return el.innerHTML = '<div class="empty">No referrals yet.</div>';
+  el.innerHTML = '<table><tr><th>When</th><th>Referrer</th><th>Referred</th><th>Status</th></tr>' +
+    data.map(r => '<tr><td>' + esc(new Date(r.created_at).toLocaleString()) + '</td><td>' + esc((r.referrer_id || '').slice(0, 10)) + '</td><td>' + esc((r.referred_id || '').slice(0, 10)) + '</td><td>' + esc(r.status) + '</td></tr>').join('') +
+    '</table>';
+}
+
+// ---------------- ANNOUNCEMENTS ----------------
+async function loadAnnouncements() {
+  const el = document.getElementById('announce-list');
+  el.innerHTML = '<div class="empty">Loading…</div>';
+  const { data } = await sb.from('announcements').select('*').order('created_at', { ascending: false }).limit(30);
+  if (!data || !data.length) return el.innerHTML = '<div class="empty">None yet.</div>';
+  el.innerHTML = data.map(a =>
+    '<div style="padding:10px 0;border-bottom:1px solid var(--border)">' +
+    '<span class="pill ' + (a.active ? 'good' : 'bad') + '">' + (a.active ? 'Active' : 'Off') + '</span> ' +
+    '<span style="font-size:12px;color:var(--muted);margin-left:8px">' + esc(new Date(a.created_at).toLocaleString()) + '</span>' +
+    '<p style="margin-top:6px;font-size:13px">' + esc(a.message) + '</p>' +
+    (a.active ? '<button class="btn btn-outline" data-deactivate="' + a.id + '" style="margin-top:6px;padding:4px 10px;font-size:11px">Deactivate</button>' : '') +
+    '</div>'
+  ).join('');
+  el.querySelectorAll('[data-deactivate]').forEach(b => b.addEventListener('click', async () => {
+    await sb.from('announcements').update({ active: false }).eq('id', b.dataset.deactivate);
+    toast('Deactivated'); loadAnnouncements();
+  }));
+}
+
+document.getElementById('btn-announce').addEventListener('click', async () => {
+  const msg = document.getElementById('announce-msg').value.trim();
+  if (!msg) return;
+  const { error } = await sb.from('announcements').insert({ message: msg, active: true });
+  if (error) return toast('Error: ' + error.message);
+  document.getElementById('announce-msg').value = '';
+  toast('Posted'); loadAnnouncements();
+});
+
+// ---------------- BRAND SLOTS ----------------
+async function loadBrandSlots() {
+  const el = document.getElementById('brand-list');
+  el.innerHTML = '<div class="empty">Loading…</div>';
+  const { data } = await sb.from('brand_slots').select('*').order('created_at', { ascending: false }).limit(50);
+  if (!data || !data.length) return el.innerHTML = '<div class="empty">No slots yet.</div>';
+  el.innerHTML = '<table><tr><th>Tool</th><th>Brand</th><th>Art</th><th>Active</th><th></th></tr>' +
+    data.map(s => '<tr><td>' + esc(s.tool_key) + '</td><td>' + esc(s.brand_name || '') + '</td><td>' + (s.brand_art_url ? '🔗' : '—') + '</td><td>' + (s.active ? '<span class="pill good">Yes</span>' : '<span class="pill">No</span>') + '</td><td><button class="btn btn-outline" data-toggle="' + s.id + '" data-active="' + s.active + '" style="padding:4px 10px;font-size:11px">Toggle</button></td></tr>').join('') +
+    '</table>';
+  el.querySelectorAll('[data-toggle]').forEach(b => b.addEventListener('click', async () => {
+    const active = b.dataset.active === 'true';
+    await sb.from('brand_slots').update({ active: !active }).eq('id', b.dataset.toggle);
+    toast('Toggled'); loadBrandSlots();
+  }));
+}
+
+document.getElementById('btn-brand-add').addEventListener('click', async () => {
+  const tool_key = document.getElementById('brand-tool').value.trim();
+  const brand_name = document.getElementById('brand-name').value.trim();
+  const brand_art_url = document.getElementById('brand-url').value.trim();
+  if (!tool_key) return toast('Tool key required');
+  if (brand_art_url && !/^https:\/\//i.test(brand_art_url)) return toast('Art URL must be https://');
+  const { error } = await sb.from('brand_slots').insert({ tool_key, brand_name, brand_art_url, active: false });
+  if (error) return toast('Error: ' + error.message);
+  document.getElementById('brand-tool').value = '';
+  document.getElementById('brand-name').value = '';
+  document.getElementById('brand-url').value = '';
+  toast('Created'); loadBrandSlots();
+});
+
+// ---------------- EXPORT ----------------
+document.querySelectorAll('[data-export]').forEach(b => b.addEventListener('click', async () => {
+  const table = b.dataset.export;
+  const { data } = await sb.from(table).select('*').limit(10000);
+  if (!data || !data.length) return toast('No data');
+  const keys = Object.keys(data[0]);
+  const csv = [keys.join(',')].concat(
+    data.map(r => keys.map(k => '"' + String(r[k] == null ? '' : r[k]).replace(/"/g, '""') + '"').join(','))
+  ).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'hustle-city-' + table + '-' + Date.now() + '.csv';
+  a.click();
+  toast('Downloaded');
+}));
+
+// ---------------- BOOT ----------------
+sb.auth.getSession().then(({ data }) => {
+  if (data.session) showDash(data.session); else showLogin();
+});
+</script>
+</body>
+</html>
