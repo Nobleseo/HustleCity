@@ -143,6 +143,7 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
     <div><strong id="home-today">₦0</strong><span>Today</span></div>
     <div><strong id="home-division">Street</strong><span>Division</span></div>
   </div>
+    <div id="announce-banner" style="display:none;background:var(--oxblood);color:#F5EBDC;padding:10px 16px;border-radius:10px;margin-bottom:14px;font-size:13px;font-weight:700;text-align:center;max-width:340px"></div>
   <div class="hustle-grid">
     <div class="hustle-card open">
       <span class="hustle-icon">🛒</span>
@@ -786,6 +787,21 @@ document.getElementById('btn-writein').addEventListener('click',()=>{
 
 // PWA
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+  // Load active announcement
+async function loadAnnouncement() {
+  if (!sb) return;
+  try {
+    const { data } = await sb.from('announcements')
+      .select('message').eq('active', true)
+      .order('created_at', { ascending: false }).limit(1).maybeSingle();
+    if (data && data.message) {
+      const b = document.getElementById('announce-banner');
+      b.textContent = data.message;
+      b.style.display = 'block';
+    }
+  } catch (e) {}
+}
+loadAnnouncement();
 
 refreshHome();
 </script>
