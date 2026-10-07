@@ -1,6 +1,5 @@
-const CACHE = 'hustlecity-v0.1.0';
-const ASSETS = ['./', './index.html', './manifest.webmanifest', './terms.html', './privacy.html'];
-
+const CACHE = 'hustlecity-v0.1.1';
+const ASSETS = ['./', './index.html', './manifest.webmanifest', './terms.html', './privacy.html', './faq.html'];
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE)
