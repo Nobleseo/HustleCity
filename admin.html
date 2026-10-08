@@ -158,10 +158,11 @@ code{background:var(--surface);padding:2px 6px;border-radius:4px;font-size:12px}
     <h2 style="margin-top:24px">Recent</h2>
     <div id="announce-list"><div class="empty">Loading…</div></div>
   </div>
-
   <div id="panel-brand" class="panel card" style="display:none">
     <h2>Brand ad slots</h2>
-    <p class="sub" style="margin-bottom:12px">Assign a sponsor to any visible surface in the game. Slot key picks the position. Slot number orders multiple ads on the same surface.</p>
+    <p class="sub" style="margin-bottom:12px">Upload an image for any slot. It appears in-game immediately when published.</p>
+
+    <label style="display:block;font-size:12px;font-weight:800;margin-bottom:4px;color:var(--muted);text-transform:uppercase">Where in the game</label>
     <select id="brand-tool">
       <option value="billboard">Billboard (top of game)</option>
       <option value="tool_1">Tool slot 1 (left)</option>
@@ -173,15 +174,33 @@ code{background:var(--surface);padding:2px 6px;border-radius:4px;font-size:12px}
       <option value="shelf">Shelf back</option>
       <option value="stall_front">Stall front</option>
     </select>
-    <input id="brand-number" type="number" placeholder="Slot number (1, 2, 3...)" value="1">
-    <input id="brand-name" placeholder="Brand name (e.g. Dangote)">
-    <input id="brand-url" placeholder="Art URL (https://...)">
-    <input id="brand-color" placeholder="Brand color hex (e.g. #D4A017)" value="#D4A017">
-    <button class="btn btn-primary" id="btn-brand-add">Create slot</button>
+
+    <label style="display:block;font-size:12px;font-weight:800;margin-top:12px;margin-bottom:4px;color:var(--muted);text-transform:uppercase">Slot number (order if multiple)</label>
+    <input id="brand-number" type="number" value="1" min="1" max="99">
+
+    <label style="display:block;font-size:12px;font-weight:800;margin-top:12px;margin-bottom:4px;color:var(--muted);text-transform:uppercase">Brand name</label>
+    <input id="brand-name" placeholder="e.g. Dangote">
+
+    <label style="display:block;font-size:12px;font-weight:800;margin-top:12px;margin-bottom:4px;color:var(--muted);text-transform:uppercase">Brand color</label>
+    <input id="brand-color" type="text" placeholder="#D4A017" value="#D4A017">
+
+    <label style="display:block;font-size:12px;font-weight:800;margin-top:12px;margin-bottom:4px;color:var(--muted);text-transform:uppercase">Upload image (max 2MB)</label>
+    <input type="file" id="brand-file" accept="image/png,image/jpeg,image/webp,image/svg+xml" style="padding:8px">
+
+    <p class="sub" style="margin:8px 0 4px">— or paste an image URL:</p>
+    <input id="brand-url" placeholder="https://...">
+
+    <div id="brand-preview" style="margin-top:12px;display:none">
+      <p class="sub" style="margin-bottom:6px">Preview:</p>
+      <div id="brand-preview-img" style="width:100%;max-width:420px;height:150px;border:2px dashed var(--border);border-radius:8px;background:#f9f6f0 center/contain no-repeat"></div>
+    </div>
+
+    <button class="btn btn-primary" id="btn-brand-add" style="margin-top:16px;width:100%">Create slot</button>
+
     <h2 style="margin-top:24px">All slots</h2>
     <div id="brand-list"><div class="empty">Loading…</div></div>
   </div>
-
+ 
   <div id="panel-export" class="panel card" style="display:none">
     <h2>Export CSVs</h2>
     <p class="sub">Download raw data for offline analysis.</p>
@@ -530,18 +549,76 @@ document.getElementById('btn-announce').addEventListener('click', async () => {
 });
 
 // ---------------- BRAND SLOTS ----------------
+async function uploadBrandImage(file) {
+  if (!file) return null;
+  if (!file.type.startsWith('image/')) { toast('Image files only'); return null; }
+  if (file.size > 2 * 1024 * 1024) { toast('Max 2MB — compress the image first'); return null; }
+  const ext = (file.name.split('.').pop() || 'png').toLowerCase();
+  const filename = 'brand-' + Date.now() + '-' + Math.random().toString(36).slice(2,8) + '.' + ext;
+  const { error } = await sb.storage.from('brand-art').upload(filename, file, { cacheControl: '3600', upsert: false });
+  if (error) { toast('Upload failed: ' + error.message); return null; }
+  const { data } = sb.storage.from('brand-art').getPublicUrl(filename);
+  return data.publicUrl;
+}
+
+function updateBrandPreview() {
+  const fileInput = document.getElementById('brand-file');
+  const urlInput = document.getElementById('brand-url');
+  const preview = document.getElementById('brand-preview');
+  const previewImg = document.getElementById('brand-preview-img');
+  const file = fileInput.files && fileInput.files[0];
+  const url = urlInput.value.trim();
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = e => { previewImg.style.backgroundImage = 'url(' + e.target.result + ')'; preview.style.display = 'block'; };
+    reader.readAsDataURL(file);
+  } else if (url) {
+    previewImg.style.backgroundImage = 'url(' + url.replace(/"/g, '') + ')';
+    preview.style.display = 'block';
+  } else {
+    preview.style.display = 'none';
+  }
+}
+
+document.getElementById('brand-file').addEventListener('change', updateBrandPreview);
+document.getElementById('brand-url').addEventListener('input', updateBrandPreview);
+
 async function loadBrandSlots() {
   const el = document.getElementById('brand-list');
   el.innerHTML = '<div class="empty">Loading…</div>';
   const { data } = await sb.from('brand_slots').select('*').order('created_at', { ascending: false }).limit(50);
   if (!data || !data.length) return el.innerHTML = '<div class="empty">No slots yet.</div>';
-  el.innerHTML = '<table><tr><th>Slot</th><th>#</th><th>Brand</th><th>Color</th><th>Art</th><th>Active</th><th></th></tr>' +
-    data.map(s => '<tr><td><code>' + esc(s.slot_key || s.tool_key || '—') + '</code></td><td>' + (s.slot_number || '—') + '</td><td>' + esc(s.brand_name || '') + '</td><td>' + (s.brand_color ? '<span style="display:inline-block;width:16px;height:16px;border-radius:4px;background:' + esc(s.brand_color) + ';vertical-align:middle;border:1px solid var(--border)"></span> ' + esc(s.brand_color) : '—') + '</td><td>' + (s.brand_art_url ? '🔗' : '—') + '</td><td>' + (s.active ? '<span class="pill good">Yes</span>' : '<span class="pill">No</span>') + '</td><td><button class="btn btn-outline" data-toggle="' + s.id + '" data-active="' + s.active + '" style="padding:4px 10px;font-size:11px">Toggle</button></td></tr>').join('') +
+  el.innerHTML = '<table><tr><th>Preview</th><th>Slot</th><th>#</th><th>Brand</th><th>Active</th><th></th></tr>' +
+    data.map(s => {
+      const preview = s.brand_art_url
+        ? '<img src="' + esc(s.brand_art_url) + '" style="width:72px;height:44px;object-fit:contain;border-radius:4px;border:1px solid var(--border);background:#fff">'
+        : '<span style="display:inline-flex;width:72px;height:44px;border-radius:4px;background:' + esc(s.brand_color || '#D4A017') + ';color:#fff;font-size:9px;align-items:center;justify-content:center;text-align:center;line-height:1;padding:2px">' + esc((s.brand_name || 'NO ART').slice(0,10)) + '</span>';
+      return '<tr>' +
+        '<td>' + preview + '</td>' +
+        '<td><code>' + esc(s.slot_key || s.tool_key || '—') + '</code></td>' +
+        '<td>' + (s.slot_number || '—') + '</td>' +
+        '<td>' + esc(s.brand_name || '') + '</td>' +
+        '<td>' + (s.active ? '<span class="pill good">Yes</span>' : '<span class="pill">No</span>') + '</td>' +
+        '<td>' +
+          '<button class="btn btn-outline" data-toggle="' + s.id + '" data-active="' + s.active + '" style="padding:4px 10px;font-size:11px;margin-right:4px">' + (s.active ? 'Pause' : 'Publish') + '</button>' +
+          '<button class="btn btn-outline" data-del="' + s.id + '" style="padding:4px 10px;font-size:11px;color:var(--danger);border-color:var(--danger)">Del</button>' +
+        '</td>' +
+      '</tr>';
+    }).join('') +
     '</table>';
+
   el.querySelectorAll('[data-toggle]').forEach(b => b.addEventListener('click', async () => {
     const active = b.dataset.active === 'true';
     await sb.from('brand_slots').update({ active: !active }).eq('id', b.dataset.toggle);
-    toast('Toggled'); loadBrandSlots();
+    toast(active ? 'Paused' : 'Published');
+    loadBrandSlots();
+  }));
+
+  el.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async () => {
+    if (!confirm('Delete this slot?')) return;
+    await sb.from('brand_slots').delete().eq('id', b.dataset.del);
+    toast('Deleted');
+    loadBrandSlots();
   }));
 }
 
@@ -549,18 +626,34 @@ document.getElementById('btn-brand-add').addEventListener('click', async () => {
   const slot_key = document.getElementById('brand-tool').value;
   const slot_number = parseInt(document.getElementById('brand-number').value || '1', 10);
   const brand_name = document.getElementById('brand-name').value.trim();
-  const brand_art_url = document.getElementById('brand-url').value.trim();
   const brand_color = document.getElementById('brand-color').value.trim() || '#D4A017';
-  if (brand_art_url && !/^https:\/\//i.test(brand_art_url)) return toast('Art URL must be https://');
+  const fileInput = document.getElementById('brand-file');
+  const urlInput = document.getElementById('brand-url');
+
+  let brand_art_url = urlInput.value.trim();
+  const file = fileInput.files && fileInput.files[0];
+
+  if (file) {
+    toast('Uploading…');
+    brand_art_url = await uploadBrandImage(file);
+    if (!brand_art_url) return;
+  }
+
+  if (brand_art_url && !/^https:\/\//i.test(brand_art_url)) return toast('URL must start with https://');
+
   const { error } = await sb.from('brand_slots').insert({
     slot_key, slot_number, brand_name, brand_art_url, brand_color, active: false, tool_key: slot_key
   });
   if (error) return toast('Error: ' + error.message);
+
   document.getElementById('brand-name').value = '';
   document.getElementById('brand-url').value = '';
-  toast('Created'); loadBrandSlots();
+  fileInput.value = '';
+  document.getElementById('brand-preview').style.display = 'none';
+  toast('Created — click Publish to make it live');
+  loadBrandSlots();
 });
-
+ 
 // ---------------- EXPORT ----------------
 document.querySelectorAll('[data-export]').forEach(b => b.addEventListener('click', async () => {
   const table = b.dataset.export;
