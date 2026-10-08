@@ -96,6 +96,19 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .dynamic-layer{position:absolute;inset:0;z-index:5}
 .trader,.stall-front,.billboard,.scene{pointer-events:none}
 
+/* Camera modes */
+.game-area[data-camera="side"] .scene-stalls{transform:translateX(-25%) scaleX(1.15)}
+.game-area[data-camera="side"] .trader{left:18%;bottom:24%;font-size:52px}
+.game-area[data-camera="side"] .billboard{left:auto;right:10px;transform:none;width:120px;height:80px;top:12px;font-size:10px}
+.game-area[data-camera="side"] .tool-belt{justify-content:flex-start;padding-left:18px}
+.game-area[data-camera="side"] .stall-front{transform:skewX(-6deg);transform-origin:left center}
+.game-area[data-camera="close"] .trader{font-size:96px;bottom:26%}
+.game-area[data-camera="close"] .billboard{top:auto;bottom:52%;width:min(90%,420px);height:90px;font-size:13px}
+.game-area[data-camera="close"] .tool-belt{bottom:44%;gap:22px}
+.game-area[data-camera="close"] .tool-belt .tool{width:64px;height:64px;font-size:10px}
+.game-area[data-camera="close"] .stall-front{height:46%}
+.game-area[data-camera="close"] .scene-stalls{opacity:0.15}
+
 .customer{position:absolute;width:60px;height:86px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;cursor:pointer;transition:transform 0.2s;z-index:6}
 .customer.called{transform:scale(1.15);z-index:8}
 .customer.called::before{content:'!';position:absolute;top:-6px;right:-2px;width:22px;height:22px;border-radius:50%;background:var(--gold);color:#3A2418;font-weight:900;display:flex;align-items:center;justify-content:center;font-size:14px;animation:pulse 0.6s infinite}
@@ -245,10 +258,11 @@ body.in-round .theme-toggle{display:none}
 
 <!-- ROUND -->
 <div id="screen-round" class="screen">
-  <div class="round-hud">
+    <div class="round-hud">
     <span class="hud-timer" id="hud-timer">60</span>
     <span class="hud-money" id="hud-money">₦0</span>
     <span class="hud-combo" id="hud-combo">x1</span>
+    <button id="btn-camera" title="Change camera view" style="background:var(--gold);color:#3A2418;border:none;border-radius:8px;padding:4px 10px;font-family:inherit;font-weight:800;font-size:12px;cursor:pointer">📷</button>
   </div>
   <div class="game-area" id="game-area">
     <div class="scene">
@@ -611,7 +625,29 @@ document.getElementById('btn-start-round').addEventListener('click',()=>{
   trackEvent('round_start',{stall:selectedProduct,is_guest:!playerId});
   startRound();
 });
+// ============ CAMERA MODES ============
+const CAMERA_MODES = ['front', 'side', 'close'];
+let cameraMode = localStorage.getItem('hc_camera') || 'front';
+function applyCamera() {
+  const area = document.getElementById('game-area');
+  if (area) area.setAttribute('data-camera', cameraMode);
+  const btn = document.getElementById('btn-camera');
+  if (btn) {
+    const icons = { front: '📷', side: '📷↔', close: '📷🔍' };
+    btn.textContent = icons[cameraMode] || '📷';
+    btn.title = 'Camera: ' + cameraMode + ' (tap to change)';
+  }
+}
+document.getElementById('btn-camera').addEventListener('click', () => {
+  const idx = CAMERA_MODES.indexOf(cameraMode);
+  cameraMode = CAMERA_MODES[(idx + 1) % CAMERA_MODES.length];
+  localStorage.setItem('hc_camera', cameraMode);
+  applyCamera();
+});
+applyCamera();
 
+// ============ ROUND ============
+function clearDynamic(){
 // ============ ROUND ============
 function clearDynamic(){
   if(dynamicLayer) dynamicLayer.innerHTML='';
