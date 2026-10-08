@@ -162,7 +162,7 @@ code{background:var(--surface);padding:2px 6px;border-radius:4px;font-size:12px}
 
   <div id="panel-brand" class="panel card" style="display:none">
     <h2>Brand ad slots</h2>
-    <p class="sub" style="margin-bottom:12px">Upload an image for any slot. It appears in-game immediately when published.</p>
+    <p class="sub" style="margin-bottom:12px">Upload an image for any slot. It appears in-game immediately when published. Files up to 10MB are accepted and auto-compressed for fast loading.</p>
 
     <label style="display:block;font-size:12px;font-weight:800;margin-bottom:4px;color:var(--muted);text-transform:uppercase">Where in the game</label>
     <select id="brand-tool">
@@ -192,7 +192,7 @@ code{background:var(--surface);padding:2px 6px;border-radius:4px;font-size:12px}
     <label style="display:block;font-size:12px;font-weight:800;margin-top:12px;margin-bottom:4px;color:var(--muted);text-transform:uppercase">Brand color</label>
     <input id="brand-color" type="text" placeholder="#D4A017" value="#D4A017">
 
-    <label style="display:block;font-size:12px;font-weight:800;margin-top:12px;margin-bottom:4px;color:var(--muted);text-transform:uppercase">Upload image (max 500MB)</label>
+    <label style="display:block;font-size:12px;font-weight:800;margin-top:12px;margin-bottom:4px;color:var(--muted);text-transform:uppercase">Upload image (up to 10MB, auto-compressed)</label>
     <input type="file" id="brand-file" accept="image/png,image/jpeg,image/webp,image/svg+xml" style="padding:8px">
 
     <p class="sub" style="margin:8px 0 4px">— or paste an image URL:</p>
@@ -221,7 +221,6 @@ code{background:var(--surface);padding:2px 6px;border-radius:4px;font-size:12px}
 
 <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">🌙</button>
 <div class="toast" id="toast"></div>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 'use strict';
@@ -233,7 +232,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 function toast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2200);
+  setTimeout(() => t.classList.remove('show'), 2400);
 }
 
 function esc(s) {
@@ -243,13 +242,6 @@ function esc(s) {
 }
 
 function fmtN(n) { return '₦' + Number(n || 0).toLocaleString('en-NG'); }
-
-// ---------------- MANUAL REFRESH ----------------
-document.getElementById('btn-refresh').addEventListener('click', () => {
-  const fn = TAB_LOADERS[currentTab];
-  if (fn) { fn(); toast('Refreshed'); }
-  else toast('Nothing to refresh here');
-});
 
 // ---------------- THEME ----------------
 (function(){
@@ -313,11 +305,20 @@ sb.auth.onAuthStateChange((_event, session) => {
   else showLogin();
 });
 
+async function checkAdmin() {
+  // Try is_admin() first; fall back to check_is_admin() if alias exists
+  let r = await sb.rpc('is_admin');
+  if (r.error && (r.error.code === '42883' || (r.error.message || '').includes('does not exist'))) {
+    r = await sb.rpc('check_is_admin');
+  }
+  return r;
+}
+
 async function showDash(session) {
   const email = session.user.email;
-  const { data: isAdmin, error } = await sb.rpc('check_is_admin');
+  const { data: isAdmin, error } = await checkAdmin();
+  console.log('admin check:', { email, isAdmin, error });
   if (error || !isAdmin) {
-    console.log('admin check failed:', { email, isAdmin, error });
     toast('Not an admin');
     await sb.auth.signOut();
     return;
@@ -381,6 +382,13 @@ document.addEventListener('visibilitychange', () => {
     const fn = TAB_LOADERS[currentTab];
     if (fn) fn();
   }
+});
+
+// Manual refresh button
+document.getElementById('btn-refresh').addEventListener('click', () => {
+  const fn = TAB_LOADERS[currentTab];
+  if (fn) { fn(); toast('Refreshed'); }
+  else toast('Nothing to refresh here');
 });
 
 // ---------------- METRICS ----------------
@@ -470,7 +478,7 @@ async function loadHustles() {
   const el = document.getElementById('hustles-list');
   el.innerHTML = '<div class="empty">Loading…</div>';
   try {
-    const [{ data: hustles, error: e1 }, { data: votes, error: e2 }] = await Promise.all([
+    const [{ data: hustles, error: e1 }, { data: votes }] = await Promise.all([
       sb.from('hustles').select('*').order('sort_order'),
       sb.from('votes').select('hustle_key')
     ]);
@@ -610,7 +618,8 @@ async function loadAnnouncements() {
       '</div>'
     ).join('');
     el.querySelectorAll('[data-deactivate]').forEach(b => b.addEventListener('click', async () => {
-      await sb.from('announcements').update({ active: false }).eq('id', b.dataset.deactivate);
+      const { error } = await sb.from('announcements').update({ active: false }).eq('id', b.dataset.deactivate);
+      if (error) return toast('Error: ' + error.message);
       toast('Deactivated'); loadAnnouncements();
     }));
   } catch (e) {
@@ -628,13 +637,53 @@ document.getElementById('btn-announce').addEventListener('click', async () => {
 });
 
 // ---------------- BRAND SLOTS ----------------
+async function compressImage(file, maxW, maxH) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        const ratio = Math.min(maxW / w, maxH / h, 1);
+        w = Math.round(w * ratio);
+        h = Math.round(h * ratio);
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.85);
+      };
+      img.onerror = () => resolve(file);
+      img.src = e.target.result;
+    };
+    reader.onerror = () => resolve(file);
+    reader.readAsDataURL(file);
+  });
+}
+
 async function uploadBrandImage(file) {
   if (!file) return null;
   if (!file.type.startsWith('image/')) { toast('Image files only'); return null; }
-  if (file.size > 2 * 1024 * 1024) { toast('Max 2MB — compress the image first'); return null; }
-  const ext = (file.name.split('.').pop() || 'png').toLowerCase();
+  if (file.size > 10 * 1024 * 1024) { toast('Max 10MB'); return null; }
+
+  let upload = file;
+  if (file.size > 300 * 1024 && !file.type.includes('svg')) {
+    toast('Compressing…');
+    try {
+      upload = await compressImage(file, 1600, 1600);
+      if (!upload) upload = file;
+    } catch (e) {
+      upload = file;
+    }
+  }
+
+  const ext = (upload.type && upload.type.includes('png')) ? 'png' : 'jpg';
   const filename = 'brand-' + Date.now() + '-' + Math.random().toString(36).slice(2,8) + '.' + ext;
-  const { error } = await sb.storage.from('brand-art').upload(filename, file, { cacheControl: '3600', upsert: false });
+  const { error } = await sb.storage.from('brand-art').upload(filename, upload, {
+    cacheControl: '3600',
+    upsert: false,
+    contentType: upload.type || 'image/jpeg'
+  });
   if (error) { toast('Upload failed: ' + error.message); return null; }
   const { data } = sb.storage.from('brand-art').getPublicUrl(filename);
   return data.publicUrl;
@@ -690,14 +739,16 @@ async function loadBrandSlots() {
 
     el.querySelectorAll('[data-toggle]').forEach(b => b.addEventListener('click', async () => {
       const active = b.dataset.active === 'true';
-      await sb.from('brand_slots').update({ active: !active }).eq('id', b.dataset.toggle);
+      const { error } = await sb.from('brand_slots').update({ active: !active }).eq('id', b.dataset.toggle);
+      if (error) return toast('Error: ' + error.message);
       toast(active ? 'Paused' : 'Published');
       loadBrandSlots();
     }));
 
     el.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async () => {
       if (!confirm('Delete this slot?')) return;
-      await sb.from('brand_slots').delete().eq('id', b.dataset.del);
+      const { error } = await sb.from('brand_slots').delete().eq('id', b.dataset.del);
+      if (error) return toast('Error: ' + error.message);
       toast('Deleted');
       loadBrandSlots();
     }));
@@ -763,3 +814,4 @@ sb.auth.getSession().then(({ data }) => {
 </script>
 </body>
 </html>
+<!-- ⏸ END OF PART 1 — paste Part 2 immediately below this line in the same file -->
