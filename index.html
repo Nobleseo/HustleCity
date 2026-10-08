@@ -813,6 +813,15 @@ document.getElementById('btn-start-round').addEventListener('click',()=>{
   startRound();
 });
 
+ document.getElementById('btn-play-again').addEventListener('click', () => {
+  if (state.roundsToday >= CONFIG.roundsPerDay) {
+    alert('You don finish your 3 free rounds for today. Come back tomorrow!');
+    showScreen('home');
+    return;
+  }
+  showScreen('setup');
+});
+  
 // ============ ROUND ============
 function clearDynamic(){
   if(dynamicLayer) dynamicLayer.innerHTML='';
@@ -860,6 +869,58 @@ function beginPlay(){
   rafId=requestAnimationFrame(tick);
 }
 
+function endRound(){
+  if(!game || !game.running) return;
+  game.running = false;
+
+  if (rafId) cancelAnimationFrame(rafId);
+
+  // Stop active timers
+  if (game.eventTimers && game.eventTimers.length) {
+    game.eventTimers.forEach(timer => {
+      clearTimeout(timer);
+      clearInterval(timer);
+    });
+    game.eventTimers = [];
+  }
+
+  // Save wallet / round progress
+  state.wallet += game.money;
+  state.lifetime += game.money;
+  state.roundsToday++;
+  saveState();
+
+  // Show result summary
+  document.getElementById('result-money').textContent = fmtN(game.money);
+  document.getElementById('result-served').textContent = game.served;
+  document.getElementById('result-missed').textContent = game.missed;
+  document.getElementById('result-best').textContent = 'x' + (game.bestCombo || 1);
+
+  const resultNear = document.getElementById('result-near');
+  if (game.money > 0) {
+    resultNear.textContent = '🔥 Great hustle!';
+  } else {
+    resultNear.textContent = '💪 Keep trying!';
+  }
+
+  document.getElementById('result-rounds').textContent =
+    Math.max(0, CONFIG.roundsPerDay - state.roundsToday) + ' of 3 free rounds left today';
+
+  showScreen('result');
+}
+
+function displayResults(){
+  document.getElementById('result-money').textContent = fmtN(game.money);
+  document.getElementById('result-served').textContent = game.served;
+  document.getElementById('result-missed').textContent = game.missed;
+  document.getElementById('result-best').textContent = 'x' + (game.bestCombo || 1);
+  document.getElementById('result-rounds').textContent =
+    Math.max(0, CONFIG.roundsPerDay - state.roundsToday) + ' of 3 free rounds left today';
+
+  const resultNear = document.getElementById('result-near');
+  resultNear.textContent = game.money > 0 ? '🔥 Great hustle!' : '💪 Keep trying!';
+  showScreen('result');
+}  
 function tick(){
   if(!game||!game.running)return;
   const t=(performance.now()-game.startTime)/1000;
@@ -883,7 +944,10 @@ function tick(){
     if(remain<=0){missCustomer(c);toRemove.push(c);}
   }
   game.customers=game.customers.filter(c=>!toRemove.includes(c));
-  if(remaining<=0){endRound();return;}
+  if(remaining <= 0){
+  endRound();
+  return;
+}
   rafId=requestAnimationFrame(tick);
 }
 
