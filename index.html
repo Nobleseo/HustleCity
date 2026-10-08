@@ -137,6 +137,42 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .game-area[data-camera="close"] .scene-pedestrians,
 .game-area[data-camera="close"] .scene-trees{opacity:0.35}
 
+/* Side view: trader under umbrella at bench */
+.side-only{display:none;position:absolute;inset:0;pointer-events:none;z-index:1}
+.game-area[data-camera="side"] .side-only{display:block}
+.side-umbrella{position:absolute;left:26%;top:22%;font-size:72px;filter:drop-shadow(0 6px 6px rgba(0,0,0,0.3));transform:rotate(-8deg)}
+.side-trader{position:absolute;left:26%;top:42%;font-size:48px;filter:drop-shadow(0 3px 3px rgba(0,0,0,0.25))}
+.side-bench{position:absolute;left:5%;right:52%;bottom:32%;height:56px;background:linear-gradient(180deg,#8a5a2b 0%,#5d3b1a 100%);border-radius:6px;border:2px solid #4a2f13;display:flex;align-items:center;justify-content:space-around;padding:4px;box-shadow:0 8px 14px rgba(0,0,0,0.3)}
+.side-item{font-size:26px;filter:drop-shadow(0 2px 2px rgba(0,0,0,0.2))}
+
+/* City backdrops */
+.game-area[data-city="lagos"] .scene-skyline::before{content:'🌆 🏙️ 🌉 🏢 🌃'}
+.game-area[data-city="lagos"] .scene-trees{content:'🌴 🌳 🌴 🌳';font-size:22px;letter-spacing:22px}
+.game-area[data-city="uyo"] .scene-skyline::before{content:'🏢 🌴 🏢 🌴 🏢'}
+.game-area[data-city="uyo"] .scene-trees{font-size:26px;letter-spacing:18px}
+.game-area[data-city="ibadan"] .scene-skyline::before{content:'🏛️ 🏘️ 🏛️ 🏘️ 🏛️'}
+.game-area[data-city="ibadan"] .scene-skyline{filter:sepia(0.15)}
+.game-area[data-city="abuja"] .scene-skyline::before{content:'🗼 🏛️ 🏢 🏛️ 🗼'}
+.game-area[data-city="kano"] .scene-skyline::before{content:'🕌 🏯 🕌 🏯 🕌'}
+.game-area[data-city="kano"] .scene-skyline{filter:sepia(0.25)}
+.game-area[data-city="ph"] .scene-skyline::before{content:'🛢️ 🏭 🌊 🛢️ 🏭'}
+.game-area[data-city="ph"] .scene-ground{background:linear-gradient(180deg,#8a9a8a 0%,#6a7a6a 100%)}
+
+/* Dashboard */
+.dash-hero{text-align:center;margin-bottom:14px}
+.dash-hi{font-size:22px;font-weight:900;color:var(--oxblood);line-height:1.1}
+.dash-meta{font-size:12px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.8px;font-weight:700}
+.dash-wallet{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;text-align:center;margin-bottom:12px;box-shadow:0 2px 8px var(--shadow)}
+.dash-wallet-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;font-weight:700}
+.dash-wallet-value{font-size:42px;font-weight:900;color:var(--oxblood);font-variant-numeric:tabular-nums;line-height:1.05;margin:6px 0 4px}
+.dash-lifetime{font-size:12px;color:var(--muted);font-weight:700}
+.dash-rank-row{display:flex;gap:8px;margin-bottom:14px}
+.dash-rank{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 6px;text-align:center;font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:0.5px}
+.dash-rank strong{display:block;font-size:17px;font-weight:900;color:var(--oxblood);margin-bottom:3px;text-transform:none;letter-spacing:0;font-variant-numeric:tabular-nums}
+.dash-coming{background:var(--surface);border:2px dashed var(--gold);border-radius:12px;padding:14px;margin-bottom:14px}
+.dash-coming-title{font-size:11px;font-weight:800;color:var(--oxblood);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.6px}
+.dash-coming-item{font-size:12px;color:var(--muted);padding:6px 0;border-bottom:1px solid var(--border);font-weight:600}
+.dash-coming-item:last-child{border-bottom:none}
 /* Camera picker */
 #camera-picker{display:flex;gap:2px;background:rgba(0,0,0,0.15);border-radius:8px;padding:2px}
 .cam-btn{background:transparent;color:#F5EBDC;border:none;border-radius:6px;padding:4px 8px;font-family:inherit;font-weight:800;font-size:11px;cursor:pointer;transition:all 0.15s}
@@ -153,7 +189,14 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .customer .bubble{position:absolute;top:-32px;left:50%;transform:translateX(-50%);background:var(--brown);color:#F5EBDC;font-size:10px;padding:3px 7px;border-radius:8px;white-space:nowrap;opacity:0;transition:opacity 0.2s;font-weight:700}
 .customer.called .bubble{opacity:1}
 .customer.thief .wanted{background:var(--red);color:#fff;animation:pulse 0.5s infinite}
-.shelf{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px;background:var(--brown);flex-shrink:0}
+.shelf{display:flex;flex-direction:column;flex-shrink:0;padding:0;background:transparent}
+
+/* Wooden counter brand strip (ad slot) */
+.shelf-brand{background:linear-gradient(180deg,#8a5a2b 0%,#6b421c 50%,#5d3b1a 100%);color:#F5EBDC;font-size:9px;font-weight:800;letter-spacing:1.2px;text-align:center;padding:6px 10px;text-transform:uppercase;border-top:3px solid #4a2f13;border-bottom:2px solid #3a2410;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:28px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.08)}
+.shelf-brand img{max-height:22px;max-width:80%;object-fit:contain;display:block}
+.shelf-brand-text{opacity:0.6;font-family:monospace}
+
+.shelf-items{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:8px;background:var(--brown)}
 .shelf-btn{background:var(--cream);border:3px solid transparent;border-radius:12px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;font-family:inherit;color:var(--brown);transition:transform 0.1s}
 .shelf-btn:active{transform:scale(0.95)}
 .shelf-btn .icon{font-size:26px;line-height:1}
@@ -280,9 +323,20 @@ body.in-round .theme-toggle{display:none}
     <button class="product-card" data-product="pepper"><span class="emoji">🌶️</span><div><strong>Pepper</strong><small>High profit, impatient customers</small></div></button>
     <button class="product-card" data-product="wrappers"><span class="emoji">🧣</span><div><strong>Wrappers</strong><small>Balanced profit and patience</small></div></button>
   </div>
-  <div class="name-row">
+    <div class="name-row">
     <label>Your name (optional)</label>
     <input type="text" id="player-name" maxlength="16" placeholder="e.g. Oga_4821">
+  </div>
+  <div class="name-row">
+    <label>Your market city</label>
+    <select id="city-select" style="width:100%;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:16px;background:var(--surface);font-family:inherit;color:var(--text)">
+      <option value="lagos">Lagos</option>
+      <option value="uyo">Uyo (Akwa Ibom)</option>
+      <option value="ibadan">Ibadan</option>
+      <option value="abuja">Abuja</option>
+      <option value="kano">Kano</option>
+      <option value="ph">Port Harcourt</option>
+    </select>
   </div>
   <button class="btn btn-primary" id="btn-start-round" style="font-size:17px;padding:16px">START ROUND</button>
   <p class="small" style="text-align:center;margin-top:12px" id="setup-rounds">3 free rounds left today</p>
@@ -300,7 +354,7 @@ body.in-round .theme-toggle{display:none}
       <button class="cam-btn" data-cam="close">Close</button>
     </div>
   </div>
-  <div class="game-area" id="game-area" data-camera="front">
+  <div class="game-area" id="game-area" data-camera="front" data-city="Uyo">>
     <div class="scene">
       <div class="scene-sky"></div>
       <div class="scene-skyline"></div>
@@ -322,16 +376,31 @@ body.in-round .theme-toggle{display:none}
     <div class="billboard" id="in-game-billboard">PLACE YOUR AD HERE</div>
     <div class="trader">🧑‍🍳</div>
     <div class="tool-belt" id="tool-belt"></div>
-    <div class="stall-front" id="stall-front"></div>
+        <div class="stall-front" id="stall-front"></div>
+
+    <!-- Side view only: trader under umbrella at a bench -->
+    <div class="side-only">
+      <div class="side-umbrella">☂️</div>
+      <div class="side-trader">🧑‍🍳</div>
+      <div class="side-bench">
+        <span class="side-item">🍅</span>
+        <span class="side-item">🌶️</span>
+        <span class="side-item">🧣</span>
+      </div>
+    </div>
+
     <div class="dynamic-layer" id="dynamic-layer"></div>
   </div>
-  <div class="shelf" id="shelf">
-    <button class="shelf-btn" data-item="tomatoes"><span class="icon">🍅</span><span class="label">Tomato</span></button>
-    <button class="shelf-btn" data-item="pepper"><span class="icon">🌶️</span><span class="label">Pepper</span></button>
-    <button class="shelf-btn" data-item="wrappers"><span class="icon">🧣</span><span class="label">Wrapper</span></button>
+    <div class="shelf" id="shelf">
+    <div class="shelf-brand" id="shelf-brand">
+      <span class="shelf-brand-text">PLACE YOUR AD HERE · SPONSOR THIS STALL</span>
+    </div>
+    <div class="shelf-items">
+      <button class="shelf-btn" data-item="tomatoes"><span class="icon">🍅</span><span class="label">Tomato</span></button>
+      <button class="shelf-btn" data-item="pepper"><span class="icon">🌶️</span><span class="label">Pepper</span></button>
+      <button class="shelf-btn" data-item="wrappers"><span class="icon">🧣</span><span class="label">Wrapper</span></button>
+    </div>
   </div>
-</div>
-
 <!-- RESULT -->
 <div id="screen-result" class="screen">
   <div class="result-title">Round Over</div>
@@ -351,6 +420,42 @@ body.in-round .theme-toggle{display:none}
     <button class="btn btn-ghost" id="btn-feedback">💬 Give feedback</button>
     <button class="btn btn-secondary" onclick="showScreen('home')">Home</button>
   </div>
+</div>
+<!-- DASHBOARD (signed-in players only) -->
+<div id="screen-dashboard" class="screen">
+  <div class="topbar">
+    <h2 style="font-size:20px">Dashboard</h2>
+    <button class="btn btn-ghost" id="btn-sign-out" style="font-size:12px;color:var(--terra);font-weight:800">Sign out</button>
+  </div>
+  <div class="dash-hero">
+    <p class="dash-hi" id="dash-greeting">Hi 👋</p>
+    <p class="dash-meta" id="dash-meta">Street Trader</p>
+  </div>
+  <div class="dash-wallet">
+    <p class="dash-wallet-label">Wallet</p>
+    <p class="dash-wallet-value" id="dash-wallet">₦0</p>
+    <p class="dash-lifetime" id="dash-lifetime">Lifetime ₦0</p>
+  </div>
+  <button class="btn btn-gold" id="btn-dash-play" style="width:100%;font-size:18px;padding:16px;margin-bottom:10px">▶ PLAY MARKET TRADER</button>
+  <div class="dash-rank-row">
+    <div class="dash-rank"><strong id="dash-rank-today">#--</strong>Today</div>
+    <div class="dash-rank"><strong id="dash-rounds">0</strong>Rounds today</div>
+    <div class="dash-rank"><strong id="dash-best">₦0</strong>Best round</div>
+  </div>
+  <div style="display:flex;gap:6px;margin-bottom:14px">
+    <button class="btn btn-secondary" id="btn-dash-shop" style="flex:1;padding:10px;font-size:12px">🛍️ Shop</button>
+    <button class="btn btn-secondary" id="btn-dash-lb" style="flex:1;padding:10px;font-size:12px">🏆 Board</button>
+    <button class="btn btn-secondary" id="btn-dash-settings" style="flex:1;padding:10px;font-size:12px">⚙️ Settings</button>
+  </div>
+  <div class="dash-coming">
+    <p class="dash-coming-title">🔒 Coming soon</p>
+    <div class="dash-coming-item">👥 Hire other players to sell for you</div>
+    <div class="dash-coming-item">📅 Daily missions with bonus ₦</div>
+    <div class="dash-coming-item">🏙️ State vs State weekly competition</div>
+    <div class="dash-coming-item">🎁 Referral rewards (Boost Tokens)</div>
+    <div class="dash-coming-item">🏠 Landlord, Tailor, Buka, POS hustles</div>
+  </div>
+  <p class="small" style="text-align:center;margin-top:auto;padding-top:14px;color:var(--muted)">Hustle City v1.0.0 · Made in Nigeria</p>
 </div>
 
 <!-- LEADERBOARD -->
@@ -512,6 +617,7 @@ function showScreen(id){
   if(id==='shop')refreshShop();
   if(id==='leaderboard')refreshLeaderboard();
   if(id==='settings')refreshSettings();
+  if(id==='dashboard')refreshDashboard();
   if(typeof updateActivity==='function') updateActivity(id);
 }
 function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -651,6 +757,21 @@ function renderBrandSlots(){
   }
 }
 setInterval(loadBrandSlots,60000);
+
+// ============ CITY STATE ============
+let currentCity = localStorage.getItem('hc_city') || 'lagos';
+function applyCity() {
+  const area = document.getElementById('game-area');
+  if (area) area.setAttribute('data-city', currentCity);
+  const sel = document.getElementById('city-select');
+  if (sel) sel.value = currentCity;
+}
+document.getElementById('city-select').addEventListener('change', (e) => {
+  currentCity = e.target.value;
+  localStorage.setItem('hc_city', currentCity);
+  applyCity();
+});
+applyCity();
 
 // ============ CAMERA MODES ============
 let cameraMode = localStorage.getItem('hc_camera') || 'front';
@@ -1019,6 +1140,56 @@ document.querySelectorAll('.shelf-btn').forEach(btn=>{
     serveItem(btn.dataset.item,btn);
   });
 });
+// ============ DASHBOARD ============
+function refreshDashboard(){
+  const name = state.playerName || 'Hustler';
+  document.getElementById('dash-greeting').textContent = 'Hi, ' + name + ' 👋';
+  document.getElementById('dash-meta').textContent = getDivision(state.lifetime).name + ' Trader · ' + currentCity.toUpperCase();
+  document.getElementById('dash-wallet').textContent = fmtN(state.wallet);
+  document.getElementById('dash-lifetime').textContent = 'Lifetime ' + fmtN(state.lifetime);
+  document.getElementById('dash-rounds').textContent = state.roundsToday;
+  document.getElementById('dash-best').textContent = fmtN(state.bestToday || 0);
+  loadDashboardRank();
+}
+async function loadDashboardRank(){
+  if(!sb) return;
+  try{
+    const today = watStartOfDay(new Date()).toISOString();
+    const { data } = await sb.from('runs')
+      .select('guest_id, score')
+      .gte('created_at', today)
+      .order('score', { ascending: false })
+      .limit(500);
+    if(!data) return;
+    const byGuest = {};
+    data.forEach(r => {
+      const k = r.guest_id || 'anon';
+      if(!byGuest[k] || r.score > byGuest[k]) byGuest[k] = r.score;
+    });
+    const sorted = Object.entries(byGuest).sort((a,b) => b[1] - a[1]);
+    const rank = sorted.findIndex(([gid]) => gid === GUEST_ID);
+    document.getElementById('dash-rank-today').textContent = rank >= 0 ? '#' + (rank + 1) : '#--';
+  }catch(e){ console.warn('rank fetch failed', e); }
+}
+document.getElementById('btn-dash-play').addEventListener('click', () => {
+  if(state.roundsToday>=CONFIG.roundsPerDay){
+    alert('You don finish your 3 free rounds for today. Come back tomorrow!');
+    return;
+  }
+  document.getElementById('player-name').value = state.playerName || '';
+  showScreen('setup');
+});
+document.getElementById('btn-dash-shop').addEventListener('click', () => showScreen('shop'));
+document.getElementById('btn-dash-lb').addEventListener('click', () => showScreen('leaderboard'));
+document.getElementById('btn-dash-settings').addEventListener('click', () => showScreen('settings'));
+document.getElementById('btn-sign-out').addEventListener('click', async () => {
+  if(!confirm('Sign out? Your progress stays on this device.')) return;
+  if(sb) await sb.auth.signOut();
+  playerId = null;
+  localStorage.removeItem('hc_player_id');
+  refreshHome();
+  showScreen('home');
+});
 
 // ============ SHARE ============
 document.getElementById('btn-share').addEventListener('click',()=>{
@@ -1340,6 +1511,8 @@ document.getElementById('auth-submit').addEventListener('click',async()=>{
   trackEvent('signup_done',{method:authMode});
   hideAuthModal();
   refreshHome();
+  refreshDashboard();
+  showScreen('dashboard');
 });
 
 // ============ ANNOUNCEMENT ============
@@ -1412,6 +1585,14 @@ flushVoteQueue();
 loadBrandSlots();
 loadAnnouncement();
 updateActivity('home');
+
+// Signed-in users land on the dashboard
+setTimeout(() => {
+  if(playerId){
+    refreshDashboard();
+    showScreen('dashboard');
+  }
+}, 400);
 </script>
 
 <!-- Floating: WhatsApp (right), FAQ (left) -->
