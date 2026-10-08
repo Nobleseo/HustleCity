@@ -85,7 +85,8 @@ code{background:var(--surface);padding:2px 6px;border-radius:4px;font-size:12px}
       <h1>Welcome Eng. Iniubong!</h1>
       <p class="sub" id="whoami" style="margin-bottom:0"></p>
     </div>
-    <div style="display:flex;gap:8px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-outline" id="btn-refresh" title="Refresh current tab">🔄 Refresh</button>
       <button class="btn btn-outline" id="btn-change-pw">Change password</button>
       <button class="btn btn-outline" id="btn-logout">Sign out</button>
     </div>
@@ -158,6 +159,7 @@ code{background:var(--surface);padding:2px 6px;border-radius:4px;font-size:12px}
     <h2 style="margin-top:24px">Recent</h2>
     <div id="announce-list"><div class="empty">Loading…</div></div>
   </div>
+
   <div id="panel-brand" class="panel card" style="display:none">
     <h2>Brand ad slots</h2>
     <p class="sub" style="margin-bottom:12px">Upload an image for any slot. It appears in-game immediately when published.</p>
@@ -173,6 +175,12 @@ code{background:var(--surface);padding:2px 6px;border-radius:4px;font-size:12px}
       <option value="loudspeaker">Loudspeaker</option>
       <option value="shelf">Shelf back</option>
       <option value="stall_front">Stall front</option>
+      <option value="city_lagos">City — Lagos backdrop</option>
+      <option value="city_uyo">City — Uyo backdrop</option>
+      <option value="city_ibadan">City — Ibadan backdrop</option>
+      <option value="city_abuja">City — Abuja backdrop</option>
+      <option value="city_kano">City — Kano backdrop</option>
+      <option value="city_ph">City — Port Harcourt backdrop</option>
     </select>
 
     <label style="display:block;font-size:12px;font-weight:800;margin-top:12px;margin-bottom:4px;color:var(--muted);text-transform:uppercase">Slot number (order if multiple)</label>
@@ -184,7 +192,7 @@ code{background:var(--surface);padding:2px 6px;border-radius:4px;font-size:12px}
     <label style="display:block;font-size:12px;font-weight:800;margin-top:12px;margin-bottom:4px;color:var(--muted);text-transform:uppercase">Brand color</label>
     <input id="brand-color" type="text" placeholder="#D4A017" value="#D4A017">
 
-    <label style="display:block;font-size:12px;font-weight:800;margin-top:12px;margin-bottom:4px;color:var(--muted);text-transform:uppercase">Upload image (max 2MB)</label>
+    <label style="display:block;font-size:12px;font-weight:800;margin-top:12px;margin-bottom:4px;color:var(--muted);text-transform:uppercase">Upload image (max 500MB)</label>
     <input type="file" id="brand-file" accept="image/png,image/jpeg,image/webp,image/svg+xml" style="padding:8px">
 
     <p class="sub" style="margin:8px 0 4px">— or paste an image URL:</p>
@@ -200,7 +208,7 @@ code{background:var(--surface);padding:2px 6px;border-radius:4px;font-size:12px}
     <h2 style="margin-top:24px">All slots</h2>
     <div id="brand-list"><div class="empty">Loading…</div></div>
   </div>
- 
+
   <div id="panel-export" class="panel card" style="display:none">
     <h2>Export CSVs</h2>
     <p class="sub">Download raw data for offline analysis.</p>
@@ -235,6 +243,13 @@ function esc(s) {
 }
 
 function fmtN(n) { return '₦' + Number(n || 0).toLocaleString('en-NG'); }
+
+// ---------------- MANUAL REFRESH ----------------
+document.getElementById('btn-refresh').addEventListener('click', () => {
+  const fn = TAB_LOADERS[currentTab];
+  if (fn) { fn(); toast('Refreshed'); }
+  else toast('Nothing to refresh here');
+});
 
 // ---------------- THEME ----------------
 (function(){
@@ -310,7 +325,8 @@ async function showDash(session) {
   document.getElementById('login-view').style.display = 'none';
   document.getElementById('dash-view').style.display = 'block';
   document.getElementById('whoami').textContent = 'Signed in as ' + email;
-  loadMetrics();
+  switchTab('metrics');
+  startAutoRefresh();
 }
 
 function showLogin() {
@@ -318,28 +334,53 @@ function showLogin() {
   document.getElementById('dash-view').style.display = 'none';
 }
 
-// ---------------- TABS ----------------
+// ---------------- TABS + AUTO-REFRESH ----------------
+let currentTab = 'metrics';
+let autoRefreshTimer = null;
+
+const TAB_LOADERS = {
+  metrics: loadMetrics,
+  live: loadLive,
+  hustles: loadHustles,
+  players: loadPlayers,
+  runs: loadRuns,
+  votes: loadVotes,
+  feedback: loadFeedback,
+  referrals: loadReferrals,
+  announce: loadAnnouncements,
+  brand: loadBrandSlots
+};
+
+function switchTab(tabName) {
+  currentTab = tabName;
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+  const btn = document.querySelector('.tab[data-tab="' + tabName + '"]');
+  if (btn) btn.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
+  const panel = document.getElementById('panel-' + tabName);
+  if (panel) panel.style.display = 'block';
+  const fn = TAB_LOADERS[tabName];
+  if (fn) fn();
+}
+
 document.querySelectorAll('.tab').forEach(t => {
-  t.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-    t.classList.add('active');
-    document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
-    const panel = document.getElementById('panel-' + t.dataset.tab);
-    if (panel) panel.style.display = 'block';
-    const fn = {
-      metrics: loadMetrics,
-      live: loadLive,
-      hustles: loadHustles,
-      players: loadPlayers,
-      runs: loadRuns,
-      votes: loadVotes,
-      feedback: loadFeedback,
-      referrals: loadReferrals,
-      announce: loadAnnouncements,
-      brand: loadBrandSlots
-    }[t.dataset.tab];
+  t.addEventListener('click', () => switchTab(t.dataset.tab));
+});
+
+function startAutoRefresh() {
+  if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+  autoRefreshTimer = setInterval(() => {
+    if (currentTab === 'live') return;
+    const fn = TAB_LOADERS[currentTab];
     if (fn) fn();
-  });
+  }, 15000);
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    const fn = TAB_LOADERS[currentTab];
+    if (fn) fn();
+  }
 });
 
 // ---------------- METRICS ----------------
@@ -348,35 +389,39 @@ async function loadMetrics() {
   grid.innerHTML = '<div class="empty">Loading…</div>';
   const dayAgo = new Date(Date.now() - 86400000).toISOString();
 
-  const [guests, runs24, runsTotal, votes, feedback, referralsDone] = await Promise.all([
-    sb.from('guests').select('guest_id', { count: 'exact', head: true }),
-    sb.from('runs').select('*', { count: 'exact', head: true }).gte('created_at', dayAgo),
-    sb.from('runs').select('*', { count: 'exact', head: true }),
-    sb.from('votes').select('*', { count: 'exact', head: true }),
-    sb.from('feedback').select('*', { count: 'exact', head: true }),
-    sb.from('referrals').select('*', { count: 'exact', head: true }).eq('status', 'completed')
-  ]);
+  try {
+    const [guests, runs24, runsTotal, votes, feedback, referralsDone] = await Promise.all([
+      sb.from('guests').select('guest_id', { count: 'exact', head: true }),
+      sb.from('runs').select('*', { count: 'exact', head: true }).gte('created_at', dayAgo),
+      sb.from('runs').select('*', { count: 'exact', head: true }),
+      sb.from('votes').select('*', { count: 'exact', head: true }),
+      sb.from('feedback').select('*', { count: 'exact', head: true }),
+      sb.from('referrals').select('*', { count: 'exact', head: true }).eq('status', 'completed')
+    ]);
 
-  const m = [
-    { v: guests.count || 0, l: 'Total guests' },
-    { v: runs24.count || 0, l: 'Runs (24h)' },
-    { v: runsTotal.count || 0, l: 'Runs (all time)' },
-    { v: votes.count || 0, l: 'Votes' },
-    { v: feedback.count || 0, l: 'Feedback' },
-    { v: referralsDone.count || 0, l: 'Referrals done' }
-  ];
-  grid.innerHTML = m.map(x => '<div class="metric"><div class="v">' + x.v + '</div><div class="l">' + x.l + '</div></div>').join('');
+    const m = [
+      { v: guests.count || 0, l: 'Total guests' },
+      { v: runs24.count || 0, l: 'Runs (24h)' },
+      { v: runsTotal.count || 0, l: 'Runs (all time)' },
+      { v: votes.count || 0, l: 'Votes' },
+      { v: feedback.count || 0, l: 'Feedback' },
+      { v: referralsDone.count || 0, l: 'Referrals done' }
+    ];
+    grid.innerHTML = m.map(x => '<div class="metric"><div class="v">' + x.v + '</div><div class="l">' + x.l + '</div></div>').join('');
 
-  const { data: events } = await sb.from('events')
-    .select('name').gte('created_at', dayAgo).limit(1000);
-  const counts = {};
-  (events || []).forEach(e => { counts[e.name] = (counts[e.name] || 0) + 1; });
-  const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
-  const evEl = document.getElementById('events-top');
-  evEl.innerHTML = top.length
-    ? '<table><tr><th>Event</th><th>Count (24h)</th></tr>' +
-      top.map(([n, c]) => '<tr><td>' + esc(n) + '</td><td>' + c + '</td></tr>').join('') + '</table>'
-    : '<div class="empty">No events yet.</div>';
+    const { data: events } = await sb.from('events')
+      .select('name').gte('created_at', dayAgo).limit(1000);
+    const counts = {};
+    (events || []).forEach(e => { counts[e.name] = (counts[e.name] || 0) + 1; });
+    const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+    const evEl = document.getElementById('events-top');
+    evEl.innerHTML = top.length
+      ? '<table><tr><th>Event</th><th>Count (24h)</th></tr>' +
+        top.map(([n, c]) => '<tr><td>' + esc(n) + '</td><td>' + c + '</td></tr>').join('') + '</table>'
+      : '<div class="empty">No events yet.</div>';
+  } catch (e) {
+    grid.innerHTML = '<div class="empty" style="color:var(--danger)">Error: ' + esc(e.message || 'unknown') + '</div>';
+  }
 }
 
 // ---------------- LIVE PRESENCE ----------------
@@ -384,7 +429,6 @@ let liveChannel = null;
 let liveUsers = {};
 
 function loadLive() {
-  const el = document.getElementById('live-list');
   if (!liveChannel) {
     liveChannel = sb.channel('hc-presence');
     liveChannel.on('presence', { event: 'sync' }, () => {
@@ -425,44 +469,60 @@ setInterval(() => {
 async function loadHustles() {
   const el = document.getElementById('hustles-list');
   el.innerHTML = '<div class="empty">Loading…</div>';
-  const [{ data: hustles }, { data: votes }] = await Promise.all([
-    sb.from('hustles').select('*').order('sort_order'),
-    sb.from('votes').select('hustle_key')
-  ]);
-  const voteCounts = {};
-  (votes || []).forEach(v => { if (v.hustle_key) voteCounts[v.hustle_key] = (voteCounts[v.hustle_key] || 0) + 1; });
-  if (!hustles || !hustles.length) return el.innerHTML = '<div class="empty">No hustles in registry. Run the SQL migration.</div>';
-  el.innerHTML = '<table><tr><th>Icon</th><th>Name</th><th>Key</th><th>Votes</th><th>Status</th><th></th></tr>' +
-    hustles.map(h => '<tr><td style="font-size:20px">' + esc(h.icon || '') + '</td><td>' + esc(h.name) + '</td><td><code>' + esc(h.key) + '</code></td><td>' + (voteCounts[h.key] || 0) + '</td><td>' + (h.unlocked ? '<span class="pill good">Unlocked</span>' : '<span class="pill">Locked</span>') + '</td><td><button class="btn ' + (h.unlocked ? 'btn-outline' : 'btn-primary') + '" data-toggle-hustle="' + esc(h.key) + '" data-unlocked="' + h.unlocked + '" style="padding:6px 12px;font-size:12px">' + (h.unlocked ? 'Lock' : 'Unlock') + '</button></td></tr>').join('') +
-    '</table>';
-  el.querySelectorAll('[data-toggle-hustle]').forEach(b => b.addEventListener('click', async () => {
-    const next = b.dataset.unlocked !== 'true';
-    await sb.from('hustles').update({ unlocked: next }).eq('key', b.dataset.toggleHustle);
-    toast(next ? 'Unlocked' : 'Locked');
-    loadHustles();
-  }));
+  try {
+    const [{ data: hustles, error: e1 }, { data: votes, error: e2 }] = await Promise.all([
+      sb.from('hustles').select('*').order('sort_order'),
+      sb.from('votes').select('hustle_key')
+    ]);
+    if (e1) { el.innerHTML = '<div class="empty" style="color:var(--danger)">Hustles error: ' + esc(e1.message) + '</div>'; return; }
+    const voteCounts = {};
+    (votes || []).forEach(v => { if (v.hustle_key) voteCounts[v.hustle_key] = (voteCounts[v.hustle_key] || 0) + 1; });
+    if (!hustles || !hustles.length) return el.innerHTML = '<div class="empty">No hustles in registry. Run the SQL migration.</div>';
+    el.innerHTML = '<table><tr><th>Icon</th><th>Name</th><th>Key</th><th>Votes</th><th>Status</th><th></th></tr>' +
+      hustles.map(h => '<tr><td style="font-size:20px">' + esc(h.icon || '') + '</td><td>' + esc(h.name) + '</td><td><code>' + esc(h.key) + '</code></td><td>' + (voteCounts[h.key] || 0) + '</td><td>' + (h.unlocked ? '<span class="pill good">Unlocked</span>' : '<span class="pill">Locked</span>') + '</td><td><button class="btn ' + (h.unlocked ? 'btn-outline' : 'btn-primary') + '" data-toggle-hustle="' + esc(h.key) + '" data-unlocked="' + h.unlocked + '" style="padding:6px 12px;font-size:12px">' + (h.unlocked ? 'Lock' : 'Unlock') + '</button></td></tr>').join('') +
+      '</table>';
+    el.querySelectorAll('[data-toggle-hustle]').forEach(b => b.addEventListener('click', async () => {
+      const next = b.dataset.unlocked !== 'true';
+      const { error } = await sb.from('hustles').update({ unlocked: next }).eq('key', b.dataset.toggleHustle);
+      if (error) return toast('Error: ' + error.message);
+      toast(next ? 'Unlocked' : 'Locked');
+      loadHustles();
+    }));
+  } catch (e) {
+    el.innerHTML = '<div class="empty" style="color:var(--danger)">Error: ' + esc(e.message || 'unknown') + '</div>';
+  }
 }
 
 // ---------------- PLAYERS ----------------
 async function loadPlayers() {
   const el = document.getElementById('players-list');
   el.innerHTML = '<div class="empty">Loading…</div>';
-  const { data } = await sb.from('players').select('*').order('created_at', { ascending: false }).limit(100);
-  if (!data || !data.length) return el.innerHTML = '<div class="empty">No signed-in players yet.</div>';
-  el.innerHTML = '<table><tr><th>Name</th><th>Email</th><th>Division</th><th>Wallet</th><th>Lifetime</th><th>Banned</th></tr>' +
-    data.map(p => '<tr><td>' + esc(p.display_name) + '</td><td>' + esc(p.email) + '</td><td>' + esc(p.division) + '</td><td>' + fmtN(p.wallet_balance) + '</td><td>' + fmtN(p.lifetime_earned) + '</td><td>' + (p.banned ? '<span class="pill bad">Yes</span>' : '<span class="pill good">No</span>') + '</td></tr>').join('') +
-    '</table>';
+  try {
+    const { data, error } = await sb.from('players').select('*').order('created_at', { ascending: false }).limit(100);
+    if (error) return el.innerHTML = '<div class="empty" style="color:var(--danger)">Error: ' + esc(error.message) + '</div>';
+    if (!data || !data.length) return el.innerHTML = '<div class="empty">No signed-in players yet.</div>';
+    el.innerHTML = '<table><tr><th>Name</th><th>Email</th><th>Division</th><th>Wallet</th><th>Lifetime</th><th>Banned</th></tr>' +
+      data.map(p => '<tr><td>' + esc(p.display_name) + '</td><td>' + esc(p.email) + '</td><td>' + esc(p.division) + '</td><td>' + fmtN(p.wallet_balance) + '</td><td>' + fmtN(p.lifetime_earned) + '</td><td>' + (p.banned ? '<span class="pill bad">Yes</span>' : '<span class="pill good">No</span>') + '</td></tr>').join('') +
+      '</table>';
+  } catch (e) {
+    el.innerHTML = '<div class="empty" style="color:var(--danger)">Error: ' + esc(e.message || 'unknown') + '</div>';
+  }
 }
 
 // ---------------- RUNS ----------------
 async function loadRuns() {
   const el = document.getElementById('runs-list');
   el.innerHTML = '<div class="empty">Loading…</div>';
-  const { data } = await sb.from('runs').select('*').order('created_at', { ascending: false }).limit(50);
-  if (!data || !data.length) return el.innerHTML = '<div class="empty">No runs yet.</div>';
-  el.innerHTML = '<table><tr><th>When</th><th>Guest</th><th>Name</th><th>Stall</th><th>Score</th><th>Valid</th><th>Boost</th></tr>' +
-    data.map(r => '<tr><td>' + esc(new Date(r.created_at).toLocaleString()) + '</td><td><code>' + esc((r.guest_id || '').slice(0, 8)) + '</code></td><td>' + esc(r.player_name || '—') + '</td><td>' + esc(r.stall_key) + '</td><td>' + fmtN(r.score) + '</td><td>' + (r.valid ? '<span class="pill good">✓</span>' : '<span class="pill bad">✗</span>') + '</td><td>' + (r.boost_used ? '⚡' : '—') + '</td></tr>').join('') +
-    '</table>';
+  try {
+    const { data, error } = await sb.from('runs').select('*').order('created_at', { ascending: false }).limit(50);
+    if (error) return el.innerHTML = '<div class="empty" style="color:var(--danger)">Error: ' + esc(error.message) + '</div>';
+    if (!data || !data.length) return el.innerHTML = '<div class="empty">No runs yet.</div>';
+    el.innerHTML = '<table><tr><th>When</th><th>Guest</th><th>Name</th><th>Stall</th><th>Score</th><th>Valid</th><th>Boost</th></tr>' +
+      data.map(r => '<tr><td>' + esc(new Date(r.created_at).toLocaleString()) + '</td><td><code>' + esc((r.guest_id || '').slice(0, 8)) + '</code></td><td>' + esc(r.player_name || '—') + '</td><td>' + esc(r.stall_key) + '</td><td>' + fmtN(r.score) + '</td><td>' + (r.valid ? '<span class="pill good">✓</span>' : '<span class="pill bad">✗</span>') + '</td><td>' + (r.boost_used ? '⚡' : '—') + '</td></tr>').join('') +
+      '</table>';
+  } catch (e) {
+    el.innerHTML = '<div class="empty" style="color:var(--danger)">Error: ' + esc(e.message || 'unknown') + '</div>';
+  }
 }
 
 // ---------------- VOTES ----------------
@@ -471,72 +531,91 @@ async function loadVotes() {
   const writeEl = document.getElementById('votes-writein');
   totalsEl.innerHTML = '<div class="empty">Loading…</div>';
   writeEl.innerHTML = '<div class="empty">Loading…</div>';
-  const { data, error } = await sb.from('votes').select('*').order('created_at', { ascending: false }).limit(1000);
-  if (error) {
-    totalsEl.innerHTML = '<div class="empty" style="color:var(--danger)">Query error: ' + esc(error.message) + '</div>';
-    writeEl.innerHTML = '<div class="empty" style="color:var(--danger)">' + esc(error.details || '') + '</div>';
-    return;
+  try {
+    const { data, error } = await sb.from('votes').select('*').order('created_at', { ascending: false }).limit(1000);
+    if (error) {
+      totalsEl.innerHTML = '<div class="empty" style="color:var(--danger)">Query error: ' + esc(error.message) + '</div>';
+      writeEl.innerHTML = '<div class="empty" style="color:var(--danger)">' + esc(error.details || '') + '</div>';
+      return;
+    }
+    if (!data || !data.length) {
+      totalsEl.innerHTML = '<div class="empty">No votes yet.</div>';
+      writeEl.innerHTML = '<div class="empty">No write-ins yet.</div>';
+      return;
+    }
+    const totals = {};
+    const writeins = [];
+    data.forEach(v => {
+      if (v.hustle_key) totals[v.hustle_key] = (totals[v.hustle_key] || 0) + 1;
+      if (v.write_in_text) writeins.push(v);
+    });
+    const tot = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+    totalsEl.innerHTML = tot.length
+      ? '<table><tr><th>Hustle</th><th>Votes</th></tr>' + tot.map(([h, c]) => '<tr><td>' + esc(h) + '</td><td>' + c + '</td></tr>').join('') + '</table>'
+      : '<div class="empty">No locked-hustle votes yet.</div>';
+    writeEl.innerHTML = writeins.length
+      ? '<table><tr><th>When</th><th>Idea</th></tr>' + writeins.map(w => '<tr><td>' + esc(new Date(w.created_at).toLocaleString()) + '</td><td>' + esc(w.write_in_text) + '</td></tr>').join('') + '</table>'
+      : '<div class="empty">No write-in ideas yet.</div>';
+  } catch (e) {
+    totalsEl.innerHTML = '<div class="empty" style="color:var(--danger)">Error: ' + esc(e.message || 'unknown') + '</div>';
   }
-  if (!data || !data.length) {
-    totalsEl.innerHTML = '<div class="empty">No votes yet.</div>';
-    writeEl.innerHTML = '<div class="empty">No write-ins yet.</div>';
-    return;
-  }
-  const totals = {};
-  const writeins = [];
-  data.forEach(v => {
-    if (v.hustle_key) totals[v.hustle_key] = (totals[v.hustle_key] || 0) + 1;
-    if (v.write_in_text) writeins.push(v);
-  });
-  const tot = Object.entries(totals).sort((a, b) => b[1] - a[1]);
-  totalsEl.innerHTML = tot.length
-    ? '<table><tr><th>Hustle</th><th>Votes</th></tr>' + tot.map(([h, c]) => '<tr><td>' + esc(h) + '</td><td>' + c + '</td></tr>').join('') + '</table>'
-    : '<div class="empty">No locked-hustle votes yet.</div>';
-  writeEl.innerHTML = writeins.length
-    ? '<table><tr><th>When</th><th>Idea</th></tr>' + writeins.map(w => '<tr><td>' + esc(new Date(w.created_at).toLocaleString()) + '</td><td>' + esc(w.write_in_text) + '</td></tr>').join('') + '</table>'
-    : '<div class="empty">No write-in ideas yet.</div>';
 }
 
 // ---------------- FEEDBACK ----------------
 async function loadFeedback() {
   const el = document.getElementById('feedback-list');
   el.innerHTML = '<div class="empty">Loading…</div>';
-  const { data } = await sb.from('feedback').select('*').order('created_at', { ascending: false }).limit(50);
-  if (!data || !data.length) return el.innerHTML = '<div class="empty">No feedback yet.</div>';
-  el.innerHTML = '<table><tr><th>When</th><th>Mood</th><th>Message</th></tr>' +
-    data.map(f => '<tr><td>' + esc(new Date(f.created_at).toLocaleString()) + '</td><td style="font-size:20px">' + esc(f.mood || '—') + '</td><td>' + esc(f.message || '') + '</td></tr>').join('') +
-    '</table>';
+  try {
+    const { data, error } = await sb.from('feedback').select('*').order('created_at', { ascending: false }).limit(50);
+    if (error) return el.innerHTML = '<div class="empty" style="color:var(--danger)">Error: ' + esc(error.message) + '</div>';
+    if (!data || !data.length) return el.innerHTML = '<div class="empty">No feedback yet.</div>';
+    el.innerHTML = '<table><tr><th>When</th><th>Mood</th><th>Message</th></tr>' +
+      data.map(f => '<tr><td>' + esc(new Date(f.created_at).toLocaleString()) + '</td><td style="font-size:20px">' + esc(f.mood || '—') + '</td><td>' + esc(f.message || '') + '</td></tr>').join('') +
+      '</table>';
+  } catch (e) {
+    el.innerHTML = '<div class="empty" style="color:var(--danger)">Error: ' + esc(e.message || 'unknown') + '</div>';
+  }
 }
 
 // ---------------- REFERRALS ----------------
 async function loadReferrals() {
   const el = document.getElementById('referrals-list');
   el.innerHTML = '<div class="empty">Loading…</div>';
-  const { data } = await sb.from('referrals').select('*').order('created_at', { ascending: false }).limit(100);
-  if (!data || !data.length) return el.innerHTML = '<div class="empty">No referrals yet.</div>';
-  el.innerHTML = '<table><tr><th>When</th><th>Referrer</th><th>Referred</th><th>Status</th></tr>' +
-    data.map(r => '<tr><td>' + esc(new Date(r.created_at).toLocaleString()) + '</td><td>' + esc((r.referrer_id || '').slice(0, 12)) + '</td><td>' + esc((r.referred_id || '').slice(0, 12)) + '</td><td>' + esc(r.status) + '</td></tr>').join('') +
-    '</table>';
+  try {
+    const { data, error } = await sb.from('referrals').select('*').order('created_at', { ascending: false }).limit(100);
+    if (error) return el.innerHTML = '<div class="empty" style="color:var(--danger)">Error: ' + esc(error.message) + '</div>';
+    if (!data || !data.length) return el.innerHTML = '<div class="empty">No referrals yet.</div>';
+    el.innerHTML = '<table><tr><th>When</th><th>Referrer</th><th>Referred</th><th>Status</th></tr>' +
+      data.map(r => '<tr><td>' + esc(new Date(r.created_at).toLocaleString()) + '</td><td>' + esc((r.referrer_id || '').slice(0, 12)) + '</td><td>' + esc((r.referred_id || '').slice(0, 12)) + '</td><td>' + esc(r.status) + '</td></tr>').join('') +
+      '</table>';
+  } catch (e) {
+    el.innerHTML = '<div class="empty" style="color:var(--danger)">Error: ' + esc(e.message || 'unknown') + '</div>';
+  }
 }
 
 // ---------------- ANNOUNCEMENTS ----------------
 async function loadAnnouncements() {
   const el = document.getElementById('announce-list');
   el.innerHTML = '<div class="empty">Loading…</div>';
-  const { data } = await sb.from('announcements').select('*').order('created_at', { ascending: false }).limit(30);
-  if (!data || !data.length) return el.innerHTML = '<div class="empty">None yet.</div>';
-  el.innerHTML = data.map(a =>
-    '<div style="padding:10px 0;border-bottom:1px solid var(--border)">' +
-    '<span class="pill ' + (a.active ? 'good' : 'bad') + '">' + (a.active ? 'Active' : 'Off') + '</span> ' +
-    '<span style="font-size:12px;color:var(--muted);margin-left:8px">' + esc(new Date(a.created_at).toLocaleString()) + '</span>' +
-    '<p style="margin-top:6px;font-size:13px">' + esc(a.message) + '</p>' +
-    (a.active ? '<button class="btn btn-outline" data-deactivate="' + a.id + '" style="margin-top:6px;padding:4px 10px;font-size:11px">Deactivate</button>' : '') +
-    '</div>'
-  ).join('');
-  el.querySelectorAll('[data-deactivate]').forEach(b => b.addEventListener('click', async () => {
-    await sb.from('announcements').update({ active: false }).eq('id', b.dataset.deactivate);
-    toast('Deactivated'); loadAnnouncements();
-  }));
+  try {
+    const { data, error } = await sb.from('announcements').select('*').order('created_at', { ascending: false }).limit(30);
+    if (error) return el.innerHTML = '<div class="empty" style="color:var(--danger)">Error: ' + esc(error.message) + '</div>';
+    if (!data || !data.length) return el.innerHTML = '<div class="empty">None yet.</div>';
+    el.innerHTML = data.map(a =>
+      '<div style="padding:10px 0;border-bottom:1px solid var(--border)">' +
+      '<span class="pill ' + (a.active ? 'good' : 'bad') + '">' + (a.active ? 'Active' : 'Off') + '</span> ' +
+      '<span style="font-size:12px;color:var(--muted);margin-left:8px">' + esc(new Date(a.created_at).toLocaleString()) + '</span>' +
+      '<p style="margin-top:6px;font-size:13px">' + esc(a.message) + '</p>' +
+      (a.active ? '<button class="btn btn-outline" data-deactivate="' + a.id + '" style="margin-top:6px;padding:4px 10px;font-size:11px">Deactivate</button>' : '') +
+      '</div>'
+    ).join('');
+    el.querySelectorAll('[data-deactivate]').forEach(b => b.addEventListener('click', async () => {
+      await sb.from('announcements').update({ active: false }).eq('id', b.dataset.deactivate);
+      toast('Deactivated'); loadAnnouncements();
+    }));
+  } catch (e) {
+    el.innerHTML = '<div class="empty" style="color:var(--danger)">Error: ' + esc(e.message || 'unknown') + '</div>';
+  }
 }
 
 document.getElementById('btn-announce').addEventListener('click', async () => {
@@ -586,40 +665,45 @@ document.getElementById('brand-url').addEventListener('input', updateBrandPrevie
 async function loadBrandSlots() {
   const el = document.getElementById('brand-list');
   el.innerHTML = '<div class="empty">Loading…</div>';
-  const { data } = await sb.from('brand_slots').select('*').order('created_at', { ascending: false }).limit(50);
-  if (!data || !data.length) return el.innerHTML = '<div class="empty">No slots yet.</div>';
-  el.innerHTML = '<table><tr><th>Preview</th><th>Slot</th><th>#</th><th>Brand</th><th>Active</th><th></th></tr>' +
-    data.map(s => {
-      const preview = s.brand_art_url
-        ? '<img src="' + esc(s.brand_art_url) + '" style="width:72px;height:44px;object-fit:contain;border-radius:4px;border:1px solid var(--border);background:#fff">'
-        : '<span style="display:inline-flex;width:72px;height:44px;border-radius:4px;background:' + esc(s.brand_color || '#D4A017') + ';color:#fff;font-size:9px;align-items:center;justify-content:center;text-align:center;line-height:1;padding:2px">' + esc((s.brand_name || 'NO ART').slice(0,10)) + '</span>';
-      return '<tr>' +
-        '<td>' + preview + '</td>' +
-        '<td><code>' + esc(s.slot_key || s.tool_key || '—') + '</code></td>' +
-        '<td>' + (s.slot_number || '—') + '</td>' +
-        '<td>' + esc(s.brand_name || '') + '</td>' +
-        '<td>' + (s.active ? '<span class="pill good">Yes</span>' : '<span class="pill">No</span>') + '</td>' +
-        '<td>' +
-          '<button class="btn btn-outline" data-toggle="' + s.id + '" data-active="' + s.active + '" style="padding:4px 10px;font-size:11px;margin-right:4px">' + (s.active ? 'Pause' : 'Publish') + '</button>' +
-          '<button class="btn btn-outline" data-del="' + s.id + '" style="padding:4px 10px;font-size:11px;color:var(--danger);border-color:var(--danger)">Del</button>' +
-        '</td>' +
-      '</tr>';
-    }).join('') +
-    '</table>';
+  try {
+    const { data, error } = await sb.from('brand_slots').select('*').order('created_at', { ascending: false }).limit(50);
+    if (error) return el.innerHTML = '<div class="empty" style="color:var(--danger)">Error: ' + esc(error.message) + '</div>';
+    if (!data || !data.length) return el.innerHTML = '<div class="empty">No slots yet.</div>';
+    el.innerHTML = '<table><tr><th>Preview</th><th>Slot</th><th>#</th><th>Brand</th><th>Active</th><th></th></tr>' +
+      data.map(s => {
+        const preview = s.brand_art_url
+          ? '<img src="' + esc(s.brand_art_url) + '" style="width:72px;height:44px;object-fit:contain;border-radius:4px;border:1px solid var(--border);background:#fff">'
+          : '<span style="display:inline-flex;width:72px;height:44px;border-radius:4px;background:' + esc(s.brand_color || '#D4A017') + ';color:#fff;font-size:9px;align-items:center;justify-content:center;text-align:center;line-height:1;padding:2px">' + esc((s.brand_name || 'NO ART').slice(0,10)) + '</span>';
+        return '<tr>' +
+          '<td>' + preview + '</td>' +
+          '<td><code>' + esc(s.slot_key || s.tool_key || '—') + '</code></td>' +
+          '<td>' + (s.slot_number || '—') + '</td>' +
+          '<td>' + esc(s.brand_name || '') + '</td>' +
+          '<td>' + (s.active ? '<span class="pill good">Yes</span>' : '<span class="pill">No</span>') + '</td>' +
+          '<td>' +
+            '<button class="btn btn-outline" data-toggle="' + s.id + '" data-active="' + s.active + '" style="padding:4px 10px;font-size:11px;margin-right:4px">' + (s.active ? 'Pause' : 'Publish') + '</button>' +
+            '<button class="btn btn-outline" data-del="' + s.id + '" style="padding:4px 10px;font-size:11px;color:var(--danger);border-color:var(--danger)">Del</button>' +
+          '</td>' +
+        '</tr>';
+      }).join('') +
+      '</table>';
 
-  el.querySelectorAll('[data-toggle]').forEach(b => b.addEventListener('click', async () => {
-    const active = b.dataset.active === 'true';
-    await sb.from('brand_slots').update({ active: !active }).eq('id', b.dataset.toggle);
-    toast(active ? 'Paused' : 'Published');
-    loadBrandSlots();
-  }));
+    el.querySelectorAll('[data-toggle]').forEach(b => b.addEventListener('click', async () => {
+      const active = b.dataset.active === 'true';
+      await sb.from('brand_slots').update({ active: !active }).eq('id', b.dataset.toggle);
+      toast(active ? 'Paused' : 'Published');
+      loadBrandSlots();
+    }));
 
-  el.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async () => {
-    if (!confirm('Delete this slot?')) return;
-    await sb.from('brand_slots').delete().eq('id', b.dataset.del);
-    toast('Deleted');
-    loadBrandSlots();
-  }));
+    el.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async () => {
+      if (!confirm('Delete this slot?')) return;
+      await sb.from('brand_slots').delete().eq('id', b.dataset.del);
+      toast('Deleted');
+      loadBrandSlots();
+    }));
+  } catch (e) {
+    el.innerHTML = '<div class="empty" style="color:var(--danger)">Error: ' + esc(e.message || 'unknown') + '</div>';
+  }
 }
 
 document.getElementById('btn-brand-add').addEventListener('click', async () => {
@@ -653,11 +737,12 @@ document.getElementById('btn-brand-add').addEventListener('click', async () => {
   toast('Created — click Publish to make it live');
   loadBrandSlots();
 });
- 
+
 // ---------------- EXPORT ----------------
 document.querySelectorAll('[data-export]').forEach(b => b.addEventListener('click', async () => {
   const table = b.dataset.export;
-  const { data } = await sb.from(table).select('*').limit(10000);
+  const { data, error } = await sb.from(table).select('*').limit(10000);
+  if (error) return toast('Error: ' + error.message);
   if (!data || !data.length) return toast('No data');
   const keys = Object.keys(data[0]);
   const csv = [keys.join(',')].concat(
