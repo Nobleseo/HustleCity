@@ -158,6 +158,25 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .game-area[data-city="ph"] .scene-skyline::before{content:'🛢️ 🏭 🌊 🛢️ 🏭'}
 .game-area[data-city="ph"] .scene-ground{background:linear-gradient(180deg,#8a9a8a 0%,#6a7a6a 100%)}
 
+  /* Marketplace */
+.vendor-chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:12px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.vendor-chips::-webkit-scrollbar{display:none}
+.vendor-chip{padding:7px 14px;border-radius:20px;background:var(--surface);border:1.5px solid var(--border);color:var(--text);font-size:12px;font-weight:800;white-space:nowrap;cursor:pointer;font-family:inherit;transition:all 0.15s}
+.vendor-chip.active{background:var(--oxblood);color:#F5EBDC;border-color:var(--oxblood)}
+.vendor-grid{display:grid;gap:12px}
+.vendor-card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:12px;display:flex;gap:12px;align-items:flex-start}
+.vendor-photo{width:64px;height:64px;border-radius:12px;object-fit:cover;flex-shrink:0;border:1px solid var(--border);background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:28px}
+.vendor-info{flex:1;min-width:0}
+.vendor-name{font-size:14px;font-weight:900;color:var(--text);display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px}
+.vendor-badge{background:var(--green);color:#fff;font-size:9px;font-weight:900;padding:2px 6px;border-radius:6px;letter-spacing:0.3px}
+.vendor-meta{font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.4px;font-weight:700}
+.vendor-desc{font-size:12px;color:var(--text);line-height:1.4;margin-bottom:8px;opacity:0.85}
+.vendor-actions{display:flex;gap:6px}
+.vendor-btn{flex:1;padding:9px 10px;border-radius:8px;border:none;font-family:inherit;font-weight:800;font-size:12px;cursor:pointer;text-decoration:none;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:4px}
+.vendor-btn.call{background:var(--oxblood);color:#F5EBDC}
+.vendor-btn.wa{background:#25D366;color:#fff}
+.vendor-empty{grid-column:1/-1;text-align:center;color:var(--muted);font-size:13px;padding:40px 20px}
+
 /* Dashboard */
 .dash-hero{text-align:center;margin-bottom:14px}
 .dash-hi{font-size:22px;font-weight:900;color:var(--oxblood);line-height:1.1}
@@ -439,6 +458,7 @@ body.in-round .theme-toggle{display:none}
     <p class="dash-lifetime" id="dash-lifetime">Lifetime ₦0</p>
   </div>
   <button class="btn btn-gold" id="btn-dash-play" style="width:100%;font-size:18px;padding:16px;margin-bottom:10px">▶ PLAY MARKET TRADER</button>
+  <button class="btn btn-primary" id="btn-dash-market" style="width:100%;font-size:15px;padding:14px;margin-bottom:10px;background:var(--oxblood);color:#F5EBDC">🛒 Browse Vendor Marketplace</button>
   <div class="dash-rank-row">
     <div class="dash-rank"><strong id="dash-rank-today">#--</strong>Today</div>
     <div class="dash-rank"><strong id="dash-rounds">0</strong>Rounds today</div>
@@ -473,6 +493,19 @@ body.in-round .theme-toggle{display:none}
     <button class="lb-tab" data-scope="hall">Hall of Fame</button>
   </div>
   <div id="lb-list"></div>
+</div>
+
+  <!-- MARKETPLACE -->
+<div id="screen-marketplace" class="screen">
+  <div class="topbar">
+    <button class="btn btn-ghost" onclick="showScreen('dashboard')" style="padding:0">← Back</button>
+    <h2 style="font-size:20px">🛒 Marketplace</h2>
+    <span style="width:40px"></span>
+  </div>
+  <p class="small" style="margin-bottom:10px;color:var(--muted)">Verified Nigerian businesses. Tap to call or chat on WhatsApp.</p>
+  <input type="text" id="vendor-search" placeholder="Search businesses..." style="width:100%;padding:12px;border:2px solid var(--border);border-radius:10px;font-family:inherit;font-size:15px;background:var(--surface);color:var(--text);margin-bottom:10px">
+  <div id="vendor-categories" class="vendor-chips"></div>
+  <div id="vendor-list" class="vendor-grid"></div>
 </div>
 
 <!-- SHOP -->
@@ -1208,6 +1241,122 @@ document.querySelectorAll('.shelf-btn').forEach(btn=>{
     serveItem(btn.dataset.item,btn);
   });
 });
+  // ============ MARKETPLACE ============
+let allVendors = [];
+let vendorFilter = { category: 'all', query: '' };
+
+const VENDOR_CATEGORIES = [
+  { key: 'all', label: 'All' },
+  { key: 'tailor', label: '🧵 Tailor' },
+  { key: 'food', label: '🍲 Food & Buka' },
+  { key: 'barber', label: '💈 Barber' },
+  { key: 'laundry', label: '👕 Laundry' },
+  { key: 'mechanic', label: '🔧 Mechanic' },
+  { key: 'pos', label: '💳 POS' },
+  { key: 'delivery', label: '🛵 Delivery' },
+  { key: 'home', label: '🏠 Home' },
+  { key: 'other', label: 'Other' }
+];
+
+async function loadMarketplace(){
+  const list = document.getElementById('vendor-list');
+  if(!list) return;
+  list.innerHTML = '<div class="vendor-empty">Loading…</div>';
+  if(!sb){ list.innerHTML = '<div class="vendor-empty">Needs internet</div>'; return; }
+  try{
+    const { data, error } = await sb.from('vendors')
+      .select('*').eq('active', true)
+      .order('verified', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(200);
+    if(error) throw error;
+    allVendors = data || [];
+    renderVendorChips();
+    renderVendors();
+  }catch(e){
+    list.innerHTML = '<div class="vendor-empty">Could not load vendors. Try again.</div>';
+    console.warn('marketplace load failed', e);
+  }
+}
+
+function renderVendorChips(){
+  const wrap = document.getElementById('vendor-categories');
+  if(!wrap) return;
+  wrap.innerHTML = VENDOR_CATEGORIES.map(c =>
+    '<button class="vendor-chip' + (vendorFilter.category === c.key ? ' active' : '') + '" data-cat="' + c.key + '">' + c.label + '</button>'
+  ).join('');
+  wrap.querySelectorAll('.vendor-chip').forEach(b => b.addEventListener('click', () => {
+    vendorFilter.category = b.dataset.cat;
+    renderVendorChips();
+    renderVendors();
+  }));
+}
+
+function renderVendors(){
+  const list = document.getElementById('vendor-list');
+  if(!list) return;
+
+  const q = vendorFilter.query.toLowerCase().trim();
+  let rows = allVendors.slice();
+
+  // Sort: verified first, then city match (player's currentCity), then name
+  rows.sort((a, b) => {
+    if(a.verified !== b.verified) return a.verified ? -1 : 1;
+    const aCityMatch = a.city === currentCity ? 1 : 0;
+    const bCityMatch = b.city === currentCity ? 1 : 0;
+    if(aCityMatch !== bCityMatch) return bCityMatch - aCityMatch;
+    return (a.name || '').localeCompare(b.name || '');
+  });
+
+  // Filter
+  if(vendorFilter.category !== 'all') rows = rows.filter(v => v.category === vendorFilter.category);
+  if(q) rows = rows.filter(v =>
+    (v.name || '').toLowerCase().includes(q) ||
+    (v.category || '').toLowerCase().includes(q) ||
+    (v.description || '').toLowerCase().includes(q) ||
+    (v.city || '').toLowerCase().includes(q)
+  );
+
+  if(!rows.length){
+    list.innerHTML = '<div class="vendor-empty">No vendors found.<br><span style="font-size:11px">Try a different category or search.</span></div>';
+    return;
+  }
+
+  list.innerHTML = rows.map(v => {
+    const img = v.image_url
+      ? '<img class="vendor-photo" src="' + escapeHtml(v.image_url) + '" alt="" onerror="this.style.display=\'none\';this.parentNode.insertAdjacentHTML(\'afterbegin\',\'<div class=&quot;vendor-photo&quot;>🏪</div>\')">'
+      : '<div class="vendor-photo">🏪</div>';
+    const badge = v.verified ? '<span class="vendor-badge">✓ VERIFIED</span>' : '';
+    const catLabel = (VENDOR_CATEGORIES.find(c => c.key === v.category) || { label: v.category }).label.replace(/^\S+\s/, '');
+    const phone = v.phone || '';
+    const wa = v.whatsapp || v.phone || '';
+    const waLink = wa ? 'https://wa.me/' + wa + '?text=' + encodeURIComponent('Hi ' + (v.name || '') + ', I found you on Hustle City') : '#';
+    const callLink = phone ? 'tel:' + phone : '#';
+    const callBtn = phone ? '<a class="vendor-btn call" href="' + callLink + '">📞 Call</a>' : '';
+    const waBtn = wa ? '<a class="vendor-btn wa" href="' + waLink + '" target="_blank" rel="noopener">💬 WhatsApp</a>' : '';
+    return '<div class="vendor-card">' + img +
+      '<div class="vendor-info">' +
+        '<div class="vendor-name">' + escapeHtml(v.name || '') + ' ' + badge + '</div>' +
+        '<div class="vendor-meta">' + escapeHtml(catLabel) + ' · ' + escapeHtml((v.city || '').toUpperCase()) + '</div>' +
+        '<div class="vendor-desc">' + escapeHtml((v.description || '').slice(0, 140)) + '</div>' +
+        '<div class="vendor-actions">' + callBtn + waBtn + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// Search input
+document.getElementById('vendor-search').addEventListener('input', (e) => {
+  vendorFilter.query = e.target.value;
+  renderVendors();
+});
+
+// Open marketplace button on dashboard
+document.getElementById('btn-dash-market').addEventListener('click', () => {
+  showScreen('marketplace');
+  loadMarketplace();
+});
+
 // ============ DASHBOARD ============
 function refreshDashboard(){
   const name = state.playerName || 'Hustler';
