@@ -32,7 +32,20 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .small{font-size:12px;color:var(--muted)}
 
 /* HOME — compact so write-in box always visible */
-#screen-home{align-items:center;justify-content:flex-start;text-align:center;padding-top:14px;padding-bottom:14px;position:relative;-webkit-overflow-scrolling:touch}
+#screen-home{align-items:center;justify-content:flex-start;text-align:center;padding-top:14px;padding-bottom:14px;position:relative;-webkit-overflow-scrolling:touch} .home-signin-cta{
+  position: sticky;
+  bottom: 8px;
+  z-index: 15;
+  display: none;
+}
+
+body.is-signed-in .home-signin-cta{
+  display: none !important;
+}
+
+body:not(.is-signed-in) .home-signin-cta{
+  display: block;
+}
 .logo{font-size:28px;font-weight:900;color:var(--oxblood);letter-spacing:-1px;line-height:0.95}
 .tagline{color:var(--muted);margin:4px 0 10px;font-size:12px}
 .wallet-bar{display:flex;justify-content:space-around;width:100%;max-width:340px;background:var(--surface);border-radius:12px;padding:8px;margin-bottom:8px;border:1px solid var(--border)}
@@ -571,13 +584,38 @@ const SUPABASE_ANON_KEY = 'sb_publishable_kxWD40ojQTuXWiKeLiRzxg_fLaC_G2V';
 const sb = (typeof supabase !== 'undefined') ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
 let playerId = localStorage.getItem('hc_player_id') || null;
+  function updateHomeAuthButton() {
+  const signedIn = !!playerId;
+  document.body.classList.toggle('is-signed-in', signedIn);
+
+  const homeSignin = document.getElementById('btn-signin-home');
+  if (homeSignin) {
+    homeSignin.style.display = signedIn ? 'none' : 'block';
+  }
+}
 if (sb) {
   sb.auth.getSession().then(({ data }) => {
     if (data && data.session && data.session.user) {
       playerId = data.session.user.id;
       localStorage.setItem('hc_player_id', playerId);
     }
+    updateHomeAuthButton();
   });
+
+  sb.auth.onAuthStateChange((event, session) => {
+    playerId = session && session.user ? session.user.id : null;
+
+    if (playerId) {
+      localStorage.setItem('hc_player_id', playerId);
+    } else {
+      localStorage.removeItem('hc_player_id');
+    }
+
+    updateHomeAuthButton();
+  });
+} else {
+  updateHomeAuthButton();
+}
 }
 
 function getGuestId() {
