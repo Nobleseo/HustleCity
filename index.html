@@ -75,8 +75,6 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .game-area{flex:1;position:relative;overflow:hidden;min-height:220px;background:linear-gradient(180deg,var(--bg) 0%,var(--surface) 45%,#c2a878 100%)}
 .game-area.dark{background:#000}
 .game-area.dark::after{content:'';position:absolute;inset:0;background:rgba(0,0,0,0.85);z-index:9;pointer-events:none}
-
-/* Scene */
 .scene{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0}
 .scene-sky{position:absolute;inset:0;background:linear-gradient(180deg,#f8e9c8 0%,#f1dda8 40%,#e6cc8a 100%)}
 [data-theme="dark"] .scene-sky{background:linear-gradient(180deg,#2a1d14 0%,#1e140c 100%)}
@@ -95,8 +93,6 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .stall-front{position:absolute;left:0;right:0;bottom:0;height:34%;background:linear-gradient(180deg,#7a4f24 0%,#5d3b1a 100%);border-top:4px solid #4a2f13;z-index:2}
 .dynamic-layer{position:absolute;inset:0;z-index:5}
 .trader,.stall-front,.billboard,.scene{pointer-events:none}
-
-/* Camera modes */
 .game-area[data-camera="side"] .scene-stalls{transform:translateX(-25%) scaleX(1.15)}
 .game-area[data-camera="side"] .trader{left:18%;bottom:24%;font-size:52px}
 .game-area[data-camera="side"] .billboard{left:auto;right:10px;transform:none;width:120px;height:80px;top:12px;font-size:10px}
@@ -108,7 +104,6 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .game-area[data-camera="close"] .tool-belt .tool{width:64px;height:64px;font-size:10px}
 .game-area[data-camera="close"] .stall-front{height:46%}
 .game-area[data-camera="close"] .scene-stalls{opacity:0.15}
-
 .customer{position:absolute;width:60px;height:86px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;cursor:pointer;transition:transform 0.2s;z-index:6}
 .customer.called{transform:scale(1.15);z-index:8}
 .customer.called::before{content:'!';position:absolute;top:-6px;right:-2px;width:22px;height:22px;border-radius:50%;background:var(--gold);color:#3A2418;font-weight:900;display:flex;align-items:center;justify-content:center;font-size:14px;animation:pulse 0.6s infinite}
@@ -136,7 +131,6 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .event-btn{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:15;background:var(--gold);color:#3A2418;border:none;border-radius:50px;padding:14px 24px;font-weight:900;font-size:15px;cursor:pointer;font-family:inherit;box-shadow:0 6px 20px rgba(0,0,0,0.3);animation:pulse 0.8s infinite}
 .rain-overlay{position:absolute;inset:0;pointer-events:none;z-index:7;background:repeating-linear-gradient(15deg,transparent 0,transparent 12px,rgba(150,180,220,0.35) 12px,rgba(150,180,220,0.35) 14px);animation:rainfall 0.5s linear infinite}
 @keyframes rainfall{from{background-position:0 0}to{background-position:-20px 40px}}
-
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;animation:fade 0.2s}
 @keyframes fade{from{opacity:0}to{opacity:1}}
 .modal{background:var(--bg);border-radius:16px;padding:22px;max-width:340px;width:100%;text-align:center;border:2px solid var(--border)}
@@ -173,21 +167,18 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .shop-item.owned .buy-btn{background:var(--green);color:#F5EBDC}
 .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
 .topbar h2{font-size:22px;color:var(--oxblood)}
-
 .fab{position:fixed;bottom:20px;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,0.25);z-index:50;cursor:pointer;text-decoration:none;border:none;transition:transform 0.15s;font-family:inherit}
 .fab:active{transform:scale(0.92)}
 .fab-whatsapp{right:16px;background:#25D366;color:#fff}
 .fab-faq{left:16px;background:var(--oxblood);color:#F5EBDC}
 .fab svg{width:28px;height:28px;fill:currentColor}
 body.in-round .fab{display:none}
-
 .theme-toggle{position:absolute;top:12px;right:16px;width:40px;height:40px;border-radius:50%;background:var(--surface);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;z-index:40;font-family:inherit;color:var(--text)}
 body.in-round .theme-toggle{display:none}
 </style>
 </head>
 <body>
 
-<!-- HOME -->
 <div id="screen-home" class="screen active">
   <button class="theme-toggle" id="theme-toggle-home" aria-label="Toggle theme">🌙</button>
   <h1 class="logo">HUSTLE<br>CITY</h1>
@@ -238,7 +229,6 @@ body.in-round .theme-toggle{display:none}
   </div>
 </div>
 
-<!-- SETUP -->
 <div id="screen-setup" class="screen">
   <button class="btn btn-ghost" onclick="showScreen('home')" style="align-self:flex-start;padding:0;margin-bottom:12px">← Back</button>
   <h2>Pick your product</h2>
@@ -256,9 +246,8 @@ body.in-round .theme-toggle{display:none}
   <p class="small" style="text-align:center;margin-top:12px" id="setup-rounds">3 free rounds left today</p>
 </div>
 
-<!-- ROUND -->
 <div id="screen-round" class="screen">
-    <div class="round-hud">
+  <div class="round-hud">
     <span class="hud-timer" id="hud-timer">60</span>
     <span class="hud-money" id="hud-money">₦0</span>
     <span class="hud-combo" id="hud-combo">x1</span>
@@ -283,7 +272,6 @@ body.in-round .theme-toggle{display:none}
   </div>
 </div>
 
-<!-- RESULT -->
 <div id="screen-result" class="screen">
   <div class="result-title">Round Over</div>
   <div class="result-money" id="result-money">₦0</div>
@@ -303,7 +291,6 @@ body.in-round .theme-toggle{display:none}
   </div>
 </div>
 
-<!-- LEADERBOARD -->
 <div id="screen-leaderboard" class="screen">
   <div class="topbar">
     <button class="btn btn-ghost" onclick="showScreen('home')" style="padding:0">← Back</button>
@@ -318,7 +305,6 @@ body.in-round .theme-toggle{display:none}
   <div id="lb-list"></div>
 </div>
 
-<!-- SHOP -->
 <div id="screen-shop" class="screen">
   <div class="topbar">
     <button class="btn btn-ghost" onclick="showScreen('home')" style="padding:0">← Back</button>
@@ -332,7 +318,6 @@ body.in-round .theme-toggle{display:none}
   <div id="shop-list"></div>
 </div>
 
-<!-- SETTINGS -->
 <div id="screen-settings" class="screen">
   <div class="topbar">
     <button class="btn btn-ghost" onclick="showScreen('home')" style="padding:0">← Back</button>
@@ -354,7 +339,6 @@ body.in-round .theme-toggle{display:none}
   <p class="small" style="margin-top:auto;padding-top:20px;text-align:center">Hustle City v1.0.0 · Made in Nigeria</p>
 </div>
 
-<!-- AUTH MODAL -->
 <div id="auth-modal" class="modal-bg" style="display:none">
   <div class="modal">
     <h3 id="auth-title">Save your money</h3>
@@ -373,7 +357,8 @@ body.in-round .theme-toggle{display:none}
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- ⏸ END OF PART 1 — paste Part 2 immediately below this line -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 'use strict';
 
@@ -466,7 +451,8 @@ function showScreen(id){
   if(typeof updateActivity==='function') updateActivity(id);
 }
 function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-  // ============ SUPABASE SYNC ============
+
+// ============ SUPABASE SYNC ============
 async function syncRoundToServer(earned,served,missed,bestCombo){
   if(!sb)return;
   try{
@@ -604,27 +590,6 @@ function renderBrandSlots(){
 }
 setInterval(loadBrandSlots,60000);
 
-// ============ SETUP ============
-document.querySelectorAll('.product-card').forEach(card=>{
-  card.addEventListener('click',()=>{
-    document.querySelectorAll('.product-card').forEach(c=>c.classList.remove('selected'));
-    card.classList.add('selected');
-    selectedProduct=card.dataset.product;
-  });
-});
-
-document.getElementById('btn-home-play').addEventListener('click',()=>{
-  if(state.roundsToday>=CONFIG.roundsPerDay){alert('You don finish your 3 free rounds for today. Come back tomorrow!');return;}
-  document.getElementById('player-name').value=state.playerName||'';
-  showScreen('setup');
-});
-
-document.getElementById('btn-start-round').addEventListener('click',()=>{
-  state.playerName=document.getElementById('player-name').value.trim()||state.playerName;
-  saveState();
-  trackEvent('round_start',{stall:selectedProduct,is_guest:!playerId});
-  startRound();
-});
 // ============ CAMERA MODES ============
 const CAMERA_MODES = ['front', 'side', 'close'];
 let cameraMode = localStorage.getItem('hc_camera') || 'front';
@@ -646,8 +611,28 @@ document.getElementById('btn-camera').addEventListener('click', () => {
 });
 applyCamera();
 
-// ============ ROUND ============
-function clearDynamic(){
+// ============ SETUP ============
+document.querySelectorAll('.product-card').forEach(card=>{
+  card.addEventListener('click',()=>{
+    document.querySelectorAll('.product-card').forEach(c=>c.classList.remove('selected'));
+    card.classList.add('selected');
+    selectedProduct=card.dataset.product;
+  });
+});
+
+document.getElementById('btn-home-play').addEventListener('click',()=>{
+  if(state.roundsToday>=CONFIG.roundsPerDay){alert('You don finish your 3 free rounds for today. Come back tomorrow!');return;}
+  document.getElementById('player-name').value=state.playerName||'';
+  showScreen('setup');
+});
+
+document.getElementById('btn-start-round').addEventListener('click',()=>{
+  state.playerName=document.getElementById('player-name').value.trim()||state.playerName;
+  saveState();
+  trackEvent('round_start',{stall:selectedProduct,is_guest:!playerId});
+  startRound();
+});
+
 // ============ ROUND ============
 function clearDynamic(){
   if(dynamicLayer) dynamicLayer.innerHTML='';
@@ -1188,25 +1173,24 @@ document.getElementById('btn-open-lb').addEventListener('click',()=>showScreen('
 // ============ VOTES ============
 document.querySelectorAll('.vote-btn').forEach(btn=>{
   if(state.votes.includes(btn.dataset.hustle)){btn.textContent='VOTED ✓';btn.disabled=true;}
-  btn.addEventListener('click',async()=>{
+  btn.addEventListener('click',()=>{
     const h=btn.dataset.hustle;
     if(state.votes.includes(h))return;
-    const ok=await syncVoteToServer(h,null);
-    if(!ok)return;
     state.votes.push(h);saveState();
     btn.textContent='VOTED ✓';btn.disabled=true;
+    syncVoteToServer(h,null);
     trackEvent('vote',{hustle_key:h});
   });
 });
 
-document.getElementById('btn-writein').addEventListener('click',async()=>{
+document.getElementById('btn-writein').addEventListener('click',()=>{
   const inp=document.getElementById('writein-input');
   const text=inp.value.trim();
   if(!text)return;
-  await syncVoteToServer(null,text);
-  trackEvent('write_in_vote',{hustle_text:text});
   state.writeIns=state.writeIns||[];
   state.writeIns.push(text);saveState();
+  syncVoteToServer(null,text);
+  trackEvent('write_in_vote',{hustle_text:text});
   inp.value='';inp.placeholder='Sent! Add another...';
   document.getElementById('btn-writein').textContent='SENT ✓';
   setTimeout(()=>document.getElementById('btn-writein').textContent='SEND IDEA',2000);
@@ -1381,3 +1365,4 @@ updateActivity('home');
 </a>
 </body>
 </html>
+  
