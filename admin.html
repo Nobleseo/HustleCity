@@ -103,6 +103,7 @@ code{background:var(--surface);padding:2px 6px;border-radius:4px;font-size:12px}
     <button class="tab" data-tab="referrals">Referrals</button>
     <button class="tab" data-tab="announce">Announce</button>
     <button class="tab" data-tab="brand">Brand slots</button>
+    <button class="tab" data-tab="vendors">Vendors</button>
     <button class="tab" data-tab="export">Export</button>
   </div>
 
@@ -158,6 +159,58 @@ code{background:var(--surface);padding:2px 6px;border-radius:4px;font-size:12px}
     <button class="btn btn-primary" id="btn-announce">Post live</button>
     <h2 style="margin-top:24px">Recent</h2>
     <div id="announce-list"><div class="empty">Loading…</div></div>
+  </div>
+
+    <div id="panel-vendors" class="panel card" style="display:none">
+    <h2>Vendor marketplace</h2>
+    <p class="sub" style="margin-bottom:12px">Add verified Nigerian businesses. They appear in the signed-in player dashboard.</p>
+
+    <label style="display:block;font-size:12px;font-weight:800;margin-bottom:4px;color:var(--muted);text-transform:uppercase">Business name</label>
+    <input id="v-name" placeholder="e.g. Chidi Tailors">
+
+    <label style="display:block;font-size:12px;font-weight:800;margin-top:12px;margin-bottom:4px;color:var(--muted);text-transform:uppercase">Category</label>
+    <select id="v-category">
+      <option value="tailor">Tailor &amp; Fashion</option>
+      <option value="food">Food &amp; Buka</option>
+      <option value="barber">Barber &amp; Beauty</option>
+      <option value="laundry">Laundry</option>
+      <option value="mechanic">Mechanic</option>
+      <option value="pos">POS &amp; Financial</option>
+      <option value="delivery">Delivery &amp; Errands</option>
+      <option value="home">Home Services</option>
+      <option value="other">Other</option>
+    </select>
+
+    <label style="display:block;font-size:12px;font-weight:800;margin-top:12px;margin-bottom:4px;color:var(--muted);text-transform:uppercase">Short description</label>
+    <textarea id="v-description" rows="2" placeholder="One or two lines about the business"></textarea>
+
+    <label style="display:block;font-size:12px;font-weight:800;margin-top:12px;margin-bottom:4px;color:var(--muted);text-transform:uppercase">Phone (any format)</label>
+    <input id="v-phone" placeholder="08012345678">
+
+    <label style="display:block;font-size:12px;font-weight:800;margin-top:12px;margin-bottom:4px;color:var(--muted);text-transform:uppercase">WhatsApp (any format)</label>
+    <input id="v-whatsapp" placeholder="08012345678">
+
+    <label style="display:block;font-size:12px;font-weight:800;margin-top:12px;margin-bottom:4px;color:var(--muted);text-transform:uppercase">City</label>
+    <select id="v-city">
+      <option value="lagos">Lagos</option>
+      <option value="uyo">Uyo (Akwa Ibom)</option>
+      <option value="ibadan">Ibadan</option>
+      <option value="abuja">Abuja</option>
+      <option value="kano">Kano</option>
+      <option value="ph">Port Harcourt</option>
+    </select>
+
+    <label style="display:block;font-size:12px;font-weight:800;margin-top:12px;margin-bottom:4px;color:var(--muted);text-transform:uppercase">Business photo (up to 10MB, auto-compressed)</label>
+    <input type="file" id="v-image" accept="image/png,image/jpeg,image/webp" style="padding:8px">
+
+    <label style="display:flex;align-items:center;gap:8px;margin-top:14px;font-size:13px;font-weight:700">
+      <input type="checkbox" id="v-verified" style="width:auto;margin:0"> Mark as Verified ✓
+    </label>
+
+    <button class="btn btn-primary" id="btn-vendor-add" style="margin-top:16px;width:100%">Add vendor</button>
+
+    <h2 style="margin-top:24px">All vendors</h2>
+    <div id="vendors-list"><div class="empty">Loading…</div></div>
   </div>
 
   <div id="panel-brand" class="panel card" style="display:none">
@@ -349,6 +402,7 @@ const TAB_LOADERS = {
   feedback: loadFeedback,
   referrals: loadReferrals,
   announce: loadAnnouncements,
+  vendors: loadVendors,
   brand: loadBrandSlots
 };
 
@@ -634,6 +688,124 @@ document.getElementById('btn-announce').addEventListener('click', async () => {
   if (error) return toast('Error: ' + error.message);
   document.getElementById('announce-msg').value = '';
   toast('Posted'); loadAnnouncements();
+});
+
+  // ---------------- VENDORS ----------------
+function normalizePhone(raw) {
+  if (!raw) return '';
+  let s = String(raw).replace(/[^\d]/g, '');
+  if (s.startsWith('0')) s = '234' + s.slice(1);
+  if (s.startsWith('234')) return s;
+  if (s.length === 10) return '234' + s;
+  return s;
+}
+
+async function uploadVendorImage(file) {
+  if (!file) return null;
+  if (!file.type.startsWith('image/')) { toast('Image files only'); return null; }
+  if (file.size > 10 * 1024 * 1024) { toast('Max 10MB'); return null; }
+  let upload = file;
+  if (file.size > 300 * 1024) {
+    toast('Compressing…');
+    try {
+      upload = await compressImage(file, 1200, 1200);
+      if (!upload) upload = file;
+    } catch (e) { upload = file; }
+  }
+  const ext = (upload.type && upload.type.includes('png')) ? 'png' : 'jpg';
+  const filename = 'vendor-' + Date.now() + '-' + Math.random().toString(36).slice(2,8) + '.' + ext;
+  const { error } = await sb.storage.from('brand-art').upload(filename, upload, {
+    cacheControl: '3600', upsert: false, contentType: upload.type || 'image/jpeg'
+  });
+  if (error) { toast('Upload failed: ' + error.message); return null; }
+  const { data } = sb.storage.from('brand-art').getPublicUrl(filename);
+  return data.publicUrl;
+}
+
+async function loadVendors() {
+  const el = document.getElementById('vendors-list');
+  el.innerHTML = '<div class="empty">Loading…</div>';
+  try {
+    const { data, error } = await sb.from('vendors').select('*').order('created_at', { ascending: false }).limit(200);
+    if (error) return el.innerHTML = '<div class="empty" style="color:var(--danger)">Error: ' + esc(error.message) + '</div>';
+    if (!data || !data.length) return el.innerHTML = '<div class="empty">No vendors yet.</div>';
+    el.innerHTML = '<table><tr><th>Photo</th><th>Name</th><th>Category</th><th>City</th><th>Phone</th><th>Verified</th><th>Active</th><th></th></tr>' +
+      data.map(v => {
+        const img = v.image_url
+          ? '<img src="' + esc(v.image_url) + '" style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid var(--border)">'
+          : '<span style="display:inline-flex;width:44px;height:44px;border-radius:8px;background:var(--surface);align-items:center;justify-content:center;font-size:20px">🏪</span>';
+        return '<tr>' +
+          '<td>' + img + '</td>' +
+          '<td><strong>' + esc(v.name) + '</strong><div style="font-size:11px;color:var(--muted)">' + esc((v.description || '').slice(0,40)) + '</div></td>' +
+          '<td>' + esc(v.category) + '</td>' +
+          '<td>' + esc(v.city) + '</td>' +
+          '<td><code>' + esc(v.phone || '—') + '</code></td>' +
+          '<td>' + (v.verified ? '<span class="pill good">✓ Verified</span>' : '<span class="pill">No</span>') + '</td>' +
+          '<td>' + (v.active ? '<span class="pill good">Yes</span>' : '<span class="pill bad">Off</span>') + '</td>' +
+          '<td style="white-space:nowrap">' +
+            '<button class="btn btn-outline" data-v-verify="' + v.id + '" data-v-verified="' + v.verified + '" style="padding:4px 8px;font-size:11px;margin-right:4px">' + (v.verified ? 'Unverify' : 'Verify') + '</button>' +
+            '<button class="btn btn-outline" data-v-toggle="' + v.id + '" data-v-active="' + v.active + '" style="padding:4px 8px;font-size:11px;margin-right:4px">' + (v.active ? 'Hide' : 'Show') + '</button>' +
+            '<button class="btn btn-outline" data-v-del="' + v.id + '" style="padding:4px 8px;font-size:11px;color:var(--danger);border-color:var(--danger)">Del</button>' +
+          '</td>' +
+        '</tr>';
+      }).join('') + '</table>';
+
+    el.querySelectorAll('[data-v-verify]').forEach(b => b.addEventListener('click', async () => {
+      const next = b.dataset.vVerified !== 'true';
+      const { error } = await sb.from('vendors').update({ verified: next }).eq('id', b.dataset.vVerify);
+      if (error) return toast('Error: ' + error.message);
+      toast(next ? 'Verified' : 'Unverified'); loadVendors();
+    }));
+    el.querySelectorAll('[data-v-toggle]').forEach(b => b.addEventListener('click', async () => {
+      const next = b.dataset.vActive !== 'true';
+      const { error } = await sb.from('vendors').update({ active: next }).eq('id', b.dataset.vToggle);
+      if (error) return toast('Error: ' + error.message);
+      toast(next ? 'Visible' : 'Hidden'); loadVendors();
+    }));
+    el.querySelectorAll('[data-v-del]').forEach(b => b.addEventListener('click', async () => {
+      if (!confirm('Delete this vendor?')) return;
+      const { error } = await sb.from('vendors').delete().eq('id', b.dataset.vDel);
+      if (error) return toast('Error: ' + error.message);
+      toast('Deleted'); loadVendors();
+    }));
+  } catch (e) {
+    el.innerHTML = '<div class="empty" style="color:var(--danger)">Error: ' + esc(e.message || 'unknown') + '</div>';
+  }
+}
+
+document.getElementById('btn-vendor-add').addEventListener('click', async () => {
+  const name = document.getElementById('v-name').value.trim();
+  const category = document.getElementById('v-category').value;
+  const description = document.getElementById('v-description').value.trim();
+  const phone = normalizePhone(document.getElementById('v-phone').value);
+  const whatsapp = normalizePhone(document.getElementById('v-whatsapp').value);
+  const city = document.getElementById('v-city').value;
+  const verified = document.getElementById('v-verified').checked;
+  const fileInput = document.getElementById('v-image');
+
+  if (!name) return toast('Business name required');
+
+  let image_url = null;
+  const file = fileInput.files && fileInput.files[0];
+  if (file) {
+    toast('Uploading…');
+    image_url = await uploadVendorImage(file);
+    if (!image_url) return;
+  }
+
+  const { error } = await sb.from('vendors').insert({
+    name, category, description, phone, whatsapp, image_url, city, verified, active: true
+  });
+  if (error) return toast('Error: ' + error.message);
+
+  document.getElementById('v-name').value = '';
+  document.getElementById('v-description').value = '';
+  document.getElementById('v-phone').value = '';
+  document.getElementById('v-whatsapp').value = '';
+  document.getElementById('v-verified').checked = false;
+  fileInput.value = '';
+  toast('Vendor added');
+  loadVendors();
 });
 
 // ---------------- BRAND SLOTS ----------------
