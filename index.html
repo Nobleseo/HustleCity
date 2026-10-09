@@ -30,9 +30,18 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .btn-gold{background:var(--gold);color:#3A2418}
 .btn-ghost{background:transparent;color:var(--muted);border:none;font-size:13px;padding:8px}
 .small{font-size:12px;color:var(--muted)}
-
 /* HOME — compact so write-in box always visible */
-#screen-home{align-items:center;justify-content:flex-start;text-align:center;padding-top:14px;padding-bottom:14px;position:relative;-webkit-overflow-scrolling:touch} .home-signin-cta{
+#screen-home{
+  align-items:center;
+  justify-content:flex-start;
+  text-align:center;
+  padding-top:14px;
+  padding-bottom:88px;
+  position:relative;
+  -webkit-overflow-scrolling:touch;
+}
+
+.home-signin-cta{
   position: sticky;
   bottom: 8px;
   z-index: 15;
@@ -46,6 +55,7 @@ body.is-signed-in .home-signin-cta{
 body:not(.is-signed-in) .home-signin-cta{
   display: block;
 }
+
 .logo{font-size:28px;font-weight:900;color:var(--oxblood);letter-spacing:-1px;line-height:0.95}
 .tagline{color:var(--muted);margin:4px 0 10px;font-size:12px}
 .wallet-bar{display:flex;justify-content:space-around;width:100%;max-width:340px;background:var(--surface);border-radius:12px;padding:8px;margin-bottom:8px;border:1px solid var(--border)}
@@ -339,7 +349,7 @@ body.in-round .theme-toggle{display:none}
   </div>
   <button class="btn btn-secondary" id="btn-open-shop" style="max-width:340px;width:100%;margin-bottom:6px;padding:10px;font-size:14px">🛍️ Upgrade Shop</button>
 <button class="btn btn-secondary" id="btn-open-lb" style="max-width:340px;width:100%;margin-bottom:6px;padding:10px;font-size:14px">🏆 Leaderboard</button>
-<button class="btn btn-gold" id="btn-signin-home" style="max-width:340px;width:100%;margin-top:10px;padding:12px;font-size:14px">💾 Sign In / Register</button>
+<button class="btn btn-gold home-signin-cta" id="btn-signin-home" style="max-width:340px;width:100%;margin-top:10px;padding:12px;font-size:14px">💾 Sign In / Register</button>
 <div class="home-links">
     <a href="#" id="btn-open-settings">⚙️ Settings</a>
     <span>V1.0</span>
