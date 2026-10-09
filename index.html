@@ -906,6 +906,13 @@ document.getElementById('btn-start-round').addEventListener('click',()=>{
   document.getElementById('btn-signin-home').addEventListener('click', () => {
   document.getElementById('auth-modal').style.display = 'flex';
 });
+
+function onAuthSuccess(user) {
+  playerId = user.id;
+  localStorage.setItem('hc_player_id', playerId);
+  updateHomeAuthButton();
+  document.getElementById('auth-modal').style.display = 'none';
+}
 // ============ ROUND ============
 function clearDynamic(){
   if(dynamicLayer) dynamicLayer.innerHTML='';
