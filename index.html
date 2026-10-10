@@ -27,6 +27,7 @@
 <!-- HOME -->
 <div id="screen-home" class="screen active">
   <button class="theme-toggle" id="theme-toggle-home" aria-label="Toggle theme">🌙</button>
+  <button class="signin-pill" id="btn-signin-pill" aria-label="Sign in or register">👤 Sign In</button>
   <h1 class="logo">HUSTLE<br>CITY</h1>
   <p class="tagline">Make your money. Rule the market.</p>
 
@@ -100,14 +101,20 @@
 
   <div class="name-row">
     <label>Your market city</label>
-    <select id="city-select" style="width:100%;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:16px;background:var(--surface);font-family:inherit;color:var(--text)">
+        <select id="city-select" style="width:100%;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:16px;background:var(--surface);font-family:inherit;color:var(--text)">
       <option value="lagos">Lagos</option>
       <option value="uyo">Uyo (Akwa Ibom)</option>
       <option value="ibadan">Ibadan</option>
       <option value="abuja">Abuja</option>
       <option value="kano">Kano</option>
       <option value="ph">Port Harcourt</option>
+      <option value="other">Other — type your state</option>
     </select>
+  </div>
+
+  <div class="name-row" id="custom-state-row" style="display:none">
+    <label>Your state</label>
+    <input type="text" id="custom-state" maxlength="24" placeholder="e.g. Enugu, Kaduna, Delta, Edo...">
   </div>
 
   <button class="btn btn-primary" id="btn-start-round" style="font-size:17px;padding:16px">START ROUND</button>
