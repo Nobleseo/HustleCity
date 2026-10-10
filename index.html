@@ -28,58 +28,65 @@
 <div id="screen-home" class="screen active">
   <button class="theme-toggle" id="theme-toggle-home" aria-label="Toggle theme">🌙</button>
   <button class="signin-pill" id="btn-signin-pill" aria-label="Sign in or register">👤 Sign In</button>
-  <h1 class="logo">HUSTLE<br>CITY</h1>
-  <p class="tagline">Make your money. Rule the market.</p>
 
-  <div class="wallet-bar">
-    <div><strong id="home-wallet">₦0</strong><span>Wallet</span></div>
-    <div><strong id="home-today">₦0</strong><span>Today</span></div>
-    <div><strong id="home-division">Street</strong><span>Division</span></div>
-  </div>
+  <!-- FIXED TOP AREA — always visible, never scrolled away -->
+  <div class="home-top">
+    <h1 class="logo">HUSTLE<br>CITY</h1>
+    <p class="tagline">Make your money. Rule the market.</p>
 
-  <div id="announce-banner" style="display:none;background:var(--oxblood);color:#F5EBDC;padding:8px 14px;border-radius:10px;margin-bottom:8px;font-size:12px;font-weight:700;text-align:center;max-width:340px"></div>
+    <div class="wallet-bar">
+      <div><strong id="home-wallet">₦0</strong><span>Wallet</span></div>
+      <div><strong id="home-today">₦0</strong><span>Today</span></div>
+      <div><strong id="home-division">Street</strong><span>Division</span></div>
+    </div>
 
-  <div class="hustle-grid">
-    <div class="hustle-card open">
-      <span class="hustle-icon">🛒</span>
-      <div><h3>Market Trader</h3><p>Call customers. Serve right.</p></div>
-      <button class="action" id="btn-home-play">PLAY</button>
-    </div>
-    <div class="hustle-card locked">
-      <span class="hustle-icon">🏠</span>
-      <div><h3>Landlord</h3><p>🔒 Want this next?</p></div>
-      <button class="action vote-btn" data-hustle="landlord">VOTE</button>
-    </div>
-    <div class="hustle-card locked">
-      <span class="hustle-icon">🧵</span>
-      <div><h3>Tailor</h3><p>🔒 Want this next?</p></div>
-      <button class="action vote-btn" data-hustle="tailor">VOTE</button>
-    </div>
-    <div class="hustle-card locked">
-      <span class="hustle-icon">🍲</span>
-      <div><h3>Buka Restaurant</h3><p>🔒 Want this next?</p></div>
-      <button class="action vote-btn" data-hustle="buka">VOTE</button>
-    </div>
-    <div class="hustle-card locked">
-      <span class="hustle-icon">💳</span>
-      <div><h3>POS Business</h3><p>🔒 Want this next?</p></div>
-      <button class="action vote-btn" data-hustle="pos">VOTE</button>
+    <div id="announce-banner" style="display:none;background:var(--oxblood);color:#F5EBDC;padding:8px 14px;border-radius:10px;margin-bottom:6px;font-size:12px;font-weight:700;text-align:center;max-width:340px"></div>
+
+    <div class="writein-box">
+      <label for="writein-input">💡 What hustle you wan see next?</label>
+      <input type="text" id="writein-input" maxlength="60" placeholder="e.g. Suya stand, Okada, Barber...">
+      <button id="btn-writein">SEND IDEA</button>
     </div>
   </div>
 
-  <div class="writein-box">
-    <label for="writein-input">💡 What hustle you wan see next?</label>
-    <input type="text" id="writein-input" maxlength="60" placeholder="e.g. Suya stand, Okada, Barber...">
-    <button id="btn-writein">SEND IDEA</button>
-  </div>
+  <!-- SCROLLABLE AREA — hustle cards + buttons -->
+  <div class="home-scroll">
+    <div class="hustle-grid">
+      <div class="hustle-card open">
+        <span class="hustle-icon">🛒</span>
+        <div><h3>Market Trader</h3><p>Call customers. Serve right.</p></div>
+        <button class="action" id="btn-home-play">PLAY</button>
+      </div>
+      <div class="hustle-card locked">
+        <span class="hustle-icon">🏠</span>
+        <div><h3>Landlord</h3><p>🔒 Want this next?</p></div>
+        <button class="action vote-btn" data-hustle="landlord">VOTE</button>
+      </div>
+      <div class="hustle-card locked">
+        <span class="hustle-icon">🧵</span>
+        <div><h3>Tailor</h3><p>🔒 Want this next?</p></div>
+        <button class="action vote-btn" data-hustle="tailor">VOTE</button>
+      </div>
+      <div class="hustle-card locked">
+        <span class="hustle-icon">🍲</span>
+        <div><h3>Buka Restaurant</h3><p>🔒 Want this next?</p></div>
+        <button class="action vote-btn" data-hustle="buka">VOTE</button>
+      </div>
+      <div class="hustle-card locked">
+        <span class="hustle-icon">💳</span>
+        <div><h3>POS Business</h3><p>🔒 Want this next?</p></div>
+        <button class="action vote-btn" data-hustle="pos">VOTE</button>
+      </div>
+    </div>
 
-  <button class="btn btn-secondary" id="btn-open-shop" style="max-width:340px;width:100%;margin-bottom:6px;padding:10px;font-size:14px">🛍️ Upgrade Shop</button>
-  <button class="btn btn-secondary" id="btn-open-lb" style="max-width:340px;width:100%;margin-bottom:6px;padding:10px;font-size:14px">🏆 Leaderboard</button>
-  <button class="btn btn-gold home-signin-cta" id="btn-signin-home" style="max-width:340px;width:100%;margin-top:10px;padding:12px;font-size:14px">💾 Sign In / Register</button>
+    <button class="btn btn-secondary" id="btn-open-shop" style="max-width:340px;width:100%;padding:10px;font-size:14px">🛍️ Upgrade Shop</button>
+    <button class="btn btn-secondary" id="btn-open-lb" style="max-width:340px;width:100%;padding:10px;font-size:14px">🏆 Leaderboard</button>
+    <button class="btn btn-gold home-signin-cta" id="btn-signin-home" style="max-width:340px;width:100%;padding:12px;font-size:14px">💾 Sign In / Register</button>
 
-  <div class="home-links">
-    <a href="#" id="btn-open-settings">⚙️ Settings</a>
-    <span>V1.0</span>
+    <div class="home-links">
+      <a href="#" id="btn-open-settings">⚙️ Settings</a>
+      <span>V1.0</span>
+    </div>
   </div>
 </div>
 
