@@ -29,9 +29,16 @@ document.getElementById('auth-tab-signup').addEventListener('click', () => { aut
 document.getElementById('auth-tab-signin').addEventListener('click', () => { authMode = 'signin'; updateAuthUI(); });
 document.getElementById('auth-skip').addEventListener('click', hideAuthModal);
 document.getElementById('btn-signin-result').addEventListener('click', showAuthModal);
-document.getElementById('btn-signin-home').addEventListener('click', showAuthModal);
+
+// Sign-in pill (top-left home) — safe-guarded in case DOM changes
 const pill = document.getElementById('btn-signin-pill');
-if (pill) pill.addEventListener('click', showAuthModal);
+if (pill) {
+  pill.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    showAuthModal();
+  });
+}
 document.getElementById('auth-submit').addEventListener('click', async () => {
   const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value;
