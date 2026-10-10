@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#F5EBDC">
 <title>Hustle City — Market Trader</title>
+
+<!-- FOUC prevention: set theme BEFORE stylesheets load -->
+<script>
+(function(){var t=localStorage.getItem('hc_theme')||'system';var d=t==='dark'||(t==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.setAttribute('data-theme',d?'dark':'light');})();
+</script>
+
 <script data-goatcounter="https://hustlecity.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/svg+xml" href="icon-192.svg">
@@ -13,294 +19,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Hustle City">
 <meta name="mobile-web-app-capable" content="yes">
-<script>
-(function(){var t=localStorage.getItem('hc_theme')||'system';var d=t==='dark'||(t==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.setAttribute('data-theme',d?'dark':'light');})();
-</script>
-<style>
-:root{--cream:#F5EBDC;--sand:#E8D9BE;--brown:#2E1F14;--muted:#7A6A55;--oxblood:#1F4A2E;--terra:#C86B3C;--gold:#D4A017;--green:#2E5B3A;--red:#A52818;--border:#DFD0B0;--bg:var(--cream);--surface:var(--sand);--text:var(--brown);--shadow:rgba(31,74,46,0.15)}
-[data-theme="dark"]{--bg:#1A120B;--surface:#2A1D14;--text:#F5EBDC;--muted:#A89680;--oxblood:#C86B3C;--terra:#D4A017;--border:#3D2A1C;--shadow:rgba(0,0,0,0.4);--cream:#2A1D14;--sand:#3D2A1C;--gold:#D4A017}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);user-select:none;-webkit-user-select:none;transition:background 0.3s,color 0.3s}
-.screen{position:fixed;inset:0;display:none;flex-direction:column;overflow-y:auto;padding:24px}
-.screen.active{display:flex}
-.btn{border:none;padding:14px 20px;border-radius:10px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;transition:transform 0.1s}
-.btn:active{transform:scale(0.97)}
-.btn-primary{background:var(--oxblood);color:#F5EBDC}
-.btn-secondary{background:transparent;color:var(--oxblood);border:2px solid var(--oxblood)}
-.btn-gold{background:var(--gold);color:#3A2418}
-.btn-ghost{background:transparent;color:var(--muted);border:none;font-size:13px;padding:8px}
-.small{font-size:12px;color:var(--muted)}
-/* HOME — compact so write-in box always visible */
-#screen-home{
-  align-items:center;
-  justify-content:flex-start;
-  text-align:center;
-  padding-top:14px;
-  padding-bottom:88px;
-  position:relative;
-  -webkit-overflow-scrolling:touch;
-}
 
-.home-signin-cta{
-  position: sticky;
-  bottom: 8px;
-  z-index: 15;
-  display: none;
-}
-
-body.is-signed-in .home-signin-cta{
-  display: none !important;
-}
-
-body:not(.is-signed-in) .home-signin-cta{
-  display: block;
-}
-
-.logo{font-size:28px;font-weight:900;color:var(--oxblood);letter-spacing:-1px;line-height:0.95}
-.tagline{color:var(--muted);margin:4px 0 10px;font-size:12px}
-.wallet-bar{display:flex;justify-content:space-around;width:100%;max-width:340px;background:var(--surface);border-radius:12px;padding:8px;margin-bottom:8px;border:1px solid var(--border)}
-.wallet-bar div{text-align:center;flex:1}
-.wallet-bar strong{display:block;font-size:15px;font-weight:900;color:var(--oxblood);font-variant-numeric:tabular-nums}
-.wallet-bar span{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;font-weight:700}
-.hustle-grid{display:grid;gap:6px;width:100%;max-width:340px;margin-bottom:8px}
-.hustle-card{background:var(--surface);border:2px solid var(--border);border-radius:10px;padding:8px 10px;text-align:left;display:flex;gap:8px;align-items:center;transition:border-color 0.2s}
-.hustle-card.open{border-color:var(--gold)}
-.hustle-card.locked{opacity:0.7}
-.hustle-icon{font-size:24px}
-.hustle-card h3{font-size:13px;margin-bottom:1px;color:var(--text)}
-.hustle-card p{font-size:10px;color:var(--muted);line-height:1.2}
-.hustle-card .action{margin-left:auto;font-size:10px;padding:6px 10px;border-radius:8px;background:var(--gold);color:#3A2418;font-weight:800;border:none;font-family:inherit;cursor:pointer;white-space:nowrap}
-.hustle-card .action:disabled{opacity:0.5}
-
-/* Write-in box — gold border so it stands out */
-.writein-box{width:100%;max-width:340px;background:var(--surface);border:2px dashed var(--gold);border-radius:12px;padding:10px;margin-bottom:8px;text-align:left}
-.writein-box label{display:block;font-size:11px;font-weight:800;color:var(--oxblood);margin-bottom:5px}
-.writein-box input{width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:var(--bg);color:var(--text);margin-bottom:6px}
-.writein-box button{padding:7px 12px;border-radius:8px;background:var(--oxblood);color:#F5EBDC;border:none;font-weight:800;font-size:11px;font-family:inherit;cursor:pointer}
-.writein-box button:disabled{opacity:0.5}
-.home-links{margin-top:auto;padding-top:10px;color:var(--muted);font-size:10px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center}
-.home-links a{color:var(--terra);text-decoration:none;font-weight:700}
-
-#screen-setup h2{font-size:24px;color:var(--oxblood);margin-bottom:4px}
-#screen-setup .sub{color:var(--muted);margin-bottom:18px;font-size:13px}
-.product-grid{display:grid;gap:10px;margin-bottom:14px}
-.product-card{background:var(--surface);border:3px solid transparent;border-radius:14px;padding:14px;text-align:left;cursor:pointer;display:flex;gap:12px;align-items:center;font-family:inherit;color:var(--text);transition:border-color 0.15s}
-.product-card .emoji{font-size:34px}
-.product-card strong{display:block;font-size:15px;margin-bottom:2px}
-.product-card small{color:var(--muted);font-size:11px;line-height:1.3}
-.product-card.selected{border-color:var(--oxblood);box-shadow:0 4px 12px var(--shadow)}
-.name-row{margin:14px 0}
-.name-row label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:700}
-.name-row input{width:100%;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:16px;background:var(--surface);font-family:inherit;color:var(--text)}
-.name-row input:focus{outline:none;border-color:var(--oxblood)}
-
-/* ROUND */
-#screen-round{padding:0}
-.round-hud{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--oxblood);color:#F5EBDC;font-weight:800;font-size:14px;flex-shrink:0;gap:6px}
-.hud-timer{font-variant-numeric:tabular-nums;min-width:32px}
-.hud-money{color:var(--gold);font-variant-numeric:tabular-nums;flex:1;text-align:center}
-.hud-combo{background:var(--gold);color:#3A2418;padding:3px 8px;border-radius:20px;font-size:11px}
-.hud-combo.bump{animation:bump 0.3s}
-@keyframes bump{0%{transform:scale(1)}50%{transform:scale(1.4)}100%{transform:scale(1)}}
-.game-area{flex:1;position:relative;overflow:hidden;min-height:220px;background:linear-gradient(180deg,var(--bg) 0%,var(--surface) 45%,#c2a878 100%)}
-.game-area.dark{background:#000}
-.game-area.dark::after{content:'';position:absolute;inset:0;background:rgba(0,0,0,0.85);z-index:9;pointer-events:none}
-
-/* SCENE */
-.scene{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0}
-.scene-sky{position:absolute;inset:0;background:linear-gradient(180deg,#f8e9c8 0%,#f1dda8 40%,#e6cc8a 100%)}
-[data-theme="dark"] .scene-sky{background:linear-gradient(180deg,#2a1d14 0%,#1e140c 100%)}
-.scene-skyline{position:absolute;left:0;right:0;bottom:52%;height:16%;background:linear-gradient(180deg,transparent 0%,rgba(120,90,60,0.25) 60%,rgba(90,65,40,0.45) 100%);border-bottom:2px solid rgba(60,40,25,0.15)}
-.scene-skyline::before{content:'🏢🏬🏪🏢🏬🏪🏢🏬';position:absolute;bottom:0;left:0;right:0;font-size:34px;line-height:1;letter-spacing:2px;opacity:0.35;text-align:center;overflow:hidden;white-space:nowrap;text-shadow:2px 2px 0 rgba(0,0,0,0.08)}
-.scene-trees{position:absolute;left:0;right:0;bottom:50%;height:8%;pointer-events:none;font-size:24px;opacity:0.55;text-align:center;letter-spacing:20px;overflow:hidden;white-space:nowrap}
-.scene-stalls{position:absolute;bottom:38%;left:-5%;right:-5%;height:22%;background:repeating-linear-gradient(90deg,#8a5a2b 0 40px,#7a4f24 40px 44px,#8a5a2b 44px 84px);opacity:0.35;border-radius:6px}
-.scene-road{position:absolute;left:-5%;right:-5%;bottom:32%;height:13%;overflow:hidden;background:linear-gradient(180deg,#6f6f6f 0%,#4a4a4a 60%,#3a3a3a 100%);box-shadow:inset 0 -2px 6px rgba(0,0,0,0.2)}
-.scene-road::after{content:'';position:absolute;top:50%;left:0;right:0;height:3px;background:repeating-linear-gradient(90deg,#ffd966 0 40px,transparent 40px 80px);transform:translateY(-50%);opacity:0.75}
-.bus{position:absolute;bottom:14%;font-size:38px;line-height:1;filter:drop-shadow(0 3px 3px rgba(0,0,0,0.35));animation:drive linear infinite;z-index:1}
-.bus-1{animation-duration:14s}
-.bus-2{animation-duration:19s;animation-delay:-9s}
-.bus-3{animation-duration:24s;animation-delay:-16s}
-@keyframes drive{0%{left:-15%}100%{left:115%}}
-.scene-pedestrians{position:absolute;left:0;right:0;bottom:24%;height:12%;pointer-events:none;z-index:1}
-.pedestrian{position:absolute;bottom:0;font-size:24px;line-height:1;opacity:0.85;filter:drop-shadow(1px 2px 1px rgba(0,0,0,0.2));animation:walk linear infinite}
-.ped-1{animation-duration:17s}
-.ped-2{animation-duration:23s;animation-delay:-10s}
-.ped-3{animation-duration:20s;animation-delay:-5s}
-.ped-4{animation-duration:26s;animation-delay:-14s}
-@keyframes walk{0%{left:-8%}100%{left:108%}}
-.scene-ground{position:absolute;left:0;right:0;bottom:0;height:42%;background:linear-gradient(180deg,#c2a878 0%,#a8895c 100%)}
-[data-theme="dark"] .scene-ground{background:linear-gradient(180deg,#3a2a1c 0%,#241a11 100%)}
-.billboard{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:min(72%,340px);height:70px;border-radius:8px;background:rgba(255,255,255,0.85);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--muted);letter-spacing:0.5px;box-shadow:0 4px 12px rgba(0,0,0,0.08);overflow:hidden;z-index:1}
-[data-theme="dark"] .billboard{background:rgba(42,29,20,0.9);color:var(--muted)}
-.billboard img{width:100%;height:100%;object-fit:cover;border-radius:6px}
-.trader{position:absolute;left:50%;bottom:22%;transform:translateX(-50%);font-size:56px;filter:drop-shadow(0 4px 4px rgba(0,0,0,0.25));z-index:1}
-.tool-belt{position:absolute;left:0;right:0;bottom:36%;display:flex;justify-content:center;gap:14px;z-index:3;pointer-events:none}
-.tool-belt .tool{width:52px;height:52px;border-radius:10px;background:rgba(255,255,255,0.9);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:var(--muted);text-align:center;line-height:1.05;padding:2px;overflow:hidden}
-[data-theme="dark"] .tool-belt .tool{background:rgba(42,29,20,0.9)}
-.tool-belt .tool img{width:100%;height:100%;object-fit:cover;border-radius:8px}
-.tool-belt .tool.has-brand{border-style:solid;border-color:var(--gold)}
-.stall-front{position:absolute;left:0;right:0;bottom:0;height:34%;background:linear-gradient(180deg,#7a4f24 0%,#5d3b1a 100%);border-top:4px solid #4a2f13;z-index:2}
-.dynamic-layer{position:absolute;inset:0;z-index:5}
-.trader,.stall-front,.billboard,.scene{pointer-events:none}
-
-/* Camera mode adjustments */
-.game-area[data-camera="side"] .scene-stalls{transform:translateX(-25%) scaleX(1.15)}
-.game-area[data-camera="side"] .trader{left:18%;bottom:24%;font-size:52px}
-.game-area[data-camera="side"] .billboard{left:auto;right:10px;transform:none;width:120px;height:80px;top:12px;font-size:10px}
-.game-area[data-camera="side"] .tool-belt{justify-content:flex-start;padding-left:18px}
-.game-area[data-camera="side"] .stall-front{transform:skewX(-6deg);transform-origin:left center}
-.game-area[data-camera="side"] .scene-road{transform:skewX(-8deg);transform-origin:left center}
-.game-area[data-camera="close"] .trader{font-size:96px;bottom:26%}
-.game-area[data-camera="close"] .billboard{top:auto;bottom:52%;width:min(90%,420px);height:90px;font-size:13px}
-.game-area[data-camera="close"] .tool-belt{bottom:44%;gap:22px}
-.game-area[data-camera="close"] .tool-belt .tool{width:64px;height:64px;font-size:10px}
-.game-area[data-camera="close"] .stall-front{height:46%}
-.game-area[data-camera="close"] .scene-stalls{opacity:0.15}
-.game-area[data-camera="close"] .scene-road,
-.game-area[data-camera="close"] .scene-pedestrians,
-.game-area[data-camera="close"] .scene-trees{opacity:0.35}
-
-/* Side view: trader under umbrella at bench */
-.side-only{display:none;position:absolute;inset:0;pointer-events:none;z-index:1}
-.game-area[data-camera="side"] .side-only{display:block}
-.side-umbrella{position:absolute;left:26%;top:22%;font-size:72px;filter:drop-shadow(0 6px 6px rgba(0,0,0,0.3));transform:rotate(-8deg)}
-.side-trader{position:absolute;left:26%;top:42%;font-size:48px;filter:drop-shadow(0 3px 3px rgba(0,0,0,0.25))}
-.side-bench{position:absolute;left:5%;right:52%;bottom:32%;height:56px;background:linear-gradient(180deg,#8a5a2b 0%,#5d3b1a 100%);border-radius:6px;border:2px solid #4a2f13;display:flex;align-items:center;justify-content:space-around;padding:4px;box-shadow:0 8px 14px rgba(0,0,0,0.3)}
-.side-item{font-size:26px;filter:drop-shadow(0 2px 2px rgba(0,0,0,0.2))}
-
-/* City backdrops */
-.game-area[data-city="lagos"] .scene-skyline::before{content:'🌆 🏙️ 🌉 🏢 🌃'}
-.game-area[data-city="lagos"] .scene-trees{content:'🌴 🌳 🌴 🌳';font-size:22px;letter-spacing:22px}
-.game-area[data-city="uyo"] .scene-skyline::before{content:'🏢 🌴 🏢 🌴 🏢'}
-.game-area[data-city="uyo"] .scene-trees{font-size:26px;letter-spacing:18px}
-.game-area[data-city="ibadan"] .scene-skyline::before{content:'🏛️ 🏘️ 🏛️ 🏘️ 🏛️'}
-.game-area[data-city="ibadan"] .scene-skyline{filter:sepia(0.15)}
-.game-area[data-city="abuja"] .scene-skyline::before{content:'🗼 🏛️ 🏢 🏛️ 🗼'}
-.game-area[data-city="kano"] .scene-skyline::before{content:'🕌 🏯 🕌 🏯 🕌'}
-.game-area[data-city="kano"] .scene-skyline{filter:sepia(0.25)}
-.game-area[data-city="ph"] .scene-skyline::before{content:'🛢️ 🏭 🌊 🛢️ 🏭'}
-.game-area[data-city="ph"] .scene-ground{background:linear-gradient(180deg,#8a9a8a 0%,#6a7a6a 100%)}
-
-  /* Marketplace */
-.vendor-chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:12px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-.vendor-chips::-webkit-scrollbar{display:none}
-.vendor-chip{padding:7px 14px;border-radius:20px;background:var(--surface);border:1.5px solid var(--border);color:var(--text);font-size:12px;font-weight:800;white-space:nowrap;cursor:pointer;font-family:inherit;transition:all 0.15s}
-.vendor-chip.active{background:var(--oxblood);color:#F5EBDC;border-color:var(--oxblood)}
-.vendor-grid{display:grid;gap:12px}
-.vendor-card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:12px;display:flex;gap:12px;align-items:flex-start}
-.vendor-photo{width:64px;height:64px;border-radius:12px;object-fit:cover;flex-shrink:0;border:1px solid var(--border);background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:28px}
-.vendor-info{flex:1;min-width:0}
-.vendor-name{font-size:14px;font-weight:900;color:var(--text);display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px}
-.vendor-badge{background:var(--green);color:#fff;font-size:9px;font-weight:900;padding:2px 6px;border-radius:6px;letter-spacing:0.3px}
-.vendor-meta{font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.4px;font-weight:700}
-.vendor-desc{font-size:12px;color:var(--text);line-height:1.4;margin-bottom:8px;opacity:0.85}
-.vendor-actions{display:flex;gap:6px}
-.vendor-btn{flex:1;padding:9px 10px;border-radius:8px;border:none;font-family:inherit;font-weight:800;font-size:12px;cursor:pointer;text-decoration:none;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:4px}
-.vendor-btn.call{background:var(--oxblood);color:#F5EBDC}
-.vendor-btn.wa{background:#25D366;color:#fff}
-.vendor-empty{grid-column:1/-1;text-align:center;color:var(--muted);font-size:13px;padding:40px 20px}
-
-/* Dashboard */
-.dash-hero{text-align:center;margin-bottom:14px}
-.dash-hi{font-size:22px;font-weight:900;color:var(--oxblood);line-height:1.1}
-.dash-meta{font-size:12px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.8px;font-weight:700}
-.dash-wallet{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;text-align:center;margin-bottom:12px;box-shadow:0 2px 8px var(--shadow)}
-.dash-wallet-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;font-weight:700}
-.dash-wallet-value{font-size:42px;font-weight:900;color:var(--oxblood);font-variant-numeric:tabular-nums;line-height:1.05;margin:6px 0 4px}
-.dash-lifetime{font-size:12px;color:var(--muted);font-weight:700}
-.dash-rank-row{display:flex;gap:8px;margin-bottom:14px}
-.dash-rank{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 6px;text-align:center;font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:0.5px}
-.dash-rank strong{display:block;font-size:17px;font-weight:900;color:var(--oxblood);margin-bottom:3px;text-transform:none;letter-spacing:0;font-variant-numeric:tabular-nums}
-.dash-coming{background:var(--surface);border:2px dashed var(--gold);border-radius:12px;padding:14px;margin-bottom:14px}
-.dash-coming-title{font-size:11px;font-weight:800;color:var(--oxblood);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.6px}
-.dash-coming-item{font-size:12px;color:var(--muted);padding:6px 0;border-bottom:1px solid var(--border);font-weight:600}
-.dash-coming-item:last-child{border-bottom:none}
-/* Camera picker */
-#camera-picker{display:flex;gap:2px;background:rgba(0,0,0,0.15);border-radius:8px;padding:2px}
-.cam-btn{background:transparent;color:#F5EBDC;border:none;border-radius:6px;padding:4px 8px;font-family:inherit;font-weight:800;font-size:11px;cursor:pointer;transition:all 0.15s}
-.cam-btn.active{background:var(--gold);color:#3A2418}
-
-.customer{position:absolute;width:60px;height:86px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;cursor:pointer;transition:transform 0.2s;z-index:6}
-.customer.called{transform:scale(1.15);z-index:8}
-.customer.called::before{content:'!';position:absolute;top:-6px;right:-2px;width:22px;height:22px;border-radius:50%;background:var(--gold);color:#3A2418;font-weight:900;display:flex;align-items:center;justify-content:center;font-size:14px;animation:pulse 0.6s infinite}
-@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
-.customer .body{font-size:40px;line-height:1;filter:drop-shadow(0 3px 3px rgba(0,0,0,0.15))}
-.customer .wanted{position:absolute;top:-12px;left:50%;transform:translateX(-50%);font-size:20px;background:var(--bg);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px var(--shadow);z-index:2}
-.customer .patience{position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:52px;height:5px;background:rgba(0,0,0,0.15);border-radius:3px;overflow:hidden}
-.customer .patience-fill{height:100%;background:var(--green);transition:width 0.1s linear,background 0.3s}
-.customer .bubble{position:absolute;top:-32px;left:50%;transform:translateX(-50%);background:var(--brown);color:#F5EBDC;font-size:10px;padding:3px 7px;border-radius:8px;white-space:nowrap;opacity:0;transition:opacity 0.2s;font-weight:700}
-.customer.called .bubble{opacity:1}
-.customer.thief .wanted{background:var(--red);color:#fff;animation:pulse 0.5s infinite}
-.shelf{display:flex;flex-direction:column;flex-shrink:0;padding:0;background:transparent}
-
-/* Wooden counter brand strip (ad slot) */
-.shelf-brand{background:linear-gradient(180deg,#8a5a2b 0%,#6b421c 50%,#5d3b1a 100%);color:#F5EBDC;font-size:9px;font-weight:800;letter-spacing:1.2px;text-align:center;padding:6px 10px;text-transform:uppercase;border-top:3px solid #4a2f13;border-bottom:2px solid #3a2410;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:28px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.08)}
-.shelf-brand img{max-height:22px;max-width:80%;object-fit:contain;display:block}
-.shelf-brand-text{opacity:0.6;font-family:monospace}
-
-.shelf-items{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:8px;background:var(--brown)}
-.shelf-btn{background:var(--cream);border:3px solid transparent;border-radius:12px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;font-family:inherit;color:var(--brown);transition:transform 0.1s}
-.shelf-btn:active{transform:scale(0.95)}
-.shelf-btn .icon{font-size:26px;line-height:1}
-.shelf-btn .label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.3px}
-.shelf-btn.shake{animation:shake 0.3s}
-@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
-.float{position:absolute;font-weight:900;font-size:20px;color:var(--green);pointer-events:none;animation:floatUp 0.9s ease-out forwards;z-index:12;text-shadow:0 1px 0 var(--bg);transform:translate(-50%,0)}
-@keyframes floatUp{0%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,-50px)}}
-.float.neg{color:var(--red)}
-.countdown{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(245,235,220,0.9);z-index:20;font-size:90px;font-weight:900;color:var(--oxblood);animation:zoomIn 0.5s ease-out}
-[data-theme="dark"] .countdown{background:rgba(26,18,11,0.9)}
-@keyframes zoomIn{0%{transform:scale(2);opacity:0}100%{transform:scale(1);opacity:1}}
-.event-btn{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:15;background:var(--gold);color:#3A2418;border:none;border-radius:50px;padding:14px 24px;font-weight:900;font-size:15px;cursor:pointer;font-family:inherit;box-shadow:0 6px 20px rgba(0,0,0,0.3);animation:pulse 0.8s infinite}
-.rain-overlay{position:absolute;inset:0;pointer-events:none;z-index:7;background:repeating-linear-gradient(15deg,transparent 0,transparent 12px,rgba(150,180,220,0.35) 12px,rgba(150,180,220,0.35) 14px);animation:rainfall 0.5s linear infinite}
-@keyframes rainfall{from{background-position:0 0}to{background-position:-20px 40px}}
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;animation:fade 0.2s}
-@keyframes fade{from{opacity:0}to{opacity:1}}
-.modal{background:var(--bg);border-radius:16px;padding:22px;max-width:340px;width:100%;text-align:center;border:2px solid var(--border)}
-.modal h3{font-size:19px;color:var(--oxblood);margin-bottom:8px}
-.modal p{font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.4}
-.modal-actions{display:flex;gap:8px;flex-direction:column}
-.modal textarea{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:var(--surface);color:var(--text);resize:none;margin-bottom:10px}
-
-#screen-result{align-items:center;justify-content:center;text-align:center}
-.result-title{font-size:13px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px}
-.result-money{font-size:56px;font-weight:900;color:var(--oxblood);font-variant-numeric:tabular-nums;margin:6px 0;line-height:1}
-.result-near{color:var(--green);font-weight:700;margin:4px 0 18px;font-size:14px}
-.result-stats{display:flex;gap:20px;margin-bottom:18px;color:var(--muted);font-size:11px;justify-content:center}
-.result-stats strong{display:block;color:var(--text);font-size:18px;font-weight:900;margin-bottom:2px}
-.rounds-left{font-size:12px;color:var(--muted);margin-bottom:14px}
-.result-actions{display:flex;flex-direction:column;gap:8px;width:100%;max-width:280px}
-.lb-tabs{display:flex;gap:6px;margin:14px 0;background:var(--surface);padding:4px;border-radius:10px}
-.lb-tab{flex:1;padding:10px 4px;border-radius:8px;background:transparent;border:none;font-family:inherit;font-weight:700;font-size:11px;color:var(--muted);cursor:pointer;transition:all 0.2s}
-.lb-tab.active{background:var(--oxblood);color:#F5EBDC}
-.lb-row{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid var(--border);font-size:13px}
-.lb-row.self{background:var(--surface);border-radius:8px;font-weight:800}
-.lb-rank{width:26px;font-weight:900;color:var(--muted);font-variant-numeric:tabular-nums;text-align:center}
-.lb-rank.top{color:var(--gold)}
-.lb-avatar{width:32px;height:32px;border-radius:50%;background:var(--sand);display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--brown);font-size:13px;flex-shrink:0}
-.lb-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.lb-score{font-weight:900;color:var(--oxblood);font-variant-numeric:tabular-nums}
-.shop-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;display:flex;gap:12px;align-items:center}
-.shop-item .icon{font-size:28px}
-.shop-item .info{flex:1}
-.shop-item h4{font-size:14px;margin-bottom:2px;color:var(--text)}
-.shop-item p{font-size:11px;color:var(--muted)}
-.shop-item .buy-btn{padding:8px 14px;border-radius:8px;background:var(--gold);color:#3A2418;border:none;font-weight:800;font-size:12px;font-family:inherit;cursor:pointer}
-.shop-item .buy-btn:disabled{opacity:0.4;cursor:not-allowed}
-.shop-item.owned{border-color:var(--green);background:rgba(46,91,58,0.08)}
-.shop-item.owned .buy-btn{background:var(--green);color:#F5EBDC}
-.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.topbar h2{font-size:22px;color:var(--oxblood)}
-
-.fab{position:fixed;bottom:20px;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,0.25);z-index:50;cursor:pointer;text-decoration:none;border:none;transition:transform 0.15s;font-family:inherit}
-.fab:active{transform:scale(0.92)}
-.fab-whatsapp{right:16px;background:#25D366;color:#fff}
-.fab-faq{left:16px;background:var(--oxblood);color:#F5EBDC}
-.fab svg{width:28px;height:28px;fill:currentColor}
-body.in-round .fab{display:none}
-.theme-toggle{position:absolute;top:12px;right:16px;width:40px;height:40px;border-radius:50%;background:var(--surface);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;z-index:40;font-family:inherit;color:var(--text)}
-body.in-round .theme-toggle{display:none}
-</style>
+<link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
@@ -309,12 +29,15 @@ body.in-round .theme-toggle{display:none}
   <button class="theme-toggle" id="theme-toggle-home" aria-label="Toggle theme">🌙</button>
   <h1 class="logo">HUSTLE<br>CITY</h1>
   <p class="tagline">Make your money. Rule the market.</p>
+
   <div class="wallet-bar">
     <div><strong id="home-wallet">₦0</strong><span>Wallet</span></div>
     <div><strong id="home-today">₦0</strong><span>Today</span></div>
     <div><strong id="home-division">Street</strong><span>Division</span></div>
   </div>
+
   <div id="announce-banner" style="display:none;background:var(--oxblood);color:#F5EBDC;padding:8px 14px;border-radius:10px;margin-bottom:8px;font-size:12px;font-weight:700;text-align:center;max-width:340px"></div>
+
   <div class="hustle-grid">
     <div class="hustle-card open">
       <span class="hustle-icon">🛒</span>
@@ -342,15 +65,18 @@ body.in-round .theme-toggle{display:none}
       <button class="action vote-btn" data-hustle="pos">VOTE</button>
     </div>
   </div>
+
   <div class="writein-box">
     <label for="writein-input">💡 What hustle you wan see next?</label>
     <input type="text" id="writein-input" maxlength="60" placeholder="e.g. Suya stand, Okada, Barber...">
     <button id="btn-writein">SEND IDEA</button>
   </div>
+
   <button class="btn btn-secondary" id="btn-open-shop" style="max-width:340px;width:100%;margin-bottom:6px;padding:10px;font-size:14px">🛍️ Upgrade Shop</button>
-<button class="btn btn-secondary" id="btn-open-lb" style="max-width:340px;width:100%;margin-bottom:6px;padding:10px;font-size:14px">🏆 Leaderboard</button>
-<button class="btn btn-gold home-signin-cta" id="btn-signin-home" style="max-width:340px;width:100%;margin-top:10px;padding:12px;font-size:14px">💾 Sign In / Register</button>
-<div class="home-links">
+  <button class="btn btn-secondary" id="btn-open-lb" style="max-width:340px;width:100%;margin-bottom:6px;padding:10px;font-size:14px">🏆 Leaderboard</button>
+  <button class="btn btn-gold home-signin-cta" id="btn-signin-home" style="max-width:340px;width:100%;margin-top:10px;padding:12px;font-size:14px">💾 Sign In / Register</button>
+
+  <div class="home-links">
     <a href="#" id="btn-open-settings">⚙️ Settings</a>
     <span>V1.0</span>
   </div>
@@ -366,10 +92,12 @@ body.in-round .theme-toggle{display:none}
     <button class="product-card" data-product="pepper"><span class="emoji">🌶️</span><div><strong>Pepper</strong><small>High profit, impatient customers</small></div></button>
     <button class="product-card" data-product="wrappers"><span class="emoji">🧣</span><div><strong>Wrappers</strong><small>Balanced profit and patience</small></div></button>
   </div>
-    <div class="name-row">
+
+  <div class="name-row">
     <label>Your name (optional)</label>
     <input type="text" id="player-name" maxlength="16" placeholder="e.g. Oga_4821">
   </div>
+
   <div class="name-row">
     <label>Your market city</label>
     <select id="city-select" style="width:100%;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:16px;background:var(--surface);font-family:inherit;color:var(--text)">
@@ -381,6 +109,7 @@ body.in-round .theme-toggle{display:none}
       <option value="ph">Port Harcourt</option>
     </select>
   </div>
+
   <button class="btn btn-primary" id="btn-start-round" style="font-size:17px;padding:16px">START ROUND</button>
   <p class="small" style="text-align:center;margin-top:12px" id="setup-rounds">3 free rounds left today</p>
 </div>
@@ -397,6 +126,7 @@ body.in-round .theme-toggle{display:none}
       <button class="cam-btn" data-cam="close">Close</button>
     </div>
   </div>
+
   <div class="game-area" id="game-area" data-camera="front" data-city="uyo">
     <div class="scene">
       <div class="scene-sky"></div>
@@ -416,12 +146,13 @@ body.in-round .theme-toggle{display:none}
       </div>
       <div class="scene-ground"></div>
     </div>
+
     <div class="billboard" id="in-game-billboard">PLACE YOUR AD HERE</div>
     <div class="trader">🧑‍🍳</div>
     <div class="tool-belt" id="tool-belt"></div>
-        <div class="stall-front" id="stall-front"></div>
+    <div class="stall-front" id="stall-front"></div>
 
-    <!-- Side view only: trader under umbrella at a bench -->
+    <!-- Side view only -->
     <div class="side-only">
       <div class="side-umbrella">☂️</div>
       <div class="side-trader">🧑‍🍳</div>
@@ -434,7 +165,8 @@ body.in-round .theme-toggle{display:none}
 
     <div class="dynamic-layer" id="dynamic-layer"></div>
   </div>
-    <div class="shelf" id="shelf">
+
+  <div class="shelf" id="shelf">
     <div class="shelf-brand" id="shelf-brand">
       <span class="shelf-brand-text">PLACE YOUR AD HERE · SPONSOR THIS STALL</span>
     </div>
@@ -444,7 +176,8 @@ body.in-round .theme-toggle{display:none}
       <button class="shelf-btn" data-item="wrappers"><span class="icon">🧣</span><span class="label">Wrapper</span></button>
     </div>
   </div>
-</div>  <!-- close screen-round -->
+</div>
+
 <!-- RESULT -->
 <div id="screen-result" class="screen">
   <div class="result-title">Round Over</div>
@@ -465,7 +198,8 @@ body.in-round .theme-toggle{display:none}
     <button class="btn btn-secondary" onclick="showScreen('home')">Home</button>
   </div>
 </div>
-<!-- DASHBOARD (signed-in players only) -->
+
+<!-- DASHBOARD -->
 <div id="screen-dashboard" class="screen">
   <div class="topbar">
     <h2 style="font-size:20px">Dashboard</h2>
@@ -480,26 +214,39 @@ body.in-round .theme-toggle{display:none}
     <p class="dash-wallet-value" id="dash-wallet">₦0</p>
     <p class="dash-lifetime" id="dash-lifetime">Lifetime ₦0</p>
   </div>
+
+  <div class="dash-referral-box">
+    <p class="dash-referral-title">🎁 Referral rewards</p>
+    <div class="dash-referral-row">
+      <div class="dash-referral-item"><strong id="dash-referrals">0</strong><span>Referrals</span></div>
+      <div class="dash-referral-item"><strong id="dash-boost-tokens">0</strong><span>Boost Tokens</span></div>
+      <div class="dash-referral-item"><strong id="dash-bonus-rounds">0</strong><span>Bonus Rounds</span></div>
+    </div>
+  </div>
+
   <button class="btn btn-gold" id="btn-dash-play" style="width:100%;font-size:18px;padding:16px;margin-bottom:10px">▶ PLAY MARKET TRADER</button>
   <button class="btn btn-primary" id="btn-dash-market" style="width:100%;font-size:15px;padding:14px;margin-bottom:10px;background:var(--oxblood);color:#F5EBDC">🛒 Browse Vendor Marketplace</button>
+
   <div class="dash-rank-row">
     <div class="dash-rank"><strong id="dash-rank-today">#--</strong>Today</div>
     <div class="dash-rank"><strong id="dash-rounds">0</strong>Rounds today</div>
     <div class="dash-rank"><strong id="dash-best">₦0</strong>Best round</div>
   </div>
+
   <div style="display:flex;gap:6px;margin-bottom:14px">
     <button class="btn btn-secondary" id="btn-dash-shop" style="flex:1;padding:10px;font-size:12px">🛍️ Shop</button>
     <button class="btn btn-secondary" id="btn-dash-lb" style="flex:1;padding:10px;font-size:12px">🏆 Board</button>
     <button class="btn btn-secondary" id="btn-dash-settings" style="flex:1;padding:10px;font-size:12px">⚙️ Settings</button>
   </div>
+
   <div class="dash-coming">
     <p class="dash-coming-title">🔒 Coming soon</p>
     <div class="dash-coming-item">👥 Hire other players to sell for you</div>
     <div class="dash-coming-item">📅 Daily missions with bonus ₦</div>
     <div class="dash-coming-item">🏙️ State vs State weekly competition</div>
-    <div class="dash-coming-item">🎁 Referral rewards (Boost Tokens)</div>
     <div class="dash-coming-item">🏠 Landlord, Tailor, Buka, POS hustles</div>
   </div>
+
   <p class="small" style="text-align:center;margin-top:auto;padding-top:14px;color:var(--muted)">Hustle City v1.0.0 · Made in Nigeria</p>
 </div>
 
@@ -518,7 +265,7 @@ body.in-round .theme-toggle{display:none}
   <div id="lb-list"></div>
 </div>
 
-  <!-- MARKETPLACE -->
+<!-- MARKETPLACE -->
 <div id="screen-marketplace" class="screen">
   <div class="topbar">
     <button class="btn btn-ghost" onclick="showScreen('dashboard')" style="padding:0">← Back</button>
@@ -585,1286 +332,6 @@ body.in-round .theme-toggle{display:none}
     </div>
   </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-'use strict';
-
-const SUPABASE_URL = 'https://xlyefqzqxfjhsigtxgnc.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_kxWD40ojQTuXWiKeLiRzxg_fLaC_G2V';
-const sb = (typeof supabase !== 'undefined') ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-
-let playerId = localStorage.getItem('hc_player_id') || null;
-  function updateHomeAuthButton() {
-  const signedIn = !!playerId;
-  document.body.classList.toggle('is-signed-in', signedIn);
-
-  const homeSignin = document.getElementById('btn-signin-home');
-  if (homeSignin) {
-    homeSignin.style.display = signedIn ? 'none' : 'block';
-  }
-}
-if (sb) {
-  sb.auth.getSession().then(({ data }) => {
-    if (data && data.session && data.session.user) {
-      playerId = data.session.user.id;
-      localStorage.setItem('hc_player_id', playerId);
-    }
-    updateHomeAuthButton();
-  });
-
-  sb.auth.onAuthStateChange((event, session) => {
-    playerId = session && session.user ? session.user.id : null;
-
-    if (playerId) {
-      localStorage.setItem('hc_player_id', playerId);
-    } else {
-      localStorage.removeItem('hc_player_id');
-    }
-
-    updateHomeAuthButton();
-  });
-} else {
-  updateHomeAuthButton();
-}
-
-function getGuestId() {
-  let g = localStorage.getItem('hc_guest_id');
-  if (!g) { g = 'g_' + Math.random().toString(36).slice(2,10) + Date.now().toString(36); localStorage.setItem('hc_guest_id', g); }
-  return g;
-}
-const GUEST_ID = getGuestId();
-
-const urlRef = new URLSearchParams(location.search).get('ref');
-let pendingReferrer = null;
-if (urlRef && urlRef !== GUEST_ID) {
-  pendingReferrer = urlRef;
-  localStorage.setItem('hc_referrer', urlRef);
-} else {
-  pendingReferrer = localStorage.getItem('hc_referrer');
-}
-
-const CONFIG = {
-  roundDuration: 60, spawnIntervalStart: 2.2, spawnIntervalEnd: 1.0,
-  comboThreshold: 3, comboMaxMultiplier: 5, roundsPerDay: 3,
-  products: {
-    tomatoes: { emoji:'🍅', baseSale:120, patience:8.0 },
-    pepper:   { emoji:'🌶️', baseSale:250, patience:4.5 },
-    wrappers: { emoji:'🧣', baseSale:180, patience:6.0 }
-  },
-  upgrades: {
-    bigger_shelf: { name:'Bigger Shelf', icon:'📦', cost:2000, desc:'+1 product slot in round' },
-    loudspeaker:  { name:'Loudspeaker',  icon:'📢', cost:5000, desc:'+1.5s customer patience' }
-  },
-  divisions: [
-    { key:'street_trader', name:'Street', min:0, max:50000 },
-    { key:'stall_owner',   name:'Stall',  min:50001, max:250000 },
-    { key:'market_king',   name:'King',   min:250001, max:1000000 },
-    { key:'mogul',         name:'Mogul',  min:1000001, max:5000000 },
-    { key:'tycoon',        name:'Tycoon', min:5000001, max:Infinity }
-  ]
-};
-
-const BODIES = ['🧍','🧍‍♀️','🧍‍♂️','👨','👩','👴','👵','👦','👧'];
-const BUBBLES = ['Oga, come buy!','How much?','Na final price!','Abeg sharp sharp','I dey wait o'];
-
-const STORAGE_KEY = 'hc_state_v1';
-function defaultState(){return{wallet:0,lifetime:0,todayScore:0,todayDate:todayKey(),roundsToday:0,boostTokens:0,upgrades:[],division:'street_trader',playerName:'',theme:'light',votes:[],writeIns:[],bestToday:0,feedbackSent:false};}
-function loadState(){try{const raw=localStorage.getItem(STORAGE_KEY);if(!raw)return defaultState();const s=JSON.parse(raw);if(s.todayDate!==todayKey()){s.todayScore=0;s.roundsToday=0;s.todayDate=todayKey();}return Object.assign(defaultState(),s);}catch(e){return defaultState();}}
-function saveState(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(e){}}
-function todayKey(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
-
-let state = loadState();
-let game = null;
-let rafId = null;
-let selectedProduct = 'tomatoes';
-let gameAreaEl = document.getElementById('game-area');
-let dynamicLayer = document.getElementById('dynamic-layer');
-let lbScope = 'today';
-let brandSlots = {};
-
-function fmtN(n){return '₦'+Math.round(n).toLocaleString('en-NG');}
-function getDivision(l){for(const d of CONFIG.divisions){if(l<=d.max)return d;}return CONFIG.divisions[4];}
-function roundsLeftText(){const left=Math.max(0,CONFIG.roundsPerDay-state.roundsToday);return left>0?left+' free round'+(left===1?'':'s')+' left today':'No free rounds left — reload tomorrow';}
-function refreshHome(){
-  document.getElementById('home-wallet').textContent=fmtN(state.wallet);
-  document.getElementById('home-today').textContent=fmtN(state.todayScore);
-  document.getElementById('home-division').textContent=getDivision(state.lifetime).name;
-  document.getElementById('setup-rounds').textContent=roundsLeftText();
-}
-function showScreen(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('screen-'+id).classList.add('active');
-  document.body.classList.toggle('in-round', id === 'round');
-  if(id==='home')refreshHome();
-  if(id==='shop')refreshShop();
-  if(id==='leaderboard')refreshLeaderboard();
-  if(id==='settings')refreshSettings();
-  if(id==='dashboard')refreshDashboard();
-  if(typeof updateActivity==='function') updateActivity(id);
-}
-function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-
-// ============ SUPABASE SYNC ============
-async function syncRoundToServer(earned,served,missed,bestCombo){
-  if(!sb)return;
-  try{
-    await sb.from('guests').upsert({guest_id:GUEST_ID,wallet_balance:state.wallet,player_name:(state.playerName&&state.playerName.trim())||null},{onConflict:'guest_id'});
-    await sb.from('runs').insert({guest_id:GUEST_ID,player_id:playerId||null,player_name:state.playerName||null,hustle_key:'market_trader',stall_key:selectedProduct,seed:'client_'+Date.now(),score:earned,duration_ms:CONFIG.roundDuration*1000,valid:true,boost_used:game.boosted||false,action_log:{served,missed,bestCombo,ts:Date.now()}});
-    if(pendingReferrer && state.roundsToday===1){
-      await sb.from('referrals').insert({referrer_id:pendingReferrer,referred_id:GUEST_ID,status:'completed',completed_at:new Date().toISOString()});
-    }
-  }catch(e){
-    console.warn('sync failed',e);
-    const q=JSON.parse(localStorage.getItem('hc_sync_queue')||'[]');
-    q.push({earned,served,missed,bestCombo,ts:Date.now()});
-    localStorage.setItem('hc_sync_queue',JSON.stringify(q));
-  }
-}
-
-async function syncVoteToServer(hustleKey,writeInText){
-  if(!sb){console.warn('no supabase client');return false;}
-  const { data, error } = await sb.from('votes').insert({
-    guest_id: GUEST_ID,
-    player_id: playerId || null,
-    hustle_key: hustleKey || null,
-    write_in_text: writeInText || null
-  }).select();
-  if (error) {
-    console.error('vote insert failed:', error.message, error.details, error.hint);
-    const q = JSON.parse(localStorage.getItem('hc_vote_queue') || '[]');
-    q.push({ hustleKey, writeInText, ts: Date.now() });
-    localStorage.setItem('hc_vote_queue', JSON.stringify(q));
-    return false;
-  }
-  return true;
-}
-
-async function flushVoteQueue(){
-  if(!sb) return;
-  const q = JSON.parse(localStorage.getItem('hc_vote_queue') || '[]');
-  if (!q.length) return;
-  const remaining = [];
-  for (const v of q) {
-    const { error } = await sb.from('votes').insert({
-      guest_id: GUEST_ID,
-      player_id: playerId || null,
-      hustle_key: v.hustleKey || null,
-      write_in_text: v.writeInText || null
-    });
-    if (error) remaining.push(v);
-  }
-  localStorage.setItem('hc_vote_queue', JSON.stringify(remaining));
-}
-
-async function syncFeedback(mood,message){
-  if(!sb)return;
-  try{await sb.from('feedback').insert({guest_id:GUEST_ID,mood,message});}
-  catch(e){console.warn('feedback sync failed',e);}
-}
-
-async function trackEvent(name,payload){
-  if(!sb)return;
-  try{await sb.from('events').insert({guest_id:GUEST_ID,name,payload:payload||{}});}
-  catch(e){}
-}
-
-// ============ PRESENCE ============
-let presenceChannel = null;
-let currentActivity = 'home';
-function updateActivity(activity){
-  currentActivity=activity;
-  if(presenceChannel){
-    presenceChannel.track({
-      guest_id:GUEST_ID,
-      player_id:playerId||null,
-      name:state.playerName||'Guest',
-      activity:activity,
-      ts:Date.now()
-    }).catch(()=>{});
-  }
-}
-if(sb){
-  presenceChannel=sb.channel('hc-presence',{config:{presence:{key:playerId||GUEST_ID}}});
-  presenceChannel.subscribe(async(status)=>{if(status==='SUBSCRIBED')updateActivity(currentActivity);});
-  setInterval(()=>updateActivity(currentActivity),25000);
-}
-
-// ============ BRAND SLOTS ============
-async function loadBrandSlots(){
-  if(!sb)return;
-  try{
-    const {data}=await sb.from('brand_slots').select('slot_key,slot_number,brand_name,brand_art_url,brand_color,active').eq('active',true);
-    brandSlots={};
-    (data||[]).forEach(s=>{
-      const key=s.slot_key||('tool_'+(s.slot_number||1));
-      brandSlots[key]=s;
-    });
-    renderBrandSlots();
-  }catch(e){console.warn('brand slots load failed',e);}
-}
-
-function renderBrandSlots(){
-  const bb=document.getElementById('in-game-billboard');
-  if(bb){
-    const b=brandSlots['billboard'];
-    if(b&&b.brand_art_url){
-      bb.innerHTML='<img src="'+escapeHtml(b.brand_art_url)+'" alt="">';
-      bb.style.borderColor=b.brand_color||'var(--gold)';
-    }else if(b&&b.brand_name){
-      bb.textContent=b.brand_name.toUpperCase();
-      bb.style.borderColor=b.brand_color||'var(--gold)';
-    }else{
-      bb.textContent='PLACE YOUR AD HERE';
-      bb.style.borderColor='var(--border)';
-    }
-  }
-  const belt=document.getElementById('tool-belt');
-  if(belt){
-    const tools=[];
-    ['tool_1','tool_2','tool_3','umbrella','handcart','loudspeaker'].forEach(k=>{
-      if(brandSlots[k])tools.push(brandSlots[k]);
-    });
-    if(tools.length===0){
-      tools.push({slot_key:'tool_1'},{slot_key:'tool_2'},{slot_key:'tool_3'});
-    }
-    belt.innerHTML=tools.map(t=>{
-      if(t.brand_art_url){
-        return '<div class="tool has-brand" style="border-color:'+escapeHtml(t.brand_color||'#D4A017')+'"><img src="'+escapeHtml(t.brand_art_url)+'" alt=""></div>';
-      }
-      if(t.brand_name){
-        return '<div class="tool has-brand" style="border-color:'+escapeHtml(t.brand_color||'#D4A017')+'">'+escapeHtml(t.brand_name.slice(0,10))+'</div>';
-      }
-      return '<div class="tool">PLACE<br>AD<br>HERE</div>';
-    }).join('');
-  }
-}
-setInterval(loadBrandSlots,60000);
-
-// ============ CITY STATE ============
-let currentCity = localStorage.getItem('hc_city') || 'lagos';
-function applyCity() {
-  const area = document.getElementById('game-area');
-  if (area) area.setAttribute('data-city', currentCity);
-  const sel = document.getElementById('city-select');
-  if (sel) sel.value = currentCity;
-}
-document.getElementById('city-select').addEventListener('change', (e) => {
-  currentCity = e.target.value;
-  localStorage.setItem('hc_city', currentCity);
-  applyCity();
-});
-applyCity();
-
-// ============ CAMERA MODES ============
-let cameraMode = localStorage.getItem('hc_camera') || 'front';
-function applyCamera() {
-  const area = document.getElementById('game-area');
-  if (area) area.setAttribute('data-camera', cameraMode);
-  document.querySelectorAll('#camera-picker .cam-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.cam === cameraMode);
-  });
-}
-document.querySelectorAll('#camera-picker .cam-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    cameraMode = btn.dataset.cam;
-    localStorage.setItem('hc_camera', cameraMode);
-    applyCamera();
-  });
-});
-applyCamera();
-
-// ============ SETUP ============
-document.querySelectorAll('.product-card').forEach(card=>{
-  card.addEventListener('click',()=>{
-    document.querySelectorAll('.product-card').forEach(c=>c.classList.remove('selected'));
-    card.classList.add('selected');
-    selectedProduct=card.dataset.product;
-  });
-});
-
-document.getElementById('btn-home-play').addEventListener('click',()=>{
-  if(state.roundsToday>=CONFIG.roundsPerDay){alert('You don finish your 3 free rounds for today. Come back tomorrow!');return;}
-  document.getElementById('player-name').value=state.playerName||'';
-  showScreen('setup');
-});
-
-document.getElementById('btn-start-round').addEventListener('click',()=>{
-  state.playerName=document.getElementById('player-name').value.trim()||state.playerName;
-  saveState();
-  trackEvent('round_start',{stall:selectedProduct,is_guest:!playerId});
-  startRound();
-});
-
- document.getElementById('btn-play-again').addEventListener('click', () => {
-  if (state.roundsToday >= CONFIG.roundsPerDay) {
-    alert('You don finish your 3 free rounds for today. Come back tomorrow!');
-    showScreen('home');
-    return;
-  }
-  showScreen('setup');
-});
-  document.getElementById('btn-signin-home').addEventListener('click', () => {
-  document.getElementById('auth-modal').style.display = 'flex';
-});
-
-function onAuthSuccess(user) {
-  playerId = user.id;
-  localStorage.setItem('hc_player_id', playerId);
-  updateHomeAuthButton();
-  document.getElementById('auth-modal').style.display = 'none';
-}
-// ============ ROUND ============
-function clearDynamic(){
-  if(dynamicLayer) dynamicLayer.innerHTML='';
-  document.querySelectorAll('.countdown, .event-btn, .rain-overlay').forEach(el=>el.remove());
-  gameAreaEl.classList.remove('dark');
-}
-
-function startRound(){
-  showScreen('round');
-  clearDynamic();
-  const boosted=state.boostTokens>0;
-  if(boosted){state.boostTokens--;saveState();}
-  game={
-    running:false,startTime:0,lastSpawn:0,money:0,combo:0,
-    multiplier:boosted?2:1,bestCombo:boosted?2:1,
-    served:0,missed:0,customers:[],nextId:1,eventTimers:[],
-    boosted:boosted,
-    patienceBonus:state.upgrades.includes('loudspeaker')?1.5:0
-  };
-  document.getElementById('hud-money').textContent='₦0';
-  document.getElementById('hud-combo').textContent='x'+game.multiplier;
-  document.getElementById('hud-timer').textContent=CONFIG.roundDuration;
-  let count=3;
-  const cd=document.createElement('div');cd.className='countdown';cd.textContent=count;
-  gameAreaEl.appendChild(cd);
-  const iv=setInterval(()=>{
-    count--;
-    if(count>0){
-      cd.textContent=count;
-      cd.style.animation='none';void cd.offsetWidth;cd.style.animation='zoomIn 0.5s ease-out';
-    }else{
-      clearInterval(iv);
-      cd.remove();
-      beginPlay();
-    }
-  },700);
-}
-
-function beginPlay(){
-  game.running=true;
-  game.startTime=performance.now();
-  game.lastSpawn=0;
-  spawnCustomer(false);
-  scheduleEvents();
-  rafId=requestAnimationFrame(tick);
-}
-
-function endRound(){
-  if(!game || !game.running) return;
-  game.running = false;
-
-  if (rafId) cancelAnimationFrame(rafId);
-
-  // Stop active timers
-  if (game.eventTimers && game.eventTimers.length) {
-    game.eventTimers.forEach(timer => {
-      clearTimeout(timer);
-      clearInterval(timer);
-    });
-    game.eventTimers = [];
-  }
-
-  // Save wallet / round progress
-  state.wallet += game.money;
-  state.lifetime += game.money;
-  state.roundsToday++;
-  saveState();
-
-  // Show result summary
-  document.getElementById('result-money').textContent = fmtN(game.money);
-  document.getElementById('result-served').textContent = game.served;
-  document.getElementById('result-missed').textContent = game.missed;
-  document.getElementById('result-best').textContent = 'x' + (game.bestCombo || 1);
-
-  const resultNear = document.getElementById('result-near');
-  if (game.money > 0) {
-    resultNear.textContent = '🔥 Great hustle!';
-  } else {
-    resultNear.textContent = '💪 Keep trying!';
-  }
-
-  document.getElementById('result-rounds').textContent =
-    Math.max(0, CONFIG.roundsPerDay - state.roundsToday) + ' of 3 free rounds left today';
-
-  showScreen('result');
-}
-
-function displayResults(){
-  document.getElementById('result-money').textContent = fmtN(game.money);
-  document.getElementById('result-served').textContent = game.served;
-  document.getElementById('result-missed').textContent = game.missed;
-  document.getElementById('result-best').textContent = 'x' + (game.bestCombo || 1);
-  document.getElementById('result-rounds').textContent =
-    Math.max(0, CONFIG.roundsPerDay - state.roundsToday) + ' of 3 free rounds left today';
-
-  const resultNear = document.getElementById('result-near');
-  resultNear.textContent = game.money > 0 ? '🔥 Great hustle!' : '💪 Keep trying!';
-  showScreen('result');
-}  
-function tick(){
-  if(!game||!game.running)return;
-  const t=(performance.now()-game.startTime)/1000;
-  const remaining=Math.max(0,CONFIG.roundDuration-t);
-  document.getElementById('hud-timer').textContent=Math.ceil(remaining);
-  const progress=t/CONFIG.roundDuration;
-  let interval=CONFIG.spawnIntervalStart+(CONFIG.spawnIntervalEnd-CONFIG.spawnIntervalStart)*progress;
-  if(game.rainActive)interval*=1.4;
-  if(t-game.lastSpawn>=interval){game.lastSpawn=t;spawnCustomer(false);}
-  const toRemove=[];
-  for(const c of game.customers){
-    if(c.served)continue;
-    const age=t-c.spawnedAt;
-    const remain=Math.max(0,c.patience-age);
-    const ratio=remain/c.patience;
-    const fill=c.el.querySelector('.patience-fill');
-    if(fill){
-      fill.style.width=(ratio*100)+'%';
-      fill.style.background=ratio<0.3?'#B23A2E':(ratio<0.6?'#D4A017':'#2E5B3A');
-    }
-    if(remain<=0){missCustomer(c);toRemove.push(c);}
-  }
-  game.customers=game.customers.filter(c=>!toRemove.includes(c));
-  if(remaining <= 0){
-  endRound();
-  return;
-}
-  rafId=requestAnimationFrame(tick);
-}
-
-function spawnCustomer(isThief){
-  const items=['tomatoes','pepper','wrappers'];
-  const wanted=Math.random()<0.55?selectedProduct:items[Math.floor(Math.random()*3)];
-  const prod=CONFIG.products[wanted];
-  const id='c'+(game.nextId++);
-  const body=BODIES[Math.floor(Math.random()*BODIES.length)];
-  const isHaggle=!isThief&&Math.random()<0.15;
-  const el=document.createElement('div');
-  el.className='customer'+(isThief?' thief':'');
-  el.style.left=(8+Math.random()*74)+'%';
-  el.style.top=(8+Math.random()*58)+'%';
-  el.innerHTML='<div class="bubble">'+(isThief?'Thief!':BUBBLES[Math.floor(Math.random()*BUBBLES.length)])+'</div>'+
-    '<div class="wanted">'+(isThief?'💰':prod.emoji)+'</div>'+
-    '<div class="body">'+(isThief?'🕵️':body)+'</div>'+
-    '<div class="patience"><div class="patience-fill" style="width:100%"></div></div>';
-  el.addEventListener('click',e=>{e.stopPropagation();callCustomer(id);});
-  (dynamicLayer||gameAreaEl).appendChild(el);
-  game.customers.push({
-    id,wanted,isThief:!!isThief,isHaggle,
-    spawnedAt:(performance.now()-game.startTime)/1000,
-    patience:(isThief?2.5:prod.patience)+(game.patienceBonus||0),
-    served:false,called:false,el
-  });
-}
-
-function callCustomer(id){
-  const c=game.customers.find(x=>x.id===id);
-  if(!c||c.served||c.called)return;
-  c.called=true;c.el.classList.add('called');
-  if(c.isThief){
-    game.money+=300;addFloat(c.el,'+₦300 caught!',false);c.served=true;game.served++;
-    c.el.style.transition='transform 0.3s, opacity 0.3s';
-    c.el.style.transform='scale(0.3)';c.el.style.opacity='0';
-    setTimeout(()=>c.el.remove(),300);
-    game.customers=game.customers.filter(x=>x.id!==c.id);
-    document.getElementById('hud-money').textContent='₦'+game.money;
-  }
-}
-
-function serveItem(item,btn){
-  let c=game.customers.find(x=>x.called&&!x.served&&!x.isThief&&x.wanted===item);
-  if(!c)c=game.customers.find(x=>!x.served&&!x.isThief&&x.wanted===item);
-  if(!c){
-    btn.classList.remove('shake');void btn.offsetWidth;btn.classList.add('shake');
-    return;
-  }
-  if(c.isHaggle&&!c.haggled){c.haggled=true;showHaggleModal(c,item);return;}
-  completeSale(c,item);
-}
-
-function completeSale(c,item){
-  c.served=true;game.served++;game.combo++;
-  if(game.combo%CONFIG.comboThreshold===0&&game.multiplier<CONFIG.comboMaxMultiplier){
-    game.multiplier++;
-    game.bestCombo=Math.max(game.bestCombo,game.multiplier);
-    const el=document.getElementById('hud-combo');
-    el.textContent='x'+game.multiplier;
-    el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump');
-  }
-  const prod=CONFIG.products[item];
-  const base=prod.baseSale+Math.floor(Math.random()*60);
-  const sale=Math.round(base*game.multiplier);
-  game.money+=sale;
-  document.getElementById('hud-money').textContent='₦'+game.money;
-  addFloat(c.el,'+₦'+sale+(game.multiplier>1?' x'+game.multiplier:''),false);
-  c.el.style.transition='transform 0.3s, opacity 0.3s';
-  c.el.style.transform='translateY(-30px) scale(0.3)';c.el.style.opacity='0';
-  setTimeout(()=>c.el.remove(),300);
-  game.customers=game.customers.filter(x=>x.id!==c.id);
-}
-
-function missCustomer(c){
-  if(c.served)return;
-  c.served=true;game.missed++;game.combo=0;
-  if(game.multiplier!==1){
-    game.multiplier=1;
-    document.getElementById('hud-combo').textContent='x1';
-  }
-  if(c.isThief){
-    const loss=Math.min(300,game.money);
-    game.money-=loss;
-    document.getElementById('hud-money').textContent='₦'+game.money;
-    addFloat(c.el,'-₦'+loss+' stolen!',true);
-  }
-  c.el.style.transition='opacity 0.4s, transform 0.4s';
-  c.el.style.opacity='0';c.el.style.transform='translateX(-80px)';
-  setTimeout(()=>c.el.remove(),400);
-}
-
-function addFloat(parent,text,negative){
-  const float=document.createElement('div');
-  float.className='float'+(negative?' neg':'');
-  float.textContent=text;
-  const r=parent.getBoundingClientRect();
-  const ar=gameAreaEl.getBoundingClientRect();
-  float.style.left=(r.left-ar.left+r.width/2)+'px';
-  float.style.top=(r.top-ar.top)+'px';
-  (dynamicLayer||gameAreaEl).appendChild(float);
-  setTimeout(()=>float.remove(),900);
-}
-
-function scheduleEvents(){
-  game.eventTimers.push(setTimeout(()=>triggerNEPA(),20000));
-  game.eventTimers.push(setTimeout(()=>triggerRain(),35000));
-  game.eventTimers.push(setTimeout(()=>triggerLevy(),50000));
-  const thiefTimer=setInterval(()=>{
-    if(!game||!game.running){clearInterval(thiefTimer);return;}
-    if(Math.random()<0.5)spawnCustomer(true);
-  },9000);
-  game.eventTimers.push(thiefTimer);
-}
-
-function triggerNEPA(){
-  if(!game||!game.running)return;
-  gameAreaEl.classList.add('dark');
-  const btn=document.createElement('button');
-  btn.className='event-btn';btn.textContent='🔦 On torch';
-  btn.addEventListener('click',()=>{gameAreaEl.classList.remove('dark');btn.remove();});
-  gameAreaEl.appendChild(btn);
-  setTimeout(()=>{if(btn.parentNode){gameAreaEl.classList.remove('dark');btn.remove();}},4500);
-}
-
-function triggerRain(){
-  if(!game||!game.running)return;
-  game.rainActive=true;
-  const rain=document.createElement('div');rain.className='rain-overlay';gameAreaEl.appendChild(rain);
-  const btn=document.createElement('button');
-  btn.className='event-btn';btn.textContent='☔ Hold umbrella';
-  btn.addEventListener('click',()=>{
-    game.rainActive=false;rain.remove();btn.remove();
-    game.customers.forEach(c=>{c.spawnedAt=(performance.now()-game.startTime)/1000;});
-  });
-  gameAreaEl.appendChild(btn);
-  setTimeout(()=>{
-    if(rain.parentNode){game.rainActive=false;rain.remove();}
-    if(btn.parentNode)btn.remove();
-  },5000);
-}
-
-function triggerLevy(){
-  if(!game||!game.running)return;
-  const cost=200;if(game.money<cost)return;
-  showModal({
-    title:'Levy Collector',
-    body:'Council man dey collect levy. Pay ₦200?',
-    actions:[
-      {label:'Pay ₦200',primary:true,fn:()=>{
-        game.money-=cost;
-        document.getElementById('hud-money').textContent='₦'+game.money;
-      }},
-      {label:'Ignore',fn:()=>{}}
-    ]
-  });
-}
-
-function showHaggleModal(customer,item){
-  const prod=CONFIG.products[item];
-  showModal({
-    title:'Customer dey haggle',
-    body:'Dem wan pay less. Wetin you go do?',
-    actions:[
-      {label:'Accept lower price',fn:()=>{
-        customer.served=true;game.served++;
-        const base=Math.round(prod.baseSale*0.6);
-        const sale=base*game.multiplier;
-        game.money+=sale;
-        document.getElementById('hud-money').textContent='₦'+game.money;
-        addFloat(customer.el,'+₦'+sale,false);
-        customer.el.remove();
-        game.customers=game.customers.filter(x=>x.id!==customer.id);
-      }},
-      {label:'Counter (50/50)',primary:true,fn:()=>{
-        if(Math.random()<0.5){
-          completeSale(customer,item);
-        }else{
-          customer.served=true;game.missed++;game.combo=0;game.multiplier=1;
-          document.getElementById('hud-combo').textContent='x1';
-          addFloat(customer.el,'Lost sale',true);
-          customer.el.style.opacity='0';
-          setTimeout(()=>customer.el.remove(),300);
-          game.customers=game.customers.filter(x=>x.id!==customer.id);
-        }
-      }}
-    ]
-  });
-}
-
-function showModal(opts){
-  const bg=document.createElement('div');bg.className='modal-bg';
-  const box=document.createElement('div');box.className='modal';
-  box.innerHTML='<h3>'+opts.title+'</h3><p>'+opts.body+'</p>';
-  const actions=document.createElement('div');actions.className='modal-actions';
-  opts.actions.forEach(a=>{
-    const btn=document.createElement('button');
-    btn.className='btn '+(a.primary?'btn-gold':'btn-secondary');
-    btn.textContent=a.label;
-    btn.addEventListener('click',()=>{bg.remove();a.fn();});
-    actions.appendChild(btn);
-  });
-  box.appendChild(actions);bg.appendChild(box);document.body.appendChild(bg);
-}
-
-function endRound(){
-  game.running=false;cancelAnimationFrame(rafId);
-  game.eventTimers.forEach(t=>{clearTimeout(t);clearInterval(t);});
-  clearDynamic();
-  const earned=game.money;
-  state.wallet+=earned;state.lifetime+=earned;state.todayScore+=earned;
-  state.bestToday=Math.max(state.bestToday||0,earned);
-  state.roundsToday++;
-  state.division=getDivision(state.lifetime).key;
-  saveState();
-  document.getElementById('result-money').textContent=fmtN(earned);
-  document.getElementById('result-served').textContent=game.served;
-  document.getElementById('result-missed').textContent=game.missed;
-  document.getElementById('result-best').textContent='x'+game.bestCombo;
-  document.getElementById('result-rounds').textContent=roundsLeftText();
-  const target=1500+Math.floor(Math.random()*800);
-  document.getElementById('result-near').textContent=
-    earned<target?'₦'+(target-earned)+' from rank #9':'🔥 You dey top 10 today!';
-  const playBtn=document.getElementById('btn-play-again');
-  if(state.roundsToday>=CONFIG.roundsPerDay){
-    playBtn.textContent='NO ROUNDS LEFT';playBtn.disabled=true;playBtn.style.opacity='0.5';
-  }else{
-    playBtn.textContent=state.boostTokens>0?'PLAY AGAIN (⚡ x2 BOOST)':'PLAY AGAIN';
-    playBtn.disabled=false;playBtn.style.opacity='1';
-  }
-  syncRoundToServer(earned,game.served,game.missed,game.bestCombo);
-  trackEvent('round_end',{score:earned,stall:selectedProduct});
-  showScreen('result');
-  updateResultSigninCta();
-  if(!playerId && state.roundsToday>=2){
-    setTimeout(showAuthModal,1200);
-  }
-}
-
-function updateResultSigninCta(){
-  const btn=document.getElementById('btn-signin-result');
-  if(!btn)return;
-  btn.style.display=(!playerId && state.roundsToday>=1)?'block':'none';
-}
-
-document.getElementById('btn-play-again').addEventListener('click',()=>{
-  if(state.roundsToday>=CONFIG.roundsPerDay)return;
-  startRound();
-});
-
-document.querySelectorAll('.shelf-btn').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    if(!game||!game.running)return;
-    serveItem(btn.dataset.item,btn);
-  });
-});
-  // ============ MARKETPLACE ============
-let allVendors = [];
-let vendorFilter = { category: 'all', query: '' };
-
-const VENDOR_CATEGORIES = [
-  { key: 'all', label: 'All' },
-  { key: 'tailor', label: '🧵 Tailor' },
-  { key: 'food', label: '🍲 Food & Buka' },
-  { key: 'barber', label: '💈 Barber' },
-  { key: 'laundry', label: '👕 Laundry' },
-  { key: 'mechanic', label: '🔧 Mechanic' },
-  { key: 'pos', label: '💳 POS' },
-  { key: 'delivery', label: '🛵 Delivery' },
-  { key: 'home', label: '🏠 Home' },
-  { key: 'other', label: 'Other' }
-];
-
-async function loadMarketplace(){
-  const list = document.getElementById('vendor-list');
-  if(!list) return;
-  list.innerHTML = '<div class="vendor-empty">Loading…</div>';
-  if(!sb){ list.innerHTML = '<div class="vendor-empty">Needs internet</div>'; return; }
-  try{
-    const { data, error } = await sb.from('vendors')
-      .select('*').eq('active', true)
-      .order('verified', { ascending: false })
-      .order('created_at', { ascending: false })
-      .limit(200);
-    if(error) throw error;
-    allVendors = data || [];
-    renderVendorChips();
-    renderVendors();
-  }catch(e){
-    list.innerHTML = '<div class="vendor-empty">Could not load vendors. Try again.</div>';
-    console.warn('marketplace load failed', e);
-  }
-}
-
-function renderVendorChips(){
-  const wrap = document.getElementById('vendor-categories');
-  if(!wrap) return;
-  wrap.innerHTML = VENDOR_CATEGORIES.map(c =>
-    '<button class="vendor-chip' + (vendorFilter.category === c.key ? ' active' : '') + '" data-cat="' + c.key + '">' + c.label + '</button>'
-  ).join('');
-  wrap.querySelectorAll('.vendor-chip').forEach(b => b.addEventListener('click', () => {
-    vendorFilter.category = b.dataset.cat;
-    renderVendorChips();
-    renderVendors();
-  }));
-}
-
-function renderVendors(){
-  const list = document.getElementById('vendor-list');
-  if(!list) return;
-
-  const q = vendorFilter.query.toLowerCase().trim();
-  let rows = allVendors.slice();
-
-  // Sort: verified first, then city match (player's currentCity), then name
-  rows.sort((a, b) => {
-    if(a.verified !== b.verified) return a.verified ? -1 : 1;
-    const aCityMatch = a.city === currentCity ? 1 : 0;
-    const bCityMatch = b.city === currentCity ? 1 : 0;
-    if(aCityMatch !== bCityMatch) return bCityMatch - aCityMatch;
-    return (a.name || '').localeCompare(b.name || '');
-  });
-
-  // Filter
-  if(vendorFilter.category !== 'all') rows = rows.filter(v => v.category === vendorFilter.category);
-  if(q) rows = rows.filter(v =>
-    (v.name || '').toLowerCase().includes(q) ||
-    (v.category || '').toLowerCase().includes(q) ||
-    (v.description || '').toLowerCase().includes(q) ||
-    (v.city || '').toLowerCase().includes(q)
-  );
-
-  if(!rows.length){
-    list.innerHTML = '<div class="vendor-empty">No vendors found.<br><span style="font-size:11px">Try a different category or search.</span></div>';
-    return;
-  }
-
-  list.innerHTML = rows.map(v => {
-    const img = v.image_url
-      ? '<img class="vendor-photo" src="' + escapeHtml(v.image_url) + '" alt="" onerror="this.style.display=\'none\';this.parentNode.insertAdjacentHTML(\'afterbegin\',\'<div class=&quot;vendor-photo&quot;>🏪</div>\')">'
-      : '<div class="vendor-photo">🏪</div>';
-    const badge = v.verified ? '<span class="vendor-badge">✓ VERIFIED</span>' : '';
-    const catLabel = (VENDOR_CATEGORIES.find(c => c.key === v.category) || { label: v.category }).label.replace(/^\S+\s/, '');
-    const phone = v.phone || '';
-    const wa = v.whatsapp || v.phone || '';
-    const waLink = wa ? 'https://wa.me/' + wa + '?text=' + encodeURIComponent('Hi ' + (v.name || '') + ', I found you on Hustle City') : '#';
-    const callLink = phone ? 'tel:' + phone : '#';
-    const callBtn = phone ? '<a class="vendor-btn call" href="' + callLink + '">📞 Call</a>' : '';
-    const waBtn = wa ? '<a class="vendor-btn wa" href="' + waLink + '" target="_blank" rel="noopener">💬 WhatsApp</a>' : '';
-    return '<div class="vendor-card">' + img +
-      '<div class="vendor-info">' +
-        '<div class="vendor-name">' + escapeHtml(v.name || '') + ' ' + badge + '</div>' +
-        '<div class="vendor-meta">' + escapeHtml(catLabel) + ' · ' + escapeHtml((v.city || '').toUpperCase()) + '</div>' +
-        '<div class="vendor-desc">' + escapeHtml((v.description || '').slice(0, 140)) + '</div>' +
-        '<div class="vendor-actions">' + callBtn + waBtn + '</div>' +
-      '</div>' +
-    '</div>';
-  }).join('');
-}
-
-// Search input
-document.getElementById('vendor-search').addEventListener('input', (e) => {
-  vendorFilter.query = e.target.value;
-  renderVendors();
-});
-
-// Open marketplace button on dashboard
-document.getElementById('btn-dash-market').addEventListener('click', () => {
-  showScreen('marketplace');
-  loadMarketplace();
-});
-
-// ============ DASHBOARD ============
-function refreshDashboard(){
-  const name = state.playerName || 'Hustler';
-  document.getElementById('dash-greeting').textContent = 'Hi, ' + name + ' 👋';
-  document.getElementById('dash-meta').textContent = getDivision(state.lifetime).name + ' Trader · ' + currentCity.toUpperCase();
-  document.getElementById('dash-wallet').textContent = fmtN(state.wallet);
-  document.getElementById('dash-lifetime').textContent = 'Lifetime ' + fmtN(state.lifetime);
-  document.getElementById('dash-rounds').textContent = state.roundsToday;
-  document.getElementById('dash-best').textContent = fmtN(state.bestToday || 0);
-  loadDashboardRank();
-}
-async function loadDashboardRank(){
-  if(!sb) return;
-  try{
-    const today = watStartOfDay(new Date()).toISOString();
-    const { data } = await sb.from('runs')
-      .select('guest_id, score')
-      .gte('created_at', today)
-      .order('score', { ascending: false })
-      .limit(500);
-    if(!data) return;
-    const byGuest = {};
-    data.forEach(r => {
-      const k = r.guest_id || 'anon';
-      if(!byGuest[k] || r.score > byGuest[k]) byGuest[k] = r.score;
-    });
-    const sorted = Object.entries(byGuest).sort((a,b) => b[1] - a[1]);
-    const rank = sorted.findIndex(([gid]) => gid === GUEST_ID);
-    document.getElementById('dash-rank-today').textContent = rank >= 0 ? '#' + (rank + 1) : '#--';
-  }catch(e){ console.warn('rank fetch failed', e); }
-}
-document.getElementById('btn-dash-play').addEventListener('click', () => {
-  if(state.roundsToday>=CONFIG.roundsPerDay){
-    alert('You don finish your 3 free rounds for today. Come back tomorrow!');
-    return;
-  }
-  document.getElementById('player-name').value = state.playerName || '';
-  showScreen('setup');
-});
-document.getElementById('btn-dash-shop').addEventListener('click', () => showScreen('shop'));
-document.getElementById('btn-dash-lb').addEventListener('click', () => showScreen('leaderboard'));
-document.getElementById('btn-dash-settings').addEventListener('click', () => showScreen('settings'));
-document.getElementById('btn-sign-out').addEventListener('click', async () => {
-  if(!confirm('Sign out? Your progress stays on this device.')) return;
-  if(sb) await sb.auth.signOut();
-  playerId = null;
-  localStorage.removeItem('hc_player_id');
-  refreshHome();
-  showScreen('home');
-});
-
-// ============ SHARE ============
-document.getElementById('btn-share').addEventListener('click',()=>{
-  const c=document.createElement('canvas');c.width=1080;c.height=1080;
-  const ctx=c.getContext('2d');
-  ctx.fillStyle='#F5EBDC';ctx.fillRect(0,0,1080,1080);
-  ctx.fillStyle='#1F4A2E';ctx.fillRect(0,0,1080,220);
-  ctx.fillStyle='#D4A017';ctx.font='900 96px sans-serif';ctx.textAlign='center';
-  ctx.fillText('HUSTLE CITY',540,140);
-  ctx.fillStyle='#2E1F14';ctx.font='600 36px sans-serif';
-  ctx.fillText('Market Trader',540,320);
-  ctx.fillStyle='#2E1F14';ctx.font='900 220px sans-serif';
-  ctx.fillText('₦'+(game?game.money:0).toLocaleString('en-NG'),540,620);
-  ctx.fillStyle='#7A6A55';ctx.font='700 40px sans-serif';
-  ctx.fillText(state.playerName||'Anonymous',540,720);
-  ctx.fillStyle='#2E5B3A';ctx.font='700 44px sans-serif';
-  ctx.fillText('Beat my score 👇',540,860);
-  ctx.fillStyle='#1F4A2E';ctx.font='900 56px sans-serif';
-  ctx.fillText('hustle.ubswift.com',540,950);
-  c.toBlob(blob=>{
-    const file=new File([blob],'hustle-city-score.png',{type:'image/png'});
-    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
-      navigator.share({files:[file],title:'Hustle City',text:'Beat my score!'}).catch(()=>{});
-    }else{
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a');
-      a.href=url;a.download='hustle-city-score.png';a.click();
-      setTimeout(()=>URL.revokeObjectURL(url),1000);
-    }
-  });
-  trackEvent('share_tap',{score:game?game.money:0});
-});
-
-// ============ REFERRAL ============
-document.getElementById('btn-refer').addEventListener('click',()=>{
-  const refCode=(state.playerName&&state.playerName.trim())?state.playerName.trim():GUEST_ID;
-  const link=location.origin+location.pathname+'?ref='+encodeURIComponent(refCode);
-  if(navigator.clipboard){
-    navigator.clipboard.writeText(link).then(()=>alert('Link copied! Send to friends:\n'+link)).catch(()=>prompt('Copy this:',link));
-  }else{
-    prompt('Copy this:',link);
-  }
-  trackEvent('referral_link_opened',{referrer_id:refCode});
-});
-
-// ============ FEEDBACK ============
-document.getElementById('btn-feedback').addEventListener('click',()=>{
-  const bg=document.createElement('div');bg.className='modal-bg';
-  const box=document.createElement('div');box.className='modal';
-  box.innerHTML='<h3>How the game feel?</h3><p>Talk true — we dey listen.</p>';
-  const moods=document.createElement('div');
-  moods.style.cssText='display:flex;gap:10px;justify-content:center;margin-bottom:12px';
-  let chosen=null;
-  ['😍','🙂','😐','😞'].forEach(m=>{
-    const b=document.createElement('button');
-    b.textContent=m;
-    b.style.cssText='font-size:32px;background:transparent;border:2px solid var(--border);border-radius:12px;padding:8px 14px;cursor:pointer;font-family:inherit';
-    b.addEventListener('click',()=>{
-      chosen=m;
-      moods.querySelectorAll('button').forEach(x=>x.style.borderColor='var(--border)');
-      b.style.borderColor='var(--oxblood)';
-    });
-    moods.appendChild(b);
-  });
-  box.appendChild(moods);
-  const ta=document.createElement('textarea');ta.rows=3;ta.placeholder='Anything else? (optional)';box.appendChild(ta);
-  const send=document.createElement('button');send.className='btn btn-gold';send.textContent='SEND';
-  send.addEventListener('click',()=>{
-    if(chosen){syncFeedback(chosen,ta.value.trim());}
-    bg.remove();alert('Thank you! 🙏');
-  });
-  box.appendChild(send);
-  bg.appendChild(box);document.body.appendChild(bg);
-});
-
-// ============ LEADERBOARD ============
-document.querySelectorAll('.lb-tab[data-scope]').forEach(tab=>{
-  tab.addEventListener('click',()=>{
-    if(!tab.dataset.scope)return;
-    document.querySelectorAll('.lb-tab[data-scope]').forEach(t=>t.classList.remove('active'));
-    tab.classList.add('active');
-    lbScope=tab.dataset.scope;
-    refreshLeaderboard();
-  });
-});
-
-function watStartOfDay(d){
-  const watMs=60*60*1000;
-  const wat=new Date(d.getTime()+watMs);
-  return new Date(Date.UTC(wat.getUTCFullYear(),wat.getUTCMonth(),wat.getUTCDate(),0,0,0)-watMs);
-}
-
-function aggregateRuns(data){
-  const byGuest={};
-  for(const r of data){
-    const k=r.guest_id||'anon';
-    if(!byGuest[k])byGuest[k]={guest_id:k,name:(r.player_name||k.slice(0,8)),score:0,nameLocked:false};
-    byGuest[k].score+=(r.score||0);
-    if(!byGuest[k].nameLocked&&r.player_name){
-      byGuest[k].name=r.player_name;
-      byGuest[k].nameLocked=true;
-    }
-  }
-  return Object.values(byGuest).sort((a,b)=>b.score-a.score);
-}
-
-async function refreshLeaderboard(){
-  const list=document.getElementById('lb-list');
-  list.innerHTML='<p class="small" style="padding:16px;text-align:center">Loading…</p>';
-  if(!sb){
-    list.innerHTML='<p class="small" style="padding:32px 16px;text-align:center">Offline — the board needs internet.</p>';
-    return;
-  }
-  let rows=[];
-  try{
-    const q=sb.from('runs').select('guest_id, player_name, score, created_at').order('created_at',{ascending:false});
-    const {data,error}=(lbScope==='today')
-      ?await q.gte('created_at',watStartOfDay(new Date()).toISOString()).limit(2000)
-      :await q.limit(5000);
-    if(error)throw error;
-    if(data&&data.length)rows=aggregateRuns(data);
-  }catch(e){console.warn('leaderboard fetch failed',e);}
-
-  if(rows.length===0){
-    list.innerHTML='<p class="small" style="padding:32px 16px;text-align:center;line-height:1.5">'+
-      (lbScope==='today'?'No rounds yet today.<br><strong>Be the first to play.</strong> 🏁':'No history yet.<br>Play a round to enter the board.')+
-      '</p>';
-    return;
-  }
-  list.innerHTML='';
-  rows.slice(0,50).forEach((row,i)=>{
-    const isSelf=row.guest_id===GUEST_ID;
-    const el=document.createElement('div');
-    el.className='lb-row'+(isSelf?' self':'');
-    el.innerHTML='<div class="lb-rank'+(i<3?' top':'')+'">#'+(i+1)+'</div>'+
-      '<div class="lb-avatar">'+escapeHtml((row.name||'?').charAt(0).toUpperCase())+'</div>'+
-      '<div class="lb-name">'+escapeHtml(row.name)+(isSelf?' (you)':'')+'</div>'+
-      '<div class="lb-score">₦'+row.score.toLocaleString('en-NG')+'</div>';
-    list.appendChild(el);
-  });
-  const selfRank=rows.findIndex(r=>r.guest_id===GUEST_ID);
-  if(selfRank>=50){
-    const div=document.createElement('div');
-    div.style.cssText='padding:6px;text-align:center;color:var(--muted);font-size:11px';
-    div.textContent='· · ·';
-    list.appendChild(div);
-    const row=rows[selfRank];
-    const el=document.createElement('div');
-    el.className='lb-row self';
-    el.innerHTML='<div class="lb-rank">#'+(selfRank+1)+'</div>'+
-      '<div class="lb-avatar">'+escapeHtml((row.name||'?').charAt(0).toUpperCase())+'</div>'+
-      '<div class="lb-name">'+escapeHtml(row.name)+' (you)</div>'+
-      '<div class="lb-score">₦'+row.score.toLocaleString('en-NG')+'</div>';
-    list.appendChild(el);
-  }
-}
-
-// ============ SHOP ============
-function refreshShop(){
-  document.getElementById('shop-wallet').textContent=fmtN(state.wallet);
-  document.getElementById('shop-lifetime').textContent=fmtN(state.lifetime);
-  const list=document.getElementById('shop-list');list.innerHTML='';
-  Object.entries(CONFIG.upgrades).forEach(([key,up])=>{
-    const owned=state.upgrades.includes(key);
-    const canAfford=state.wallet>=up.cost;
-    const el=document.createElement('div');
-    el.className='shop-item'+(owned?' owned':'');
-    el.innerHTML='<div class="icon">'+up.icon+'</div>'+
-      '<div class="info"><h4>'+up.name+'</h4><p>'+up.desc+'</p></div>'+
-      '<button class="buy-btn" data-key="'+key+'"'+(owned||!canAfford?' disabled':'')+'>'+
-      (owned?'OWNED':'₦'+up.cost.toLocaleString('en-NG'))+'</button>';
-    list.appendChild(el);
-  });
-  list.querySelectorAll('.buy-btn:not(:disabled)').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      const key=btn.dataset.key;
-      const up=CONFIG.upgrades[key];
-      if(state.wallet<up.cost)return;
-      state.wallet-=up.cost;
-      state.upgrades.push(key);
-      saveState();
-      refreshShop();
-      trackEvent('upgrade_purchased',{upgrade_key:key,cost:up.cost});
-    });
-  });
-}
-
-// ============ SETTINGS ============
-function refreshSettings(){
-  const current=localStorage.getItem('hc_theme')||'system';
-  document.querySelectorAll('.theme-btn').forEach(b=>b.classList.toggle('active',b.dataset.theme===current));
-}
-
-document.querySelectorAll('.theme-btn').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    const t=btn.dataset.theme;
-    localStorage.setItem('hc_theme',t);
-    const dark=t==='dark'||(t==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);
-    document.documentElement.setAttribute('data-theme',dark?'dark':'light');
-    const toggleBtn=document.getElementById('theme-toggle-home');
-    if(toggleBtn) toggleBtn.textContent=dark?'☀️':'🌙';
-    refreshSettings();
-  });
-});
-
-document.getElementById('btn-reset').addEventListener('click',()=>{
-  if(!confirm('Delete all progress? This cannot be undone.'))return;
-  localStorage.removeItem(STORAGE_KEY);
-  state=defaultState();
-  saveState();
-  showScreen('home');
-});
-
-document.getElementById('btn-open-settings').addEventListener('click',e=>{e.preventDefault();showScreen('settings');});
-document.getElementById('btn-open-shop').addEventListener('click',()=>showScreen('shop'));
-document.getElementById('btn-open-lb').addEventListener('click',()=>showScreen('leaderboard'));
-
-// ============ VOTES ============
-document.querySelectorAll('.vote-btn').forEach(btn=>{
-  if(state.votes.includes(btn.dataset.hustle)){btn.textContent='VOTED ✓';btn.disabled=true;}
-  btn.addEventListener('click',()=>{
-    const h=btn.dataset.hustle;
-    if(state.votes.includes(h))return;
-    state.votes.push(h);saveState();
-    btn.textContent='VOTED ✓';btn.disabled=true;
-    syncVoteToServer(h,null);
-    trackEvent('vote',{hustle_key:h});
-  });
-});
-
-document.getElementById('btn-writein').addEventListener('click',()=>{
-  const inp=document.getElementById('writein-input');
-  const text=inp.value.trim();
-  if(!text)return;
-  state.writeIns=state.writeIns||[];
-  state.writeIns.push(text);saveState();
-  syncVoteToServer(null,text);
-  trackEvent('write_in_vote',{hustle_text:text});
-  inp.value='';inp.placeholder='Sent! Add another...';
-  document.getElementById('btn-writein').textContent='SENT ✓';
-  setTimeout(()=>document.getElementById('btn-writein').textContent='SEND IDEA',2000);
-});
-
-// ============ THEME TOGGLE (home) ============
-document.getElementById('theme-toggle-home').addEventListener('click',()=>{
-  const current=localStorage.getItem('hc_theme')||'system';
-  const next=current==='dark'?'light':'dark';
-  localStorage.setItem('hc_theme',next);
-  document.documentElement.setAttribute('data-theme',next);
-  document.getElementById('theme-toggle-home').textContent=next==='dark'?'☀️':'🌙';
-});
-(function(){
-  const dark=document.documentElement.getAttribute('data-theme')==='dark';
-  const btn=document.getElementById('theme-toggle-home');
-  if(btn) btn.textContent=dark?'☀️':'🌙';
-})();
-
-// ============ AUTH ============
-let authMode='signup';
-function showAuthModal(){
-  document.getElementById('auth-modal').style.display='flex';
-  updateAuthUI();
-}
-function hideAuthModal(){
-  document.getElementById('auth-modal').style.display='none';
-}
-function updateAuthUI(){
-  const isSignup=authMode==='signup';
-  document.getElementById('auth-tab-signup').classList.toggle('active',isSignup);
-  document.getElementById('auth-tab-signin').classList.toggle('active',!isSignup);
-  document.getElementById('auth-submit').textContent=isSignup?'Create Account':'Sign In';
-  document.getElementById('auth-error').textContent='';
-}
-document.getElementById('auth-tab-signup').addEventListener('click',()=>{authMode='signup';updateAuthUI();});
-document.getElementById('auth-tab-signin').addEventListener('click',()=>{authMode='signin';updateAuthUI();});
-document.getElementById('auth-skip').addEventListener('click',hideAuthModal);
-document.getElementById('btn-signin-result').addEventListener('click',showAuthModal);
-
-document.getElementById('auth-submit').addEventListener('click',async()=>{
-  const email=document.getElementById('auth-email').value.trim();
-  const password=document.getElementById('auth-password').value;
-  const errEl=document.getElementById('auth-error');
-  if(!email||!password){errEl.textContent='Enter email and password.';return;}
-  if(password.length<6){errEl.textContent='Password must be 6+ characters.';return;}
-  errEl.textContent='Working…';
-
-  const result=(authMode==='signup')
-    ?await sb.auth.signUp({email,password})
-    :await sb.auth.signInWithPassword({email,password});
-
-  if(result.error){errEl.textContent=result.error.message;return;}
-
-  const user=result.data.user;
-  if(!user){errEl.textContent='Check your email to confirm, then Sign In.';return;}
-
-  playerId=user.id;
-  localStorage.setItem('hc_player_id',playerId);
-
-  try{
-    await sb.from('players').upsert({
-      id:user.id,
-      email:user.email,
-      display_name:state.playerName||(user.email||'').split('@')[0]||'Player',
-      wallet_balance:state.wallet,
-      lifetime_earned:state.lifetime,
-      division:state.division,
-      country:'NG',
-      last_play_date:todayKey()
-    },{onConflict:'id'});
-
-    await sb.from('guests').upsert({
-      guest_id:GUEST_ID,
-      wallet_balance:state.wallet,
-      player_name:state.playerName||null,
-      merged_into_player:user.id
-    },{onConflict:'guest_id'});
-  }catch(e){console.warn('player upsert failed',e);}
-
-  trackEvent('signup_done',{method:authMode});
-  hideAuthModal();
-  refreshHome();
-  refreshDashboard();
-  showScreen('dashboard');
-});
-
-// ============ ANNOUNCEMENT ============
-async function loadAnnouncement(){
-  if(!sb)return;
-  try{
-    const {data}=await sb.from('announcements')
-      .select('message').eq('active',true)
-      .order('created_at',{ascending:false}).limit(1).maybeSingle();
-    if(data&&data.message){
-      const b=document.getElementById('announce-banner');
-      b.textContent=data.message;
-      b.style.display='block';
-    }
-  }catch(e){}
-}
-
-// ============ REALTIME LEADERBOARD ============
-let lbDebounce=null;
-function scheduleLbRefresh(){
-  clearTimeout(lbDebounce);
-  lbDebounce=setTimeout(()=>{
-    const active=document.getElementById('screen-leaderboard').classList.contains('active');
-    if(active)refreshLeaderboard();
-  },1200);
-}
-if(sb){
-  sb.channel('lb-runs-live')
-    .on('postgres_changes',{event:'INSERT',schema:'public',table:'runs'},scheduleLbRefresh)
-    .subscribe();
-}
-
-// ============ PWA ============
-if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
-
-// ============ INSTALL PROMPT ============
-let deferredInstall=null;
-window.addEventListener('beforeinstallprompt',(e)=>{
-  e.preventDefault();
-  deferredInstall=e;
-  if(state.roundsToday>=1)maybeOfferInstall();
-});
-function maybeOfferInstall(){
-  if(!deferredInstall)return;
-  if(localStorage.getItem('hc_install_dismissed')==='1')return;
-  if(document.getElementById('install-banner'))return;
-  const banner=document.createElement('div');banner.id='install-banner';
-  banner.style.cssText='position:fixed;bottom:90px;left:16px;right:16px;background:var(--oxblood);color:#F5EBDC;padding:14px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.3);z-index:60;display:flex;align-items:center;gap:10px;font-family:inherit;font-size:13px;font-weight:700';
-  banner.innerHTML='<span style="flex:1">📲 Install Hustle City for offline play?</span>'+
-    '<button id="ib-yes" style="background:var(--gold);color:#2E1F14;border:none;padding:8px 14px;border-radius:8px;font-weight:800;font-family:inherit;font-size:12px;cursor:pointer">Install</button>'+
-    '<button id="ib-no" style="background:transparent;color:#F5EBDC;border:1px solid #F5EBDC;padding:8px 12px;border-radius:8px;font-weight:800;font-family:inherit;font-size:12px;cursor:pointer">Later</button>';
-  document.body.appendChild(banner);
-  document.getElementById('ib-yes').addEventListener('click',async()=>{
-    banner.remove();
-    if(!deferredInstall)return;
-    deferredInstall.prompt();
-    const choice=await deferredInstall.userChoice;
-    if(choice.outcome==='accepted')trackEvent('pwa_installed',{});
-    deferredInstall=null;
-  });
-  document.getElementById('ib-no').addEventListener('click',()=>{
-    banner.remove();
-    localStorage.setItem('hc_install_dismissed','1');
-  });
-}
-
-// ============ BOOT ============
-refreshHome();
-flushVoteQueue();
-loadBrandSlots();
-loadAnnouncement();
-updateActivity('home');
-
-// Signed-in users land on the dashboard
-setTimeout(() => {
-  if(playerId){
-    refreshDashboard();
-    showScreen('dashboard');
-  }
-}, 400);
-</script>
 
 <!-- Floating: WhatsApp (right), FAQ (left) -->
 <a href="https://whatsapp.com/channel/0029Vb7x63CkwqSav2zJ3g2L"
@@ -1882,5 +349,14 @@ setTimeout(() => {
     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
   </svg>
 </a>
+
+<!-- ⚠️ SCRIPTS — ORDER MATTERS. DO NOT REARRANGE. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/game.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
