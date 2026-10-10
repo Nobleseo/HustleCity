@@ -39,10 +39,14 @@ function refreshHome() {
   document.getElementById('setup-rounds').textContent = roundsLeftText();
 }
 
-// =========================================================
 // SCREEN NAVIGATION
 // =========================================================
 function showScreen(id) {
+  // Signed-in users: "home" redirects to dashboard
+  if (id === 'home' && playerId) {
+    id = 'dashboard';
+  }
+
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   const target = document.getElementById('screen-' + id);
   if (target) target.classList.add('active');
@@ -56,7 +60,6 @@ function showScreen(id) {
 
   if (typeof updateActivity === 'function') updateActivity(id);
 }
-
 // =========================================================
 // DASHBOARD
 // =========================================================
@@ -308,3 +311,27 @@ function updateResultSigninCta() {
   if (!btn) return;
   btn.style.display = (!playerId && state.roundsToday >= 1) ? 'block' : 'none';
 }
+// Result screen "Home" — dynamic label + destination
+(function wireResultHomeButton() {
+  const btn = document.getElementById('btn-result-home');
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    if (playerId) {
+      btn.textContent = 'Dashboard';
+      showScreen('dashboard');
+    } else {
+      btn.textContent = 'Home';
+      showScreen('home');
+    }
+  });
+
+  // Update label whenever the result screen becomes active
+  const observer = new MutationObserver(() => {
+    const resultScreen = document.getElementById('screen-result');
+    if (resultScreen && resultScreen.classList.contains('active')) {
+      btn.textContent = playerId ? 'Dashboard' : 'Home';
+    }
+  });
+  const resultScreen = document.getElementById('screen-result');
+  if (resultScreen) observer.observe(resultScreen, { attributes: true, attributeFilter: ['class'] });
+})();
