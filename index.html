@@ -101,7 +101,7 @@
   </div>
 
   <div class="name-row">
-    <label>Your name (optional)</label>
+    <label>Your name (Important)</label>
     <input type="text" id="player-name" maxlength="16" placeholder="e.g. Oga_4821">
   </div>
 
@@ -208,7 +208,7 @@
     <button class="btn btn-secondary" id="btn-share">Share Score</button>
     <button class="btn btn-secondary" id="btn-refer">🔗 Copy my referral link</button>
     <button class="btn btn-ghost" id="btn-feedback">💬 Give feedback</button>
-    <button class="btn btn-secondary" id="btn-result-home">Home</button>
+    <button class="btn btn-secondary" onclick="playerId ? showScreen('dashboard') : showScreen('home')">Home</button>
   </div>
 </div>
 
