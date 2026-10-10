@@ -30,7 +30,8 @@ document.getElementById('auth-tab-signin').addEventListener('click', () => { aut
 document.getElementById('auth-skip').addEventListener('click', hideAuthModal);
 document.getElementById('btn-signin-result').addEventListener('click', showAuthModal);
 document.getElementById('btn-signin-home').addEventListener('click', showAuthModal);
-
+const pill = document.getElementById('btn-signin-pill');
+if (pill) pill.addEventListener('click', showAuthModal);
 document.getElementById('auth-submit').addEventListener('click', async () => {
   const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value;
@@ -54,7 +55,7 @@ document.getElementById('auth-submit').addEventListener('click', async () => {
   updateHomeAuthButton();
 
   try {
-    await sb.from('players').upsert({
+        await sb.from('players').upsert({
       id: user.id,
       email: user.email,
       display_name: state.playerName || (user.email || '').split('@')[0] || 'Player',
@@ -64,7 +65,6 @@ document.getElementById('auth-submit').addEventListener('click', async () => {
       country: 'NG',
       last_play_date: todayKey()
     }, { onConflict: 'id' });
-
     await sb.from('guests').upsert({
       guest_id: GUEST_ID,
       wallet_balance: state.wallet,
