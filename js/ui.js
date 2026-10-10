@@ -66,7 +66,12 @@ function refreshDashboard() {
   if (greeting) greeting.textContent = 'Hi, ' + name + ' 👋';
 
   const meta = document.getElementById('dash-meta');
-  if (meta) meta.textContent = getDivision(state.lifetime).name + ' Trader · ' + currentCity.toUpperCase();
+    if (meta) {
+    const cityLabel = (currentCity === 'other' && customCityName)
+      ? customCityName.toUpperCase()
+      : currentCity.toUpperCase();
+    meta.textContent = getDivision(state.lifetime).name + ' Trader · ' + cityLabel;
+  }
 
   const wallet = document.getElementById('dash-wallet');
   if (wallet) wallet.textContent = fmtN(state.wallet);
@@ -255,12 +260,24 @@ applyCamera();
 // CITY STATE
 // =========================================================
 let currentCity = localStorage.getItem('hc_city') || 'lagos';
+let customCityName = localStorage.getItem('hc_custom_city') || '';
 
 function applyCity() {
   const area = document.getElementById('game-area');
   if (area) area.setAttribute('data-city', currentCity);
   const sel = document.getElementById('city-select');
   if (sel) sel.value = currentCity;
+
+  const customRow = document.getElementById('custom-state-row');
+  const customInput = document.getElementById('custom-state');
+  if (customRow && customInput) {
+    if (currentCity === 'other') {
+      customRow.style.display = 'block';
+      customInput.value = customCityName;
+    } else {
+      customRow.style.display = 'none';
+    }
+  }
 }
 
 (function wireCitySelector() {
@@ -270,6 +287,14 @@ function applyCity() {
       currentCity = e.target.value;
       localStorage.setItem('hc_city', currentCity);
       applyCity();
+    });
+  }
+
+  const customInput = document.getElementById('custom-state');
+  if (customInput) {
+    customInput.addEventListener('input', (e) => {
+      customCityName = e.target.value.trim();
+      localStorage.setItem('hc_custom_city', customCityName);
     });
   }
 })();
