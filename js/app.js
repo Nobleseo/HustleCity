@@ -130,9 +130,11 @@ setTimeout(() => {
   if (typeof claimPendingReferrals === 'function') claimPendingReferrals();
 }, 1500);
 
-// Refresh install prompt trigger after each round finishes
-const _origEndRound = endRound;
-endRound = function() {
-  _origEndRound.apply(this, arguments);
-  setTimeout(maybeOfferInstall, 1500);
-};
+// Trigger install prompt after a round ends (wrapped safely)
+if (typeof endRound === 'function') {
+  const _originalEndRound = endRound;
+  endRound = function () {
+    _originalEndRound.apply(this, arguments);
+    setTimeout(maybeOfferInstall, 1500);
+  };
+}
