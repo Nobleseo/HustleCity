@@ -29,20 +29,34 @@ function watStartOfDay(d) {
   return new Date(Date.UTC(wat.getUTCFullYear(), wat.getUTCMonth(), wat.getUTCDate(), 0, 0, 0) - watMs);
 }
 
+function daysSince(dateStr) {
+  if (!dateStr) return null;
+  const d = new Date(dateStr + 'T00:00:00');
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  return Math.floor((now - d) / (1000 * 60 * 60 * 24));
+}
+
 // =========================================================
 // HOME
 // =========================================================
 function refreshHome() {
-  document.getElementById('home-wallet').textContent = fmtN(state.wallet);
-  document.getElementById('home-today').textContent = fmtN(state.todayScore);
-  document.getElementById('home-division').textContent = getDivision(state.lifetime).name;
-  document.getElementById('setup-rounds').textContent = roundsLeftText();
+  const w = document.getElementById('home-wallet');
+  if (w) w.textContent = fmtN(state.wallet);
+  const t = document.getElementById('home-today');
+  if (t) t.textContent = fmtN(state.todayScore);
+  const d = document.getElementById('home-division');
+  if (d) d.textContent = getDivision(state.lifetime).name;
+  const r = document.getElementById('setup-rounds');
+  if (r) r.textContent = roundsLeftText();
 }
 
-// SCREEN NAVIGATION
+// =========================================================
+// SCREEN NAV
 // =========================================================
 function showScreen(id) {
-  // Signed-in users: "home" redirects to dashboard
+  document.body.classList.remove('drawer-open');
+
   if (id === 'home' && playerId) {
     id = 'dashboard';
   }
@@ -60,15 +74,143 @@ function showScreen(id) {
 
   if (typeof updateActivity === 'function') updateActivity(id);
 }
+
+// =========================================================
+// BILLS
+// =========================================================
+function getBills() {
+  if (!playerId) return [];
+
+  const today = todayKey();
+
+  if (!state.firstPlayDate) {
+    state.firstPlayDate = today;
+    saveState();
+  }
+
+  const firstPlayDays = daysSince(state.firstPlayDate) || 0;
+  if (firstPlayDays < CONFIG.bills.graceDays) return [];
+
+  const bills = [];
+  const cfg = CONFIG.bills.bills;
+
+  // Rent — weekly, first due on day 3
+  if (firstPlayDays >= CONFIG.bills.rentFirstDueDay) {
+    const lastRent = state.lastRentPaid;
+    const daysSinceRent = lastRent ? (daysSince(lastRent) || 0) : CONFIG.bills.rentFirstDueDay;
+    if (!lastRent || daysSinceRent >= cfg.rent.cycleDays) {
+      bills.push({
+        key: 'rent',
+        name: cfg.rent.name,
+        amount: cfg.rent.amount,
+        description: cfg.rent.description,
+        overdue: (daysSinceRent || 0) > cfg.rent.cycleDays + 3
+      });
+    }
+  }
+
+  // NEPA — daily
+  if (state.lastNeppaPaid !== today) {
+    bills.push({
+      key: 'neppa',
+      name: cfg.neppa.name,
+      amount: cfg.neppa.amount,
+      description: cfg.neppa.description,
+      overdue: false
+    });
+  }
+
+  // Sanitation — daily
+  if (state.lastSanitationPaid !== today) {
+    bills.push({
+      key: 'sanitation',
+      name: cfg.sanitation.name,
+      amount: cfg.sanitation.amount,
+      description: cfg.sanitation.description,
+      overdue: false
+    });
+  }
+
+  return bills;
+}
+
+function canPlay() {
+  const bills = getBills();
+  const overdueRent = bills.find(b => b.key === 'rent' && b.overdue);
+  return !overdueRent;
+}
+
+function refreshBills() {
+  const container = document.getElementById('dash-bills-list');
+  if (!container) return;
+
+  const bills = getBills();
+
+  if (bills.length === 0) {
+    container.innerHTML = '<p style="font-size:12px;color:var(--muted);font-weight:700;text-align:center;padding:8px 0">✅ All bills paid — nothing due right now</p>';
+    return;
+  }
+
+  container.innerHTML = bills.map(b => {
+    const canAfford = state.wallet >= b.amount;
+    return '<div class="bill-row' + (b.overdue ? ' overdue' : '') + '">' +
+      '<div class="bill-name">' + b.name +
+        (b.overdue ? ' <span class="bill-overdue-badge">Overdue</span>' : '') +
+        '<div class="bill-due">' + b.description + '</div>' +
+      '</div>' +
+      '<div class="bill-amount">₦' + b.amount.toLocaleString('en-NG') + '</div>' +
+      '<button class="bill-pay-btn" data-bill="' + b.key + '"' + (!canAfford ? ' disabled' : '') + '>Pay</button>' +
+    '</div>';
+  }).join('');
+
+  container.querySelectorAll('.bill-pay-btn:not(:disabled)').forEach(btn => {
+    btn.addEventListener('click', () => payBill(btn.dataset.bill));
+  });
+}
+
+function payBill(key) {
+  const today = todayKey();
+  const bills = getBills();
+  const bill = bills.find(b => b.key === key);
+  if (!bill) return;
+
+  if (state.wallet < bill.amount) {
+    alert('Not enough money. Play a round first.');
+    return;
+  }
+
+  state.wallet -= bill.amount;
+
+  if (key === 'rent') state.lastRentPaid = today;
+  if (key === 'neppa') state.lastNeppaPaid = today;
+  if (key === 'sanitation') state.lastSanitationPaid = today;
+
+  saveState();
+  refreshDashboard();
+
+  if (typeof trackEvent === 'function') trackEvent('bill_paid', { bill: key, amount: bill.amount });
+}
+
 // =========================================================
 // DASHBOARD
+// =========================================================
 function refreshDashboard() {
+  const dashScreen = document.getElementById('screen-dashboard');
+  if (dashScreen) {
+    dashScreen.setAttribute('data-dash-color', state.dashboardColor || 'green');
+  }
+
   const name = state.playerName || 'Hustler';
   const greeting = document.getElementById('dash-greeting');
   if (greeting) greeting.textContent = 'Hi, ' + name + ' 👋';
 
   const meta = document.getElementById('dash-meta');
-  if (meta) meta.textContent = getDivision(state.lifetime).name + ' Trader · ' + currentCity.toUpperCase();
+  if (meta) {
+    const cityLabel = (currentCity === 'other' && customCityName)
+      ? customCityName.toUpperCase()
+      : currentCity.toUpperCase();
+    meta.textContent = getDivision(state.lifetime).name + ' Trader · ' + cityLabel;
+  }
 
   const wallet = document.getElementById('dash-wallet');
   if (wallet) wallet.textContent = fmtN(state.wallet);
@@ -91,55 +233,73 @@ function refreshDashboard() {
   const refBonus = document.getElementById('dash-bonus-rounds');
   if (refBonus) refBonus.textContent = state.bonusRoundsToday || 0;
 
-  // Wig stock display
-  const stockBox = document.getElementById('dash-wig-stock');
-  if (stockBox) {
-    const stock = state.wigStock || {};
-    const totalStock = Object.values(stock).reduce((a, b) => a + b, 0);
-    if (totalStock === 0) {
-      stockBox.innerHTML = '<div style="color:var(--red);font-weight:800;font-size:12px;margin-bottom:6px">⚠️ Out of stock! Restock to keep selling.</div>';
-    } else {
-      stockBox.innerHTML = '<div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px">📦 Wig Plug stock</div>' +
-        Object.entries(stock).map(([k, v]) => {
-          const prod = CONFIG.hustles.wig_plug.products[k];
-          return '<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0"><span>' + (prod ? prod.emoji + ' ' + prod.label : k) + '</span><span style="font-weight:900;color:' + (v > 0 ? 'var(--green)' : 'var(--red)') + '">' + v + '</span></div>';
-        }).join('');
-    }
-
-    // Restock button
-    const restockBtn = document.getElementById('btn-restock');
-    if (restockBtn) {
-      const cost = CONFIG.hustles.wig_plug.restockCost;
-      const canAfford = state.wallet >= cost;
-      restockBtn.disabled = !canAfford;
-      restockBtn.textContent = '🔄 Restock all (+20 each) — ₦' + cost.toLocaleString('en-NG');
-      restockBtn.style.opacity = canAfford ? '1' : '0.5';
-    }
-  }
-
-  // Vendor banner
-  const vendorBanner = document.getElementById('dash-vendor-banner');
-  if (vendorBanner) {
-    vendorBanner.innerHTML = '🛍️ Buying real wigs soon? <a href="#" id="dash-vendor-link" style="color:var(--oxblood);font-weight:900;text-decoration:underline">Browse verified vendors →</a>';
-    vendorBanner.style.display = 'block';
-    const link = document.getElementById('dash-vendor-link');
-    if (link && !link.dataset.wired) {
-      link.dataset.wired = '1';
-      link.addEventListener('click', (e) => {
-        e.preventDefault();
-        showScreen('marketplace');
-        if (typeof loadMarketplace === 'function') loadMarketplace();
-      });
-    }
-  }
+  refreshStockBars();
+  refreshBills();
+  refreshVendorBanner();
 
   if (typeof loadDashboardRank === 'function') loadDashboardRank();
 }
 
-// Restock button handler
-const restockBtn = document.getElementById('btn-restock');
-if (restockBtn) {
-  restockBtn.addEventListener('click', () => {
+function refreshStockBars() {
+  const stockBox = document.getElementById('dash-wig-stock');
+  if (!stockBox) return;
+
+  const stock = state.wigStock || {};
+  const max = CONFIG.hustles.wig_plug.restockAmount || 20;
+  const totalStock = Object.values(stock).reduce((a, b) => a + b, 0);
+
+  let html = '<div class="dash-section-title">📦 Wig Plug Stock';
+  if (totalStock === 0) html += ' <span style="color:#A52818">— Out!</span>';
+  html += '</div>';
+
+  html += Object.entries(stock).map(([k, v]) => {
+    const prod = CONFIG.hustles.wig_plug.products[k];
+    const pct = Math.min(100, (v / max) * 100);
+    let color = '#2E5B3A';
+    if (v === 0) color = '#A52818';
+    else if (v < max * 0.25) color = '#A52818';
+    else if (v < max * 0.5) color = '#D4A017';
+
+    return '<div class="dash-stock-row">' +
+      '<span class="dash-stock-name">' + (prod ? prod.emoji + ' ' + prod.label : k) + '</span>' +
+      '<div class="dash-stock-bar-bg"><div class="dash-stock-bar-fill" style="width:' + pct + '%;background:' + color + '"></div></div>' +
+      '<span class="dash-stock-count" style="color:' + color + '">' + v + '</span>' +
+    '</div>';
+  }).join('');
+
+  stockBox.innerHTML = html;
+
+  const restockBtn = document.getElementById('btn-restock');
+  if (restockBtn) {
+    const cost = CONFIG.hustles.wig_plug.restockCost;
+    const canAfford = state.wallet >= cost;
+    restockBtn.disabled = !canAfford;
+    restockBtn.textContent = '🔄 Restock All (+' + max + ' each) — ₦' + cost.toLocaleString('en-NG');
+    restockBtn.style.opacity = canAfford ? '1' : '0.5';
+  }
+}
+
+function refreshVendorBanner() {
+  const vendorBanner = document.getElementById('dash-vendor-banner');
+  if (!vendorBanner) return;
+  vendorBanner.innerHTML = '🛍️ Buying real wigs soon? <a href="#" id="dash-vendor-link" style="color:var(--oxblood);font-weight:900;text-decoration:underline">Browse verified vendors →</a>';
+  vendorBanner.style.display = 'block';
+  const link = document.getElementById('dash-vendor-link');
+  if (link && !link.dataset.wired) {
+    link.dataset.wired = '1';
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      showScreen('marketplace');
+      if (typeof loadMarketplace === 'function') loadMarketplace();
+    });
+  }
+}
+
+// Restock handler
+(function wireRestock() {
+  const btn = document.getElementById('btn-restock');
+  if (!btn) return;
+  btn.addEventListener('click', () => {
     const cost = CONFIG.hustles.wig_plug.restockCost;
     if (state.wallet < cost) return;
     state.wallet -= cost;
@@ -151,7 +311,7 @@ if (restockBtn) {
     alert('✅ Restocked! +20 of each wig.');
     if (typeof trackEvent === 'function') trackEvent('restock', { cost });
   });
-}
+})();
 
 // =========================================================
 // LEADERBOARD
@@ -229,13 +389,19 @@ async function refreshLeaderboard() {
   }
 }
 
+// =========================================================
+// SHOP
+// =========================================================
 function refreshShop() {
-  document.getElementById('shop-wallet').textContent = fmtN(state.wallet);
-  document.getElementById('shop-lifetime').textContent = fmtN(state.lifetime);
+  const walletEl = document.getElementById('shop-wallet');
+  if (walletEl) walletEl.textContent = fmtN(state.wallet);
+  const lifetimeEl = document.getElementById('shop-lifetime');
+  if (lifetimeEl) lifetimeEl.textContent = fmtN(state.lifetime);
+
   const list = document.getElementById('shop-list');
+  if (!list) return;
   list.innerHTML = '';
 
-  // ===== Permanent upgrades =====
   const upgradesHeader = document.createElement('h3');
   upgradesHeader.style.cssText = 'font-size:13px;font-weight:900;color:var(--oxblood);text-transform:uppercase;letter-spacing:0.8px;margin:4px 0 10px';
   upgradesHeader.textContent = '⚡ Permanent upgrades';
@@ -253,7 +419,6 @@ function refreshShop() {
     list.appendChild(el);
   });
 
-  // ===== Consumables =====
   const consumablesHeader = document.createElement('h3');
   consumablesHeader.style.cssText = 'font-size:13px;font-weight:900;color:var(--oxblood);text-transform:uppercase;letter-spacing:0.8px;margin:18px 0 10px';
   consumablesHeader.textContent = '🧴 Consumables (next round only)';
@@ -271,7 +436,6 @@ function refreshShop() {
     list.appendChild(el);
   });
 
-  // Wire upgrade buttons
   list.querySelectorAll('.buy-btn[data-key]:not(:disabled)').forEach(btn => {
     btn.addEventListener('click', () => {
       const key = btn.dataset.key;
@@ -285,7 +449,6 @@ function refreshShop() {
     });
   });
 
-  // Wire consumable buttons
   list.querySelectorAll('.buy-btn[data-consumable]:not(:disabled)').forEach(btn => {
     btn.addEventListener('click', () => {
       const key = btn.dataset.consumable;
@@ -307,6 +470,13 @@ function refreshShop() {
 function refreshSettings() {
   const current = localStorage.getItem('hc_theme') || 'system';
   document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === current));
+
+  const currentColor = state.dashboardColor || 'green';
+  document.querySelectorAll('.color-swatch').forEach(b => {
+    const isSelected = b.dataset.color === currentColor;
+    b.classList.toggle('selected', isSelected);
+    b.textContent = isSelected ? '✓' : '';
+  });
 }
 
 // =========================================================
@@ -328,7 +498,7 @@ function showModal(opts) {
 }
 
 // =========================================================
-// CAMERA MODES
+// CAMERA
 // =========================================================
 let cameraMode = localStorage.getItem('hc_camera') || 'front';
 
@@ -394,34 +564,10 @@ function applyCity() {
 applyCity();
 
 // =========================================================
-// RESULT SCREEN — SIGN-IN CTA VISIBILITY
+// RESULT SIGN-IN CTA
 // =========================================================
 function updateResultSigninCta() {
   const btn = document.getElementById('btn-signin-result');
   if (!btn) return;
   btn.style.display = (!playerId && state.roundsToday >= 1) ? 'block' : 'none';
 }
-// Result screen "Home" — dynamic label + destination
-(function wireResultHomeButton() {
-  const btn = document.getElementById('btn-result-home');
-  if (!btn) return;
-  btn.addEventListener('click', () => {
-    if (playerId) {
-      btn.textContent = 'Dashboard';
-      showScreen('dashboard');
-    } else {
-      btn.textContent = 'Home';
-      showScreen('home');
-    }
-  });
-
-  // Update label whenever the result screen becomes active
-  const observer = new MutationObserver(() => {
-    const resultScreen = document.getElementById('screen-result');
-    if (resultScreen && resultScreen.classList.contains('active')) {
-      btn.textContent = playerId ? 'Dashboard' : 'Home';
-    }
-  });
-  const resultScreen = document.getElementById('screen-result');
-  if (resultScreen) observer.observe(resultScreen, { attributes: true, attributeFilter: ['class'] });
-})();
