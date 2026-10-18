@@ -34,14 +34,8 @@ if (urlRef && urlRef !== GUEST_ID) {
   pendingReferrer = localStorage.getItem('hc_referrer');
 }
 
-// =========================================================
-// ACTIVE HUSTLE
-// =========================================================
 let currentHustle = 'market_trader';
 
-// =========================================================
-// GAME CONFIG
-// =========================================================
 const CONFIG = {
   roundDuration: 60,
   spawnIntervalStart: 2.2,
@@ -60,21 +54,29 @@ const CONFIG = {
     durationSeconds: 15
   },
 
-  // Market Trader (untouched — original products)
+  bills: {
+    graceDays: 2,
+    rentFirstDueDay: 3,
+    bills: {
+      rent:       { name: '🏪 Shop Rent',  amount: 3000, description: 'Weekly stall rent',    cycleDays: 7 },
+      neppa:      { name: '💡 NEPA Bill',  amount: 200,  description: 'Daily electricity',    cycleDays: 1 },
+      sanitation: { name: '🧹 Sanitation', amount: 100,  description: 'Daily cleanup fee',    cycleDays: 1 }
+    }
+  },
+
   products: {
     tomatoes: { emoji: '🍅', label: 'Tomato', baseSale: 120, patience: 8.0 },
     pepper:   { emoji: '🌶️', label: 'Pepper', baseSale: 250, patience: 4.5 },
     wrappers: { emoji: '🧣', label: 'Wrapper', baseSale: 180, patience: 6.0 }
   },
 
-  // Hustle registry — one entry per playable game
   hustles: {
     market_trader: {
       key: 'market_trader',
       name: 'Market Trader',
       icon: '🛒',
       description: 'Call customers. Serve right.',
-      products: null, // set after CONFIG is defined
+      products: null,
       hasStock: false
     },
     wig_plug: {
@@ -82,7 +84,7 @@ const CONFIG = {
       name: 'Wig Plug',
       icon: '💇‍♀️',
       description: 'Sell premium wigs to your customers.',
-            products: {
+      products: {
         bone_straight: { emoji: '👱🏾‍♀️', label: 'Bone Straight', baseSale: 200, patience: 6.0, stock: 20 },
         deep_wave:     { emoji: '💇🏾‍♀️', label: 'Deep Wave',    baseSale: 350, patience: 5.0, stock: 15 },
         braids:        { emoji: '🧑🏾‍🦱', label: 'Braids',       baseSale: 250, patience: 7.0, stock: 10 }
@@ -93,7 +95,6 @@ const CONFIG = {
     }
   },
 
-  // Consumables — bought in shop, apply to next round, then gone
   consumables: {
     edge_control: { name: 'Edge Control', icon: '🧴', cost: 500,  effect: 'spawn_boost',  desc: '+20% customer spawn rate next round' },
     lash_glue:    { name: 'Lash Glue',    icon: '💧', cost: 800,  effect: 'double_spawn', desc: '+1 extra customer next round' },
@@ -115,7 +116,6 @@ const CONFIG = {
   ]
 };
 
-// Wire market_trader products after CONFIG exists
 CONFIG.hustles.market_trader.products = CONFIG.products;
 
 const BODIES = ['🧍','🧍‍♀️','🧍‍♂️','👨','👩','👴','👵','👦','👧'];
@@ -160,7 +160,12 @@ function defaultState() {
       double_spawn: false,
       sale_boost: false,
       thief_shield: false
-    }
+    },
+    firstPlayDate: null,
+    lastRentPaid: null,
+    lastNeppaPaid: null,
+    lastSanitationPaid: null,
+    dashboardColor: 'green'
   };
 }
 
@@ -194,7 +199,6 @@ function saveState() {
 
 let state = loadState();
 
-// Total rounds available today = free + referral bonus + ad bonus
 function totalRoundsToday() {
   return CONFIG.roundsPerDay + (state.bonusRoundsToday || 0) + (state.adBonusRounds || 0);
 }
