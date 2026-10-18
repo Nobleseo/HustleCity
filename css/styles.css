@@ -259,3 +259,35 @@ body.is-signed-in .signin-pill{display:none}
 body.in-round .signin-pill{display:none}
 .toast-referral{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:14px 22px;border-radius:12px;font-size:14px;font-weight:800;z-index:120;box-shadow:0 8px 24px rgba(0,0,0,0.3);animation:slideDown 0.3s ease-out}
 @keyframes slideDown{from{opacity:0;transform:translate(-50%,-20px)}to{opacity:1;transform:translate(-50%,0)}}
+/* ============ DARK MODE SHELF FIX ============ */
+[data-theme="dark"] .shelf-btn{background:#F5EBDC;color:#1A0F08}
+[data-theme="dark"] .shelf-btn .label{color:#1A0F08}
+[data-theme="dark"] .shelf-btn .icon{filter:none}
+
+/* ============ WIG PLUG SCENE OVERRIDES ============ */
+.game-area[data-hustle="wig_plug"] .scene-sky {
+  background: linear-gradient(180deg, #fce4ec 0%, #f8bbd0 40%, #f48fb1 100%);
+}
+[data-theme="dark"] .game-area[data-hustle="wig_plug"] .scene-sky {
+  background: linear-gradient(180deg, #6a2a4a 0%, #4a1a30 100%);
+}
+.game-area[data-hustle="wig_plug"] .scene-skyline::before {
+  content: '💇‍♀️ 👰 💒 🎀 💄';
+}
+.game-area[data-hustle="wig_plug"] .scene-stalls {
+  background: repeating-linear-gradient(90deg, #e91e63 0 40px, #f06292 40px 44px, #e91e63 44px 84px);
+  opacity: 0.45;
+}
+.game-area[data-hustle="wig_plug"] .scene-road {
+  background: linear-gradient(180deg, #7a6a8a 0%, #5a4a6a 60%, #4a3a5a 100%);
+}
+.game-area[data-hustle="wig_plug"] .stall-front {
+  background: linear-gradient(180deg, #d4a017 0%, #b8860b 100%);
+  border-top-color: #8b6914;
+}
+.game-area[data-hustle="wig_plug"] .scene-ground {
+  background: linear-gradient(180deg, #e8c8d0 0%, #d8b8c0 100%);
+}
+[data-theme="dark"] .game-area[data-hustle="wig_plug"] .scene-ground {
+  background: linear-gradient(180deg, #3a2a30 0%, #2a1a20 100%);
+}
