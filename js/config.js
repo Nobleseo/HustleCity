@@ -82,13 +82,13 @@ const CONFIG = {
       name: 'Wig Plug',
       icon: '💇‍♀️',
       description: 'Sell premium wigs to your customers.',
-      products: {
-        bone_straight: { emoji: '💇‍♀️', label: 'Bone Straight', baseSale: 200, patience: 6.0, stock: 20 },
-        deep_wave:     { emoji: '💇',   label: 'Deep Wave',    baseSale: 350, patience: 5.0, stock: 15 },
-        braids:        { emoji: '👩‍🦱', label: 'Braids',       baseSale: 250, patience: 7.0, stock: 10 }
+            products: {
+        bone_straight: { emoji: '👱🏾‍♀️', label: 'Bone Straight', baseSale: 200, patience: 6.0, stock: 20 },
+        deep_wave:     { emoji: '💇🏾‍♀️', label: 'Deep Wave',    baseSale: 350, patience: 5.0, stock: 15 },
+        braids:        { emoji: '🧑🏾‍🦱', label: 'Braids',       baseSale: 250, patience: 7.0, stock: 10 }
       },
       hasStock: true,
-      restockCost: 500,
+      restockCost: 3000,
       restockAmount: 20
     }
   },
