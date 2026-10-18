@@ -80,13 +80,20 @@ document.getElementById('auth-submit').addEventListener('click', async () => {
     }, { onConflict: 'guest_id' });
   } catch (e) { console.warn('player upsert failed', e); }
 
-  trackEvent('signup_done', { method: authMode });
+    if (typeof trackEvent === 'function') trackEvent('signup_done', { method: authMode });
   hideAuthModal();
-  refreshHome();
-  refreshDashboard();
-  showScreen('dashboard');
-});
+  if (typeof refreshHome === 'function') refreshHome();
+  if (typeof refreshDashboard === 'function') refreshDashboard();
 
+  // After auth: check if user was trying to reach a specific screen
+  const nextScreen = sessionStorage.getItem('hc_after_auth');
+  sessionStorage.removeItem('hc_after_auth');
+  if (nextScreen === 'marketplace') {
+    if (typeof showScreen === 'function') showScreen('marketplace');
+    if (typeof loadMarketplace === 'function') loadMarketplace();
+  } else {
+    if (typeof showScreen === 'function') showScreen('dashboard');
+  }
 // =========================================================
 // SESSION LISTENER
 // =========================================================
