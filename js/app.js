@@ -68,15 +68,67 @@ if ('serviceWorker' in navigator) {
 }
 
 // =========================================================
-// INSTALL PROMPT
+// INSTALL PROMPT — max 2 shows, never after install
 // =========================================================
 let deferredInstall = null;
+
+function isInstalled() {
+  return window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone === true;
+}
+
+function getShowCount() {
+  return parseInt(localStorage.getItem('hc_install_shown') || '0', 10);
+}
+
+function bumpShowCount() {
+  const n = getShowCount() + 1;
+  localStorage.setItem('hc_install_shown', String(n));
+}
 
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredInstall = e;
-  if (state.roundsToday >= 1) maybeOfferInstall();
+  // Don't show immediately — wait until end of round 1 (handled by maybeOfferInstall)
 });
+
+function maybeOfferInstall() {
+  if (!deferredInstall) return;
+  if (isInstalled()) return;
+  if (localStorage.getItem('hc_install_dismissed') === '1') return;
+  if (getShowCount() >= 2) return;
+  if (document.getElementById('install-banner')) return;
+
+  bumpShowCount();
+
+  const banner = document.createElement('div');
+  banner.id = 'install-banner';
+  banner.style.cssText = 'position:fixed;bottom:90px;left:16px;right:16px;background:var(--oxblood);color:#F5EBDC;padding:14px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.3);z-index:60;display:flex;align-items:center;gap:10px;font-family:inherit;font-size:13px;font-weight:700';
+  banner.innerHTML =
+    '<span style="flex:1">📲 Install Hustle City for offline play?</span>' +
+    '<button id="ib-yes" style="background:var(--gold);color:#2E1F14;border:none;padding:8px 14px;border-radius:8px;font-weight:800;font-family:inherit;font-size:12px;cursor:pointer">Install</button>' +
+    '<button id="ib-no" style="background:transparent;color:#F5EBDC;border:1px solid #F5EBDC;padding:8px 12px;border-radius:8px;font-weight:800;font-family:inherit;font-size:12px;cursor:pointer">Later</button>';
+
+  document.body.appendChild(banner);
+
+  document.getElementById('ib-yes').addEventListener('click', async () => {
+    banner.remove();
+    if (!deferredInstall) return;
+    deferredInstall.prompt();
+    const choice = await deferredInstall.userChoice;
+    if (choice.outcome === 'accepted') {
+      localStorage.setItem('hc_install_dismissed', '1');
+      trackEvent('pwa_installed', {});
+    }
+    deferredInstall = null;
+  });
+
+  document.getElementById('ib-no').addEventListener('click', () => {
+    banner.remove();
+    // "Later" only counts as a soft skip — allow one more show next time
+    // After 2 total shows, it never comes back (see getShowCount check above)
+  });
+}
 
 function maybeOfferInstall() {
   if (!deferredInstall) return;
