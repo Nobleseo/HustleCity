@@ -1,13 +1,35 @@
 'use strict';
 
-// =========================================================
-// GAME STATE (module-level)
-// =========================================================
 let selectedProduct = 'tomatoes';
 let game = null;
 let rafId = null;
+let activeProducts = CONFIG.products; // set per round based on currentHustle
+
 const gameAreaEl = document.getElementById('game-area');
 const dynamicLayer = document.getElementById('dynamic-layer');
+
+// =========================================================
+// SHELF RENDERING (dynamic per hustle)
+// =========================================================
+function renderShelf() {
+  const items = document.querySelector('.shelf-items');
+  if (!items) return;
+  items.innerHTML = '';
+
+  Object.entries(activeProducts).forEach(([key, prod]) => {
+    const btn = document.createElement('button');
+    btn.className = 'shelf-btn';
+    btn.dataset.item = key;
+
+    const stockCount = (currentHustle === 'wig_plug') ? (state.wigStock[key] || 0) : null;
+    const stockBadge = (stockCount !== null)
+      ? `<span style="position:absolute;top:-6px;right:-6px;background:${stockCount > 0 ? 'var(--green)' : 'var(--red)'};color:#fff;font-size:9px;font-weight:900;padding:2px 5px;border-radius:10px;min-width:16px;text-align:center">${stockCount}</span>`
+      : '';
+    btn.style.position = 'relative';
+    btn.innerHTML = `${stockBadge}<span class="icon">${prod.emoji}</span><span class="label">${prod.label || key}</span>`;
+    items.appendChild(btn);
+  });
+}
 
 // =========================================================
 // ROUND LIFECYCLE
@@ -22,9 +44,21 @@ function startRound() {
   showScreen('round');
   clearDynamic();
 
+  // Set active products based on current hustle
+  const hustle = CONFIG.hustles[currentHustle];
+  activeProducts = hustle.products;
+  if (!activeProducts[selectedProduct]) {
+    selectedProduct = Object.keys(activeProducts)[0];
+  }
+
+  // Render shelf buttons for this hustle
+  renderShelf();
+
   const boosted = state.boostTokens > 0;
   if (boosted) { state.boostTokens--; saveState(); }
 
+  // Apply consumable effects
+  const consumables = state.activeConsumables || {};
   game = {
     running: false,
     startTime: 0,
@@ -39,8 +73,18 @@ function startRound() {
     nextId: 1,
     eventTimers: [],
     boosted: boosted,
-    patienceBonus: state.upgrades.includes('loudspeaker') ? 1.5 : 0
+    patienceBonus: state.upgrades.includes('loudspeaker') ? 1.5 : 0,
+    spawnBoost: consumables.spawn_boost ? 1.2 : 1,
+    doubleSpawn: !!consumables.double_spawn,
+    saleBoost: consumables.sale_boost ? 1.3 : 1,
+    thiefShield: !!consumables.thief_shield
   };
+
+  // Reset consumables after applying
+  if (consumables.spawn_boost || consumables.double_spawn || consumables.sale_boost || consumables.thief_shield) {
+    state.activeConsumables = { spawn_boost: false, double_spawn: false, sale_boost: false, thief_shield: false };
+    saveState();
+  }
 
   document.getElementById('hud-money').textContent = '₦0';
   document.getElementById('hud-combo').textContent = 'x' + game.multiplier;
@@ -72,6 +116,7 @@ function beginPlay() {
   game.startTime = performance.now();
   game.lastSpawn = 0;
   spawnCustomer(false);
+  if (game.doubleSpawn) spawnCustomer(false); // lash glue: extra customer
   scheduleEvents();
   rafId = requestAnimationFrame(tick);
 }
@@ -86,10 +131,12 @@ function tick() {
   const progress = t / CONFIG.roundDuration;
   let interval = CONFIG.spawnIntervalStart + (CONFIG.spawnIntervalEnd - CONFIG.spawnIntervalStart) * progress;
   if (game.rainActive) interval *= 1.4;
+  if (game.spawnBoost && game.spawnBoost !== 1) interval /= game.spawnBoost;
 
   if (t - game.lastSpawn >= interval) {
     game.lastSpawn = t;
     spawnCustomer(false);
+    if (game.doubleSpawn) spawnCustomer(false);
   }
 
   const toRemove = [];
@@ -154,11 +201,16 @@ function endRound() {
     playBtn.style.opacity = '1';
   }
 
+  // Show/hide watch-ad button
+  updateWatchAdButton();
+  // Show vendor banner
+  updateResultVendorBanner();
+
   if (typeof syncRoundToServer === 'function') {
     syncRoundToServer(earned, game.served, game.missed, game.bestCombo);
   }
   if (typeof trackEvent === 'function') {
-    trackEvent('round_end', { score: earned, stall: selectedProduct });
+    trackEvent('round_end', { score: earned, stall: selectedProduct, hustle: currentHustle });
   }
 
   showScreen('result');
@@ -173,9 +225,20 @@ function endRound() {
 // CUSTOMERS
 // =========================================================
 function spawnCustomer(isThief) {
-  const items = ['tomatoes', 'pepper', 'wrappers'];
-  const wanted = Math.random() < 0.55 ? selectedProduct : items[Math.floor(Math.random() * 3)];
-  const prod = CONFIG.products[wanted];
+  const items = Object.keys(activeProducts);
+
+  // For Wig Plug: filter to products with stock > 0
+  let available = items;
+  if (currentHustle === 'wig_plug') {
+    available = items.filter(k => (state.wigStock[k] || 0) > 0);
+    if (available.length === 0) return; // no stock, no customers
+  }
+
+  const wanted = Math.random() < 0.55 && available.includes(selectedProduct)
+    ? selectedProduct
+    : available[Math.floor(Math.random() * available.length)];
+
+  const prod = activeProducts[wanted];
   const id = 'c' + (game.nextId++);
   const body = BODIES[Math.floor(Math.random() * BODIES.length)];
   const isHaggle = !isThief && Math.random() < 0.15;
@@ -211,16 +274,28 @@ function callCustomer(id) {
   c.called = true;
   c.el.classList.add('called');
   if (c.isThief) {
-    game.money += 300;
-    addFloat(c.el, '+₦300 caught!', false);
-    c.served = true;
-    game.served++;
-    c.el.style.transition = 'transform 0.3s, opacity 0.3s';
-    c.el.style.transform = 'scale(0.3)';
-    c.el.style.opacity = '0';
-    setTimeout(() => c.el.remove(), 300);
-    game.customers = game.customers.filter(x => x.id !== c.id);
-    document.getElementById('hud-money').textContent = '₦' + game.money;
+    if (game.thiefShield) {
+      // Melt Band: auto-catch, no money lost
+      game.served++;
+      addFloat(c.el, 'Caught! (Shield)', false);
+      c.served = true;
+      c.el.style.transition = 'transform 0.3s, opacity 0.3s';
+      c.el.style.transform = 'scale(0.3)';
+      c.el.style.opacity = '0';
+      setTimeout(() => c.el.remove(), 300);
+      game.customers = game.customers.filter(x => x.id !== c.id);
+    } else {
+      game.money += 300;
+      addFloat(c.el, '+₦300 caught!', false);
+      c.served = true;
+      game.served++;
+      c.el.style.transition = 'transform 0.3s, opacity 0.3s';
+      c.el.style.transform = 'scale(0.3)';
+      c.el.style.opacity = '0';
+      setTimeout(() => c.el.remove(), 300);
+      game.customers = game.customers.filter(x => x.id !== c.id);
+      document.getElementById('hud-money').textContent = '₦' + game.money;
+    }
   }
 }
 
@@ -241,6 +316,13 @@ function completeSale(c, item) {
   c.served = true;
   game.served++;
   game.combo++;
+
+  // Deplete stock for Wig Plug
+  if (currentHustle === 'wig_plug') {
+    state.wigStock[item] = Math.max(0, (state.wigStock[item] || 0) - 1);
+    saveState();
+  }
+
   if (game.combo % CONFIG.comboThreshold === 0 && game.multiplier < CONFIG.comboMaxMultiplier) {
     game.multiplier++;
     game.bestCombo = Math.max(game.bestCombo, game.multiplier);
@@ -250,9 +332,11 @@ function completeSale(c, item) {
     void el.offsetWidth;
     el.classList.add('bump');
   }
-  const prod = CONFIG.products[item];
+
+  const prod = activeProducts[item];
   const base = prod.baseSale + Math.floor(Math.random() * 60);
-  const sale = Math.round(base * game.multiplier);
+  let sale = Math.round(base * game.multiplier);
+  if (game.saleBoost && game.saleBoost !== 1) sale = Math.round(sale * game.saleBoost);
   game.money += sale;
   document.getElementById('hud-money').textContent = '₦' + game.money;
   addFloat(c.el, '+₦' + sale + (game.multiplier > 1 ? ' x' + game.multiplier : ''), false);
@@ -261,6 +345,9 @@ function completeSale(c, item) {
   c.el.style.opacity = '0';
   setTimeout(() => c.el.remove(), 300);
   game.customers = game.customers.filter(x => x.id !== c.id);
+
+  // Update shelf stock badge
+  if (currentHustle === 'wig_plug') renderShelf();
 }
 
 function missCustomer(c) {
@@ -272,7 +359,7 @@ function missCustomer(c) {
     game.multiplier = 1;
     document.getElementById('hud-combo').textContent = 'x1';
   }
-  if (c.isThief) {
+  if (c.isThief && !game.thiefShield) {
     const loss = Math.min(300, game.money);
     game.money -= loss;
     document.getElementById('hud-money').textContent = '₦' + game.money;
@@ -297,7 +384,7 @@ function addFloat(parent, text, negative) {
 }
 
 // =========================================================
-// RANDOM EVENTS
+// EVENTS (unchanged)
 // =========================================================
 function scheduleEvents() {
   game.eventTimers.push(setTimeout(() => triggerNEPA(), 20000));
@@ -363,7 +450,7 @@ function triggerLevy() {
 }
 
 function showHaggleModal(customer, item) {
-  const prod = CONFIG.products[item];
+  const prod = activeProducts[item];
   showModal({
     title: 'Customer dey haggle',
     body: 'Dem wan pay less. Wetin you go do?',
@@ -372,12 +459,18 @@ function showHaggleModal(customer, item) {
         customer.served = true;
         game.served++;
         const base = Math.round(prod.baseSale * 0.6);
-        const sale = base * game.multiplier;
+        let sale = base * game.multiplier;
+        if (game.saleBoost && game.saleBoost !== 1) sale = Math.round(sale * game.saleBoost);
         game.money += sale;
         document.getElementById('hud-money').textContent = '₦' + game.money;
+        if (currentHustle === 'wig_plug') {
+          state.wigStock[item] = Math.max(0, (state.wigStock[item] || 0) - 1);
+          saveState();
+        }
         addFloat(customer.el, '+₦' + sale, false);
         customer.el.remove();
         game.customers = game.customers.filter(x => x.id !== customer.id);
+        if (currentHustle === 'wig_plug') renderShelf();
       }},
       { label: 'Counter (50/50)', primary: true, fn: () => {
         if (Math.random() < 0.5) {
@@ -399,7 +492,8 @@ function showHaggleModal(customer, item) {
 }
 
 // =========================================================
-// SHARE
+// SHARE / REFERRAL / FEEDBACK / VOTES / WRITE-IN
+// (identical to current — preserved)
 // =========================================================
 document.getElementById('btn-share').addEventListener('click', () => {
   const c = document.createElement('canvas');
@@ -410,7 +504,7 @@ document.getElementById('btn-share').addEventListener('click', () => {
   ctx.fillStyle = '#D4A017'; ctx.font = '900 96px sans-serif'; ctx.textAlign = 'center';
   ctx.fillText('HUSTLE CITY', 540, 140);
   ctx.fillStyle = '#2E1F14'; ctx.font = '600 36px sans-serif';
-  ctx.fillText('Market Trader', 540, 320);
+  ctx.fillText(CONFIG.hustles[currentHustle].name, 540, 320);
   ctx.fillStyle = '#2E1F14'; ctx.font = '900 220px sans-serif';
   ctx.fillText('₦' + (game ? game.money : 0).toLocaleString('en-NG'), 540, 620);
   ctx.fillStyle = '#7A6A55'; ctx.font = '700 40px sans-serif';
@@ -431,12 +525,9 @@ document.getElementById('btn-share').addEventListener('click', () => {
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
   });
-  trackEvent('share_tap', { score: game ? game.money : 0 });
+  if (typeof trackEvent === 'function') trackEvent('share_tap', { score: game ? game.money : 0 });
 });
 
-// =========================================================
-// REFERRAL SHARE
-// =========================================================
 document.getElementById('btn-refer').addEventListener('click', () => {
   const refCode = (state.playerName && state.playerName.trim()) ? state.playerName.trim() : GUEST_ID;
   const link = location.origin + location.pathname + '?ref=' + encodeURIComponent(refCode);
@@ -447,12 +538,9 @@ document.getElementById('btn-refer').addEventListener('click', () => {
   } else {
     prompt('Copy this:', link);
   }
-  trackEvent('referral_link_opened', { referrer_id: refCode });
+  if (typeof trackEvent === 'function') trackEvent('referral_link_opened', { referrer_id: refCode });
 });
 
-// =========================================================
-// FEEDBACK
-// =========================================================
 document.getElementById('btn-feedback').addEventListener('click', () => {
   const bg = document.createElement('div'); bg.className = 'modal-bg';
   const box = document.createElement('div'); box.className = 'modal';
@@ -475,7 +563,7 @@ document.getElementById('btn-feedback').addEventListener('click', () => {
   const ta = document.createElement('textarea'); ta.rows = 3; ta.placeholder = 'Anything else? (optional)'; box.appendChild(ta);
   const send = document.createElement('button'); send.className = 'btn btn-gold'; send.textContent = 'SEND';
   send.addEventListener('click', () => {
-    if (chosen) { syncFeedback(chosen, ta.value.trim()); }
+    if (chosen && typeof syncFeedback === 'function') syncFeedback(chosen, ta.value.trim());
     bg.remove();
     alert('Thank you! 🙏');
   });
@@ -484,9 +572,6 @@ document.getElementById('btn-feedback').addEventListener('click', () => {
   document.body.appendChild(bg);
 });
 
-// =========================================================
-// VOTES + WRITE-IN
-// =========================================================
 document.querySelectorAll('.vote-btn').forEach(btn => {
   if (state.votes.includes(btn.dataset.hustle)) {
     btn.textContent = 'VOTED ✓';
@@ -499,8 +584,8 @@ document.querySelectorAll('.vote-btn').forEach(btn => {
     saveState();
     btn.textContent = 'VOTED ✓';
     btn.disabled = true;
-    syncVoteToServer(h, null);
-    trackEvent('vote', { hustle_key: h });
+    if (typeof syncVoteToServer === 'function') syncVoteToServer(h, null);
+    if (typeof trackEvent === 'function') trackEvent('vote', { hustle_key: h });
   });
 });
 
@@ -511,46 +596,30 @@ document.getElementById('btn-writein').addEventListener('click', () => {
   state.writeIns = state.writeIns || [];
   state.writeIns.push(text);
   saveState();
-  syncVoteToServer(null, text);
-  trackEvent('write_in_vote', { hustle_text: text });
+  if (typeof syncVoteToServer === 'function') syncVoteToServer(null, text);
+  if (typeof trackEvent === 'function') trackEvent('write_in_vote', { hustle_text: text });
   inp.value = '';
   inp.placeholder = 'Sent! Add another...';
   document.getElementById('btn-writein').textContent = 'SENT ✓';
   setTimeout(() => document.getElementById('btn-writein').textContent = 'SEND IDEA', 2000);
 });
 
-// =========================================================
-// LEADERBOARD TABS (delegate to ui.js)
-// =========================================================
 document.querySelectorAll('.lb-tab[data-scope]').forEach(tab => {
   tab.addEventListener('click', () => {
     if (!tab.dataset.scope) return;
     document.querySelectorAll('.lb-tab[data-scope]').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
     lbScope = tab.dataset.scope;
-    refreshLeaderboard();
+    if (typeof refreshLeaderboard === 'function') refreshLeaderboard();
   });
 });
 
-// =========================================================
-// SHELF BUTTONS
-// =========================================================
-document.querySelectorAll('.shelf-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    if (!game || !game.running) return;
-    serveItem(btn.dataset.item, btn);
-  });
-});
-
-// =========================================================
-// SETUP SCREEN — PRODUCT CARDS
-// =========================================================
-document.querySelectorAll('.product-card').forEach(card => {
-  card.addEventListener('click', () => {
-    document.querySelectorAll('.product-card').forEach(c => c.classList.remove('selected'));
-    card.classList.add('selected');
-    selectedProduct = card.dataset.product;
-  });
+// Shelf button delegation (works for any hustle's products)
+document.querySelector('.shelf-items').addEventListener('click', (e) => {
+  const btn = e.target.closest('.shelf-btn');
+  if (!btn) return;
+  if (!game || !game.running) return;
+  serveItem(btn.dataset.item, btn);
 });
 
 // =========================================================
@@ -561,14 +630,73 @@ document.getElementById('btn-home-play').addEventListener('click', () => {
     alert('You don finish your rounds for today. Come back tomorrow!');
     return;
   }
-  document.getElementById('player-name').value = state.playerName || '';
-  showScreen('setup');
+  currentHustle = 'market_trader';
+  openSetupForHustle('market_trader');
 });
+
+// Wig Plug play button (added to home in index.html)
+const wigPlayBtn = document.getElementById('btn-home-play-wig');
+if (wigPlayBtn) {
+  wigPlayBtn.addEventListener('click', () => {
+    if (state.roundsToday >= totalRoundsToday()) {
+      alert('You don finish your rounds for today. Come back tomorrow!');
+      return;
+    }
+    currentHustle = 'wig_plug';
+    // Check stock
+    const totalStock = Object.values(state.wigStock || {}).reduce((a, b) => a + b, 0);
+    if (totalStock === 0) {
+      alert('You don sell finish all your wigs! Go to your dashboard to restock.');
+      if (typeof showScreen === 'function') showScreen(playerId ? 'dashboard' : 'home');
+      return;
+    }
+    openSetupForHustle('wig_plug');
+  });
+}
+
+function openSetupForHustle(hustleKey) {
+  currentHustle = hustleKey;
+  const hustle = CONFIG.hustles[hustleKey];
+
+  // Render product cards
+  const grid = document.querySelector('.product-grid');
+  if (grid) {
+    grid.innerHTML = '';
+    Object.entries(hustle.products).forEach(([key, prod]) => {
+      const btn = document.createElement('button');
+      btn.className = 'product-card';
+      btn.dataset.product = key;
+      btn.innerHTML = `<span class="emoji">${prod.emoji}</span><div><strong>${prod.label || key}</strong><small>₦${prod.baseSale} base · ${prod.patience}s patience</small></div>`;
+      grid.appendChild(btn);
+    });
+  }
+
+  // Wire selection (delegate)
+  if (grid) {
+    grid.addEventListener('click', (e) => {
+      const card = e.target.closest('.product-card');
+      if (!card) return;
+      grid.querySelectorAll('.product-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedProduct = card.dataset.product;
+    }, { once: false });
+  }
+
+  // Pre-select first product
+  selectedProduct = Object.keys(hustle.products)[0];
+  setTimeout(() => {
+    const first = grid.querySelector('.product-card');
+    if (first) first.classList.add('selected');
+  }, 50);
+
+  document.getElementById('player-name').value = state.playerName || '';
+  if (typeof showScreen === 'function') showScreen('setup');
+}
 
 document.getElementById('btn-start-round').addEventListener('click', () => {
   state.playerName = document.getElementById('player-name').value.trim() || state.playerName;
   saveState();
-  trackEvent('round_start', { stall: selectedProduct, is_guest: !playerId });
+  if (typeof trackEvent === 'function') trackEvent('round_start', { stall: selectedProduct, hustle: currentHustle, is_guest: !playerId });
   startRound();
 });
 
@@ -576,3 +704,100 @@ document.getElementById('btn-play-again').addEventListener('click', () => {
   if (state.roundsToday >= totalRoundsToday()) return;
   startRound();
 });
+
+// =========================================================
+// WATCH AD FOR +1 ROUND
+// =========================================================
+function updateWatchAdButton() {
+  const btn = document.getElementById('btn-watch-ad');
+  if (!btn) return;
+  const adsLeft = CONFIG.watchAd.maxPerDay - (state.watchAdsToday || 0);
+  if (adsLeft <= 0) {
+    btn.style.display = 'none';
+    return;
+  }
+  btn.style.display = 'block';
+  btn.textContent = `🎬 Watch ad for +1 round (${adsLeft} left today)`;
+}
+
+document.addEventListener('click', (e) => {
+  if (e.target.id !== 'btn-watch-ad') return;
+  const adsLeft = CONFIG.watchAd.maxPerDay - (state.watchAdsToday || 0);
+  if (adsLeft <= 0) return;
+
+  const bg = document.createElement('div');
+  bg.className = 'modal-bg';
+  bg.style.zIndex = '200';
+  const box = document.createElement('div');
+  box.className = 'modal';
+  box.style.maxWidth = '420px';
+  box.innerHTML = `
+    <h3>Advertisement</h3>
+    <div id="ad-content" style="background:#1F4A2E;color:#F5EBDC;padding:40px 20px;border-radius:12px;margin:16px 0;text-align:center">
+      <div style="font-size:14px;font-weight:800;letter-spacing:2px;text-transform:uppercase;opacity:0.7">Sponsored</div>
+      <div style="font-size:22px;font-weight:900;margin:12px 0">YOUR AD HERE</div>
+      <div style="font-size:13px;opacity:0.85">Reach thousands of Nigerian players</div>
+      <div id="ad-timer" style="font-size:36px;font-weight:900;margin-top:16px;color:#D4A017">${CONFIG.watchAd.durationSeconds}</div>
+    </div>
+    <p style="font-size:12px;color:var(--muted)">Ad closes in <span id="ad-timer-inline">${CONFIG.watchAd.durationSeconds}</span>s — your extra round will be granted automatically.</p>
+  `;
+  bg.appendChild(box);
+  document.body.appendChild(bg);
+
+  let remaining = CONFIG.watchAd.durationSeconds;
+  const timerEl = document.getElementById('ad-timer');
+  const inlineEl = document.getElementById('ad-timer-inline');
+
+  const iv = setInterval(() => {
+    remaining--;
+    if (timerEl) timerEl.textContent = remaining;
+    if (inlineEl) inlineEl.textContent = remaining;
+
+    if (remaining <= 0) {
+      clearInterval(iv);
+      bg.remove();
+
+      state.adBonusRounds = (state.adBonusRounds || 0) + 1;
+      state.watchAdsToday = (state.watchAdsToday || 0) + 1;
+      state.watchAdsDate = todayKey();
+      saveState();
+
+      if (typeof trackEvent === 'function') trackEvent('ad_watched', { hustle: currentHustle });
+
+      alert('🎉 +1 round granted! Play again now.');
+
+      // Refresh result screen buttons
+      const playBtn = document.getElementById('btn-play-again');
+      if (playBtn) {
+        playBtn.textContent = 'PLAY AGAIN';
+        playBtn.disabled = false;
+        playBtn.style.opacity = '1';
+      }
+      updateWatchAdButton();
+      document.getElementById('result-rounds').textContent = roundsLeftText();
+    }
+  }, 1000);
+});
+
+// =========================================================
+// RESULT VENDOR BANNER
+// =========================================================
+function updateResultVendorBanner() {
+  const banner = document.getElementById('result-vendor-banner');
+  if (!banner) return;
+
+  if (currentHustle === 'wig_plug') {
+    banner.innerHTML = '🛍️ Looking for real wigs? <a href="#" id="result-vendor-link" style="color:var(--oxblood);font-weight:900;text-decoration:underline">Browse verified vendors →</a>';
+    banner.style.display = 'block';
+    const link = document.getElementById('result-vendor-link');
+    if (link) {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (typeof showScreen === 'function') showScreen(playerId ? 'marketplace' : 'home');
+        if (playerId && typeof loadMarketplace === 'function') loadMarketplace();
+      });
+    }
+  } else {
+    banner.style.display = 'none';
+  }
+}
