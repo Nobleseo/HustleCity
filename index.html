@@ -6,7 +6,6 @@
 <meta name="theme-color" content="#F5EBDC">
 <title>Hustle City — Market Trader</title>
 
-<!-- FOUC prevention: set theme BEFORE stylesheets load -->
 <script>
 (function(){var t=localStorage.getItem('hc_theme')||'system';var d=t==='dark'||(t==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.setAttribute('data-theme',d?'dark':'light');})();
 </script>
@@ -32,7 +31,6 @@
   <button class="signin-pill" id="btn-signin-pill" aria-label="Sign in or register">👤 Sign In</button>
   <button id="btn-signin-home" style="display:none" aria-hidden="true"></button>
 
-  <!-- FIXED TOP AREA — always visible, never scrolled away -->
   <div class="home-top">
     <h1 class="logo">HUSTLE<br>CITY</h1>
     <p class="tagline">Make your money. Rule the market.</p>
@@ -52,45 +50,44 @@
     </div>
   </div>
 
-  <!-- SCROLLABLE AREA — hustle cards + buttons -->
   <div class="home-scroll">
-     <div class="hustle-grid">
-    <div class="hustle-card open">
-      <span class="hustle-icon">🛒</span>
-      <div><h3>Market Trader</h3><p>Call customers. Serve right.</p></div>
-      <button class="action" id="btn-home-play">PLAY</button>
+    <div class="hustle-grid">
+      <div class="hustle-card open">
+        <span class="hustle-icon">🛒</span>
+        <div><h3>Market Trader</h3><p>Call customers. Serve right.</p></div>
+        <button class="action" id="btn-home-play">PLAY</button>
+      </div>
+      <div class="hustle-card open" style="border-color:var(--terra)">
+        <span class="hustle-icon">💇‍♀️</span>
+        <div><h3>Wig Plug</h3><p>Sell premium wigs. NEW!</p></div>
+        <button class="action" id="btn-home-play-wig" style="background:var(--terra);color:#fff">PLAY</button>
+      </div>
+      <div class="hustle-card locked">
+        <span class="hustle-icon">👗</span>
+        <div><h3>Fashion Boutique</h3><p>🔒 Want this next?</p></div>
+        <button class="action vote-btn" data-hustle="fashion_boutique">VOTE</button>
+      </div>
+      <div class="hustle-card locked">
+        <span class="hustle-icon">💄</span>
+        <div><h3>Makeup &amp; Spa</h3><p>🔒 Want this next?</p></div>
+        <button class="action vote-btn" data-hustle="makeup_spa">VOTE</button>
+      </div>
+      <div class="hustle-card locked">
+        <span class="hustle-icon">🧵</span>
+        <div><h3>Tailor</h3><p>🔒 Want this next?</p></div>
+        <button class="action vote-btn" data-hustle="tailor">VOTE</button>
+      </div>
+      <div class="hustle-card locked">
+        <span class="hustle-icon">🍲</span>
+        <div><h3>Buka Restaurant</h3><p>🔒 Want this next?</p></div>
+        <button class="action vote-btn" data-hustle="buka">VOTE</button>
+      </div>
+      <div class="hustle-card locked">
+        <span class="hustle-icon">💳</span>
+        <div><h3>POS Business</h3><p>🔒 Want this next?</p></div>
+        <button class="action vote-btn" data-hustle="pos">VOTE</button>
+      </div>
     </div>
-    <div class="hustle-card open" style="border-color:var(--terra)">
-      <span class="hustle-icon">💇‍♀️</span>
-      <div><h3>Wig Plug</h3><p>Sell premium wigs. NEW!</p></div>
-      <button class="action" id="btn-home-play-wig" style="background:var(--terra);color:#fff">PLAY</button>
-    </div>
-    <div class="hustle-card locked">
-      <span class="hustle-icon">👗</span>
-      <div><h3>Fashion Boutique</h3><p>🔒 Want this next?</p></div>
-      <button class="action vote-btn" data-hustle="fashion_boutique">VOTE</button>
-    </div>
-    <div class="hustle-card locked">
-      <span class="hustle-icon">💄</span>
-      <div><h3>Makeup &amp; Spa</h3><p>🔒 Want this next?</p></div>
-      <button class="action vote-btn" data-hustle="makeup_spa">VOTE</button>
-    </div>
-    <div class="hustle-card locked">
-      <span class="hustle-icon">🧵</span>
-      <div><h3>Tailor</h3><p>🔒 Want this next?</p></div>
-      <button class="action vote-btn" data-hustle="tailor">VOTE</button>
-    </div>
-    <div class="hustle-card locked">
-      <span class="hustle-icon">🍲</span>
-      <div><h3>Buka Restaurant</h3><p>🔒 Want this next?</p></div>
-      <button class="action vote-btn" data-hustle="buka">VOTE</button>
-    </div>
-    <div class="hustle-card locked">
-      <span class="hustle-icon">💳</span>
-      <div><h3>POS Business</h3><p>🔒 Want this next?</p></div>
-      <button class="action vote-btn" data-hustle="pos">VOTE</button>
-    </div>
-  </div>
 
     <button class="btn btn-secondary" id="btn-open-shop" style="max-width:340px;width:100%;padding:10px;font-size:14px">🛍️ Upgrade Shop</button>
     <button class="btn btn-secondary" id="btn-open-lb" style="max-width:340px;width:100%;padding:10px;font-size:14px">🏆 Leaderboard</button>
@@ -119,7 +116,7 @@
 
   <div class="name-row">
     <label>Your market city</label>
-        <select id="city-select" style="width:100%;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:16px;background:var(--surface);font-family:inherit;color:var(--text)">
+    <select id="city-select" style="width:100%;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:16px;background:var(--surface);font-family:inherit;color:var(--text)">
       <option value="lagos">Lagos</option>
       <option value="uyo">Uyo (Akwa Ibom)</option>
       <option value="ibadan">Ibadan</option>
@@ -177,7 +174,6 @@
     <div class="tool-belt" id="tool-belt"></div>
     <div class="stall-front" id="stall-front"></div>
 
-    <!-- Side view only -->
     <div class="side-only">
       <div class="side-umbrella">☂️</div>
       <div class="side-trader">🧑‍🍳</div>
@@ -214,7 +210,7 @@
     <div><strong id="result-best">x1</strong>best combo</div>
   </div>
   <p class="rounds-left" id="result-rounds">2 of 3 free rounds left today</p>
-    <div id="result-vendor-banner" style="display:none;background:var(--surface);border:1.5px solid var(--gold);border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:13px;text-align:center;font-weight:700;max-width:280px"></div>
+  <div id="result-vendor-banner" style="display:none;background:var(--surface);border:1.5px solid var(--gold);border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:13px;text-align:center;font-weight:700;max-width:280px"></div>
   <div class="result-actions">
     <button class="btn" id="btn-signin-result" style="display:none;font-size:15px;padding:14px;background:var(--gold);color:#3A2418;font-weight:800">💾 Sign in to save your ₦</button>
     <button class="btn" id="btn-watch-ad" style="display:none;font-size:15px;padding:14px;background:var(--terra);color:#fff;font-weight:800">🎬 Watch ad for +1 round</button>
@@ -226,57 +222,66 @@
   </div>
 </div>
 
-<!-- DASHBOARD -->
-<div id="screen-dashboard" class="screen">
-  <div class="topbar">
-    <h2 style="font-size:20px">Dashboard</h2>
-    <button class="btn btn-ghost" id="btn-sign-out" style="font-size:12px;color:var(--terra);font-weight:800">Sign out</button>
-  </div>
-  <div class="dash-hero">
-    <p class="dash-hi" id="dash-greeting">Hi 👋</p>
-    <p class="dash-meta" id="dash-meta">Street Trader</p>
-  </div>
-  <div class="dash-wallet">
-    <p class="dash-wallet-label">Wallet</p>
-    <p class="dash-wallet-value" id="dash-wallet">₦0</p>
-    <p class="dash-lifetime" id="dash-lifetime">Lifetime ₦0</p>
-  </div>
+<!-- DASHBOARD — new layout -->
+<div id="screen-dashboard" class="screen" data-dash-color="green">
+  <button class="hamburger" id="hamburger-btn" aria-label="Open menu">☰</button>
 
-  <div class="dash-referral-box">
-    <p class="dash-referral-title">🎁 Referral rewards</p>
-    <div class="dash-referral-row">
-      <div class="dash-referral-item"><strong id="dash-referrals">0</strong><span>Referrals</span></div>
-      <div class="dash-referral-item"><strong id="dash-boost-tokens">0</strong><span>Boost Tokens</span></div>
-      <div class="dash-referral-item"><strong id="dash-bonus-rounds">0</strong><span>Bonus Rounds</span></div>
+  <div class="dash-header">
+    <div>
+      <div class="dash-greeting" id="dash-greeting">Hi 👋</div>
+      <div class="dash-meta" id="dash-meta">Street Trader · LAGOS</div>
     </div>
   </div>
 
-    <button class="btn btn-gold" id="btn-dash-play" style="width:100%;font-size:18px;padding:16px;margin-bottom:10px">▶ PLAY MARKET TRADER</button>
-
-  <div id="dash-wig-stock" style="background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:10px"></div>
-  <button class="btn" id="btn-restock" style="width:100%;font-size:13px;padding:12px;margin-bottom:10px;background:var(--terra);color:#fff;font-weight:900">🔄 Restock all (+20 each)</button>
-
-  <button class="btn btn-primary" id="btn-dash-market" style="width:100%;font-size:15px;padding:14px;margin-bottom:10px;background:var(--oxblood);color:#F5EBDC">🛒 Browse Vendor Marketplace</button>
-
-  <div id="dash-vendor-banner" style="display:none;background:var(--surface);border:1.5px solid var(--gold);border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:13px;text-align:center;font-weight:700"></div>
-  <div class="dash-rank-row">
-    <div class="dash-rank"><strong id="dash-rank-today">#--</strong>Today</div>
-    <div class="dash-rank"><strong id="dash-rounds">0</strong>Rounds today</div>
-    <div class="dash-rank"><strong id="dash-best">₦0</strong>Best round</div>
+  <div class="dash-wallet-card">
+    <div class="dash-wallet-label">Wallet</div>
+    <div class="dash-wallet-value" id="dash-wallet">₦0</div>
+    <div class="dash-lifetime" id="dash-lifetime">Lifetime ₦0</div>
   </div>
 
-  <div style="display:flex;gap:6px;margin-bottom:14px">
-    <button class="btn btn-secondary" id="btn-dash-shop" style="flex:1;padding:10px;font-size:12px">🛍️ Shop</button>
-    <button class="btn btn-secondary" id="btn-dash-lb" style="flex:1;padding:10px;font-size:12px">🏆 Board</button>
-    <button class="btn btn-secondary" id="btn-dash-settings" style="flex:1;padding:10px;font-size:12px">⚙️ Settings</button>
+  <div class="dash-stats-row">
+    <div class="dash-stat"><strong id="dash-rank-today">#--</strong><span>Today</span></div>
+    <div class="dash-stat"><strong id="dash-rounds">0</strong><span>Rounds</span></div>
+    <div class="dash-stat"><strong id="dash-best">₦0</strong><span>Best</span></div>
   </div>
+
+  <button class="dash-play-btn" id="btn-dash-play">▶ Market Trader</button>
+  <button class="dash-play-btn" id="btn-dash-play-wig" style="background:#C2185B;color:#fff">▶ Wig Plug</button>
+
+  <div class="dash-bills-panel" id="dash-bills-panel">
+    <div class="dash-section-title">💰 Bills &amp; Payments</div>
+    <div id="dash-bills-list"></div>
+  </div>
+
+  <div class="dash-section">
+    <div id="dash-wig-stock"></div>
+    <button class="dash-restock-btn" id="btn-restock">🔄 Restock All</button>
+  </div>
+
+  <div class="dash-section">
+    <div class="dash-section-title">🎁 Referral Rewards</div>
+    <div class="dash-stats-row" style="margin-bottom:0">
+      <div class="dash-stat"><strong id="dash-referrals">0</strong><span>Refs</span></div>
+      <div class="dash-stat"><strong id="dash-boost-tokens">0</strong><span>Boost</span></div>
+      <div class="dash-stat"><strong id="dash-bonus-rounds">0</strong><span>Bonus</span></div>
+    </div>
+  </div>
+
+  <div class="dash-quicklinks">
+    <button class="dash-quicklink" id="btn-dash-shop">🛍️ Shop</button>
+    <button class="dash-quicklink" id="btn-dash-lb">🏆 Board</button>
+    <button class="dash-quicklink" id="btn-dash-settings">⚙️ Settings</button>
+  </div>
+
+  <button class="dash-market-btn" id="btn-dash-market">🛒 Vendor Marketplace</button>
+  <div id="dash-vendor-banner" style="display:none;background:var(--surface);border:1.5px solid var(--gold);border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;text-align:center;font-weight:700"></div>
 
   <div class="dash-coming">
     <p class="dash-coming-title">🔒 Coming soon</p>
     <div class="dash-coming-item">👥 Hire other players to sell for you</div>
     <div class="dash-coming-item">📅 Daily missions with bonus ₦</div>
     <div class="dash-coming-item">🏙️ State vs State weekly competition</div>
-    <div class="dash-coming-item">🏠 Landlord, Tailor, Buka, POS hustles</div>
+    <div class="dash-coming-item">👗 Fashion Boutique, 💄 Makeup &amp; Spa, 🍲 Buka, 🧵 Tailor, 💳 POS</div>
   </div>
 
   <p class="small" style="text-align:center;margin-top:auto;padding-top:14px;color:var(--muted)">Hustle City v1.0.0 · Made in Nigeria</p>
@@ -331,18 +336,33 @@
     <h2>Settings</h2>
     <span style="width:40px"></span>
   </div>
+
   <div style="margin-top:16px">
-    <p class="small" style="margin-bottom:8px;font-weight:700">Theme</p>
+    <p class="small" style="margin-bottom:8px;font-weight:700">App theme</p>
     <div class="lb-tabs">
       <button class="lb-tab theme-btn" data-theme="light">Light</button>
       <button class="lb-tab theme-btn" data-theme="dark">Dark</button>
       <button class="lb-tab theme-btn" data-theme="system">System</button>
     </div>
   </div>
+
+  <div style="margin-top:24px">
+    <p class="small" style="margin-bottom:8px;font-weight:700">Dashboard color</p>
+    <div class="color-picker-grid" id="color-picker-grid">
+      <button class="color-swatch" data-color="green" title="Green">✓</button>
+      <button class="color-swatch" data-color="gold" title="Gold"></button>
+      <button class="color-swatch" data-color="pink" title="Pink"></button>
+      <button class="color-swatch" data-color="blue" title="Blue"></button>
+      <button class="color-swatch" data-color="terra" title="Terracotta"></button>
+      <button class="color-swatch" data-color="purple" title="Purple"></button>
+    </div>
+  </div>
+
   <div style="margin-top:32px">
     <p class="small" style="margin-bottom:8px;font-weight:700">Danger zone</p>
     <button class="btn btn-secondary" id="btn-reset" style="width:100%">Reset all progress</button>
   </div>
+
   <p class="small" style="margin-top:auto;padding-top:20px;text-align:center">Hustle City v1.0.0 · Made in Nigeria</p>
 </div>
 
@@ -365,8 +385,28 @@
   </div>
 </div>
 
+<!-- DRAWER (slide-out menu) -->
+<div class="drawer-backdrop" id="drawer-backdrop"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <span>Menu</span>
+    <button class="drawer-close" id="drawer-close">✕</button>
+  </div>
+  <nav class="drawer-nav">
+    <button class="drawer-nav-item" data-nav="home">🏠 Home</button>
+    <button class="drawer-nav-item" data-nav="dashboard">📊 Dashboard</button>
+    <button class="drawer-nav-item" data-nav="shop">🛍️ Upgrade Shop</button>
+    <button class="drawer-nav-item" data-nav="leaderboard">🏆 Leaderboard</button>
+    <button class="drawer-nav-item" data-nav="marketplace">🛒 Marketplace</button>
+    <button class="drawer-nav-item" data-nav="settings">⚙️ Settings</button>
+    <a class="drawer-nav-item" href="https://chat.whatsapp.com/JCplfUn58cr5YRymBYea61?s=cl&p=a&mlu=4&ilr=4" target="_blank" rel="noopener" style="text-decoration:none">💬 WhatsApp Channel</a>
+    <a class="drawer-nav-item" href="faq.html" target="_blank" rel="noopener" style="text-decoration:none">❓ FAQ</a>
+    <button class="drawer-nav-item danger" id="drawer-signout">🚪 Sign Out</button>
+  </nav>
+</div>
+
 <!-- Floating: WhatsApp (right), FAQ (left) -->
-<a href="https://whatsapp.com/channel/0029Vb7x63CkwqSav2zJ3g2L"
+<a href="https://chat.whatsapp.com/JCplfUn58cr5YRymBYea61?s=cl&p=a&mlu=4&ilr=4"
    target="_blank" rel="noopener"
    class="fab fab-whatsapp" id="fab-whatsapp" aria-label="Join WhatsApp channel">
   <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -382,7 +422,6 @@
   </svg>
 </a>
 
-<!-- ⚠️ SCRIPTS — ORDER MATTERS. DO NOT REARRANGE. -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
 <script src="js/api.js"></script>
