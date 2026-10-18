@@ -62,19 +62,13 @@ function showScreen(id) {
 }
 // =========================================================
 // DASHBOARD
-// =========================================================
 function refreshDashboard() {
   const name = state.playerName || 'Hustler';
   const greeting = document.getElementById('dash-greeting');
   if (greeting) greeting.textContent = 'Hi, ' + name + ' 👋';
 
   const meta = document.getElementById('dash-meta');
-    if (meta) {
-    const cityLabel = (currentCity === 'other' && customCityName)
-      ? customCityName.toUpperCase()
-      : currentCity.toUpperCase();
-    meta.textContent = getDivision(state.lifetime).name + ' Trader · ' + cityLabel;
-  }
+  if (meta) meta.textContent = getDivision(state.lifetime).name + ' Trader · ' + currentCity.toUpperCase();
 
   const wallet = document.getElementById('dash-wallet');
   if (wallet) wallet.textContent = fmtN(state.wallet);
@@ -97,7 +91,66 @@ function refreshDashboard() {
   const refBonus = document.getElementById('dash-bonus-rounds');
   if (refBonus) refBonus.textContent = state.bonusRoundsToday || 0;
 
+  // Wig stock display
+  const stockBox = document.getElementById('dash-wig-stock');
+  if (stockBox) {
+    const stock = state.wigStock || {};
+    const totalStock = Object.values(stock).reduce((a, b) => a + b, 0);
+    if (totalStock === 0) {
+      stockBox.innerHTML = '<div style="color:var(--red);font-weight:800;font-size:12px;margin-bottom:6px">⚠️ Out of stock! Restock to keep selling.</div>';
+    } else {
+      stockBox.innerHTML = '<div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px">📦 Wig Plug stock</div>' +
+        Object.entries(stock).map(([k, v]) => {
+          const prod = CONFIG.hustles.wig_plug.products[k];
+          return '<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0"><span>' + (prod ? prod.emoji + ' ' + prod.label : k) + '</span><span style="font-weight:900;color:' + (v > 0 ? 'var(--green)' : 'var(--red)') + '">' + v + '</span></div>';
+        }).join('');
+    }
+
+    // Restock button
+    const restockBtn = document.getElementById('btn-restock');
+    if (restockBtn) {
+      const cost = CONFIG.hustles.wig_plug.restockCost;
+      const canAfford = state.wallet >= cost;
+      restockBtn.disabled = !canAfford;
+      restockBtn.textContent = '🔄 Restock all (+20 each) — ₦' + cost.toLocaleString('en-NG');
+      restockBtn.style.opacity = canAfford ? '1' : '0.5';
+    }
+  }
+
+  // Vendor banner
+  const vendorBanner = document.getElementById('dash-vendor-banner');
+  if (vendorBanner) {
+    vendorBanner.innerHTML = '🛍️ Buying real wigs soon? <a href="#" id="dash-vendor-link" style="color:var(--oxblood);font-weight:900;text-decoration:underline">Browse verified vendors →</a>';
+    vendorBanner.style.display = 'block';
+    const link = document.getElementById('dash-vendor-link');
+    if (link && !link.dataset.wired) {
+      link.dataset.wired = '1';
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        showScreen('marketplace');
+        if (typeof loadMarketplace === 'function') loadMarketplace();
+      });
+    }
+  }
+
   if (typeof loadDashboardRank === 'function') loadDashboardRank();
+}
+
+// Restock button handler
+const restockBtn = document.getElementById('btn-restock');
+if (restockBtn) {
+  restockBtn.addEventListener('click', () => {
+    const cost = CONFIG.hustles.wig_plug.restockCost;
+    if (state.wallet < cost) return;
+    state.wallet -= cost;
+    Object.keys(state.wigStock || {}).forEach(k => {
+      state.wigStock[k] = (state.wigStock[k] || 0) + CONFIG.hustles.wig_plug.restockAmount;
+    });
+    saveState();
+    refreshDashboard();
+    alert('✅ Restocked! +20 of each wig.');
+    if (typeof trackEvent === 'function') trackEvent('restock', { cost });
+  });
 }
 
 // =========================================================
@@ -176,14 +229,17 @@ async function refreshLeaderboard() {
   }
 }
 
-// =========================================================
-// SHOP
-// =========================================================
 function refreshShop() {
   document.getElementById('shop-wallet').textContent = fmtN(state.wallet);
   document.getElementById('shop-lifetime').textContent = fmtN(state.lifetime);
   const list = document.getElementById('shop-list');
   list.innerHTML = '';
+
+  // ===== Permanent upgrades =====
+  const upgradesHeader = document.createElement('h3');
+  upgradesHeader.style.cssText = 'font-size:13px;font-weight:900;color:var(--oxblood);text-transform:uppercase;letter-spacing:0.8px;margin:4px 0 10px';
+  upgradesHeader.textContent = '⚡ Permanent upgrades';
+  list.appendChild(upgradesHeader);
 
   Object.entries(CONFIG.upgrades).forEach(([key, up]) => {
     const owned = state.upgrades.includes(key);
@@ -197,7 +253,26 @@ function refreshShop() {
     list.appendChild(el);
   });
 
-  list.querySelectorAll('.buy-btn:not(:disabled)').forEach(btn => {
+  // ===== Consumables =====
+  const consumablesHeader = document.createElement('h3');
+  consumablesHeader.style.cssText = 'font-size:13px;font-weight:900;color:var(--oxblood);text-transform:uppercase;letter-spacing:0.8px;margin:18px 0 10px';
+  consumablesHeader.textContent = '🧴 Consumables (next round only)';
+  list.appendChild(consumablesHeader);
+
+  Object.entries(CONFIG.consumables).forEach(([key, item]) => {
+    const isActive = state.activeConsumables && state.activeConsumables[item.effect];
+    const canAfford = state.wallet >= item.cost;
+    const el = document.createElement('div');
+    el.className = 'shop-item' + (isActive ? ' owned' : '');
+    el.innerHTML = '<div class="icon">' + item.icon + '</div>' +
+      '<div class="info"><h4>' + item.name + (isActive ? ' ✓' : '') + '</h4><p>' + item.desc + '</p></div>' +
+      '<button class="buy-btn" data-consumable="' + key + '"' + (!canAfford || isActive ? ' disabled' : '') + '>' +
+      (isActive ? 'ACTIVE' : '₦' + item.cost.toLocaleString('en-NG')) + '</button>';
+    list.appendChild(el);
+  });
+
+  // Wire upgrade buttons
+  list.querySelectorAll('.buy-btn[data-key]:not(:disabled)').forEach(btn => {
     btn.addEventListener('click', () => {
       const key = btn.dataset.key;
       const up = CONFIG.upgrades[key];
@@ -207,6 +282,21 @@ function refreshShop() {
       saveState();
       refreshShop();
       if (typeof trackEvent === 'function') trackEvent('upgrade_purchased', { upgrade_key: key, cost: up.cost });
+    });
+  });
+
+  // Wire consumable buttons
+  list.querySelectorAll('.buy-btn[data-consumable]:not(:disabled)').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.consumable;
+      const item = CONFIG.consumables[key];
+      if (state.wallet < item.cost) return;
+      state.wallet -= item.cost;
+      if (!state.activeConsumables) state.activeConsumables = {};
+      state.activeConsumables[item.effect] = true;
+      saveState();
+      refreshShop();
+      if (typeof trackEvent === 'function') trackEvent('consumable_bought', { item: key, cost: item.cost });
     });
   });
 }
