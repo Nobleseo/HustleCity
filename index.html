@@ -54,33 +54,43 @@
 
   <!-- SCROLLABLE AREA — hustle cards + buttons -->
   <div class="home-scroll">
-    <div class="hustle-grid">
-      <div class="hustle-card open">
-        <span class="hustle-icon">🛒</span>
-        <div><h3>Market Trader</h3><p>Call customers. Serve right.</p></div>
-        <button class="action" id="btn-home-play">PLAY</button>
-      </div>
-      <div class="hustle-card locked">
-        <span class="hustle-icon">🏠</span>
-        <div><h3>Landlord</h3><p>🔒 Want this next?</p></div>
-        <button class="action vote-btn" data-hustle="landlord">VOTE</button>
-      </div>
-      <div class="hustle-card locked">
-        <span class="hustle-icon">🧵</span>
-        <div><h3>Tailor</h3><p>🔒 Want this next?</p></div>
-        <button class="action vote-btn" data-hustle="tailor">VOTE</button>
-      </div>
-      <div class="hustle-card locked">
-        <span class="hustle-icon">🍲</span>
-        <div><h3>Buka Restaurant</h3><p>🔒 Want this next?</p></div>
-        <button class="action vote-btn" data-hustle="buka">VOTE</button>
-      </div>
-      <div class="hustle-card locked">
-        <span class="hustle-icon">💳</span>
-        <div><h3>POS Business</h3><p>🔒 Want this next?</p></div>
-        <button class="action vote-btn" data-hustle="pos">VOTE</button>
-      </div>
+     <div class="hustle-grid">
+    <div class="hustle-card open">
+      <span class="hustle-icon">🛒</span>
+      <div><h3>Market Trader</h3><p>Call customers. Serve right.</p></div>
+      <button class="action" id="btn-home-play">PLAY</button>
     </div>
+    <div class="hustle-card open" style="border-color:var(--terra)">
+      <span class="hustle-icon">💇‍♀️</span>
+      <div><h3>Wig Plug</h3><p>Sell premium wigs. NEW!</p></div>
+      <button class="action" id="btn-home-play-wig" style="background:var(--terra);color:#fff">PLAY</button>
+    </div>
+    <div class="hustle-card locked">
+      <span class="hustle-icon">👗</span>
+      <div><h3>Fashion Boutique</h3><p>🔒 Want this next?</p></div>
+      <button class="action vote-btn" data-hustle="fashion_boutique">VOTE</button>
+    </div>
+    <div class="hustle-card locked">
+      <span class="hustle-icon">💄</span>
+      <div><h3>Makeup &amp; Spa</h3><p>🔒 Want this next?</p></div>
+      <button class="action vote-btn" data-hustle="makeup_spa">VOTE</button>
+    </div>
+    <div class="hustle-card locked">
+      <span class="hustle-icon">🧵</span>
+      <div><h3>Tailor</h3><p>🔒 Want this next?</p></div>
+      <button class="action vote-btn" data-hustle="tailor">VOTE</button>
+    </div>
+    <div class="hustle-card locked">
+      <span class="hustle-icon">🍲</span>
+      <div><h3>Buka Restaurant</h3><p>🔒 Want this next?</p></div>
+      <button class="action vote-btn" data-hustle="buka">VOTE</button>
+    </div>
+    <div class="hustle-card locked">
+      <span class="hustle-icon">💳</span>
+      <div><h3>POS Business</h3><p>🔒 Want this next?</p></div>
+      <button class="action vote-btn" data-hustle="pos">VOTE</button>
+    </div>
+  </div>
 
     <button class="btn btn-secondary" id="btn-open-shop" style="max-width:340px;width:100%;padding:10px;font-size:14px">🛍️ Upgrade Shop</button>
     <button class="btn btn-secondary" id="btn-open-lb" style="max-width:340px;width:100%;padding:10px;font-size:14px">🏆 Leaderboard</button>
