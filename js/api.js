@@ -12,11 +12,11 @@ async function syncRoundToServer(earned, served, missed, bestCombo) {
       player_name: (state.playerName && state.playerName.trim()) || null
     }, { onConflict: 'guest_id' });
 
-    await sb.from('runs').insert({
+        await sb.from('runs').insert({
       guest_id: GUEST_ID,
       player_id: playerId || null,
       player_name: state.playerName || null,
-      hustle_key: 'market_trader',
+      hustle_key: (typeof currentHustle !== 'undefined' ? currentHustle : 'market_trader'),
       stall_key: (typeof selectedProduct !== 'undefined' ? selectedProduct : 'tomatoes'),
       seed: 'client_' + Date.now(),
       score: earned,
