@@ -137,8 +137,10 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .customer .wanted{position:absolute;top:-12px;left:50%;transform:translateX(-50%);font-size:20px;background:var(--bg);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px var(--shadow);z-index:2}
 .customer .patience{position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:52px;height:5px;background:rgba(0,0,0,0.15);border-radius:3px;overflow:hidden}
 .customer .patience-fill{height:100%;background:var(--green);transition:width 0.1s linear,background 0.3s}
-.customer .bubble{position:absolute;top:-32px;left:50%;transform:translateX(-50%);background:var(--brown);color:#F5EBDC;font-size:10px;padding:3px 7px;border-radius:8px;white-space:nowrap;opacity:0;transition:opacity 0.2s;font-weight:700}
-.customer.called .bubble{opacity:1}
+.customer .bubble{position:absolute;top:-34px;left:50%;transform:translateX(-50%);background:var(--brown);color:#F5EBDC;font-size:10px;padding:3px 8px;border-radius:8px;white-space:nowrap;opacity:0.95;transition:opacity 0.2s;font-weight:800;max-width:120px;overflow:hidden;text-overflow:ellipsis;box-shadow:0 2px 6px rgba(0,0,0,0.2);z-index:3}
+.customer .bubble::after{content:'';position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:5px solid var(--brown)}
+.customer.called .bubble{opacity:1;background:var(--gold);color:#3A2418}
+.customer.called .bubble::after{border-top-color:var(--gold)}
 .customer.thief .wanted{background:var(--red);color:#fff;animation:pulse 0.5s infinite}
 .shelf{display:flex;flex-direction:column;flex-shrink:0;padding:0;background:transparent}
 .shelf-brand{background:linear-gradient(180deg,#8a5a2b 0%,#6b421c 50%,#5d3b1a 100%);color:#F5EBDC;font-size:11px;font-weight:900;letter-spacing:1.6px;text-align:center;padding:10px 12px;text-transform:uppercase;border-top:3px solid #4a2f13;border-bottom:2px solid #3a2410;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:48px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.12),inset 0 -1px 0 rgba(0,0,0,0.2)}
@@ -148,7 +150,7 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .shelf-btn{background:var(--cream);border:3px solid transparent;border-radius:12px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;font-family:inherit;color:var(--brown);transition:transform 0.1s}
 .shelf-btn:active{transform:scale(0.95)}
 .shelf-btn .icon{font-size:26px;line-height:1}
-.shelf-btn .label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.3px}
+.shelf-btn .label{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:0.2px;text-align:center;line-height:1.1;word-break:break-word;padding:0 2px}
 .shelf-btn.shake{animation:shake 0.3s}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 .float{position:absolute;font-weight:900;font-size:20px;color:var(--green);pointer-events:none;animation:floatUp 0.9s ease-out forwards;z-index:12;text-shadow:0 1px 0 var(--bg);transform:translate(-50%,0)}
