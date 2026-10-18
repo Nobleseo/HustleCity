@@ -214,8 +214,10 @@
     <div><strong id="result-best">x1</strong>best combo</div>
   </div>
   <p class="rounds-left" id="result-rounds">2 of 3 free rounds left today</p>
+    <div id="result-vendor-banner" style="display:none;background:var(--surface);border:1.5px solid var(--gold);border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:13px;text-align:center;font-weight:700;max-width:280px"></div>
   <div class="result-actions">
     <button class="btn" id="btn-signin-result" style="display:none;font-size:15px;padding:14px;background:var(--gold);color:#3A2418;font-weight:800">💾 Sign in to save your ₦</button>
+    <button class="btn" id="btn-watch-ad" style="display:none;font-size:15px;padding:14px;background:var(--terra);color:#fff;font-weight:800">🎬 Watch ad for +1 round</button>
     <button class="btn btn-gold" id="btn-play-again" style="font-size:17px;padding:15px">PLAY AGAIN</button>
     <button class="btn btn-secondary" id="btn-share">Share Score</button>
     <button class="btn btn-secondary" id="btn-refer">🔗 Copy my referral link</button>
@@ -249,9 +251,14 @@
     </div>
   </div>
 
-  <button class="btn btn-gold" id="btn-dash-play" style="width:100%;font-size:18px;padding:16px;margin-bottom:10px">▶ PLAY MARKET TRADER</button>
+    <button class="btn btn-gold" id="btn-dash-play" style="width:100%;font-size:18px;padding:16px;margin-bottom:10px">▶ PLAY MARKET TRADER</button>
+
+  <div id="dash-wig-stock" style="background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:10px"></div>
+  <button class="btn" id="btn-restock" style="width:100%;font-size:13px;padding:12px;margin-bottom:10px;background:var(--terra);color:#fff;font-weight:900">🔄 Restock all (+20 each)</button>
+
   <button class="btn btn-primary" id="btn-dash-market" style="width:100%;font-size:15px;padding:14px;margin-bottom:10px;background:var(--oxblood);color:#F5EBDC">🛒 Browse Vendor Marketplace</button>
 
+  <div id="dash-vendor-banner" style="display:none;background:var(--surface);border:1.5px solid var(--gold);border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:13px;text-align:center;font-weight:700"></div>
   <div class="dash-rank-row">
     <div class="dash-rank"><strong id="dash-rank-today">#--</strong>Today</div>
     <div class="dash-rank"><strong id="dash-rounds">0</strong>Rounds today</div>
