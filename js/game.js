@@ -1,15 +1,34 @@
 'use strict';
 
+// =========================================================
+// MODULE STATE
+// =========================================================
 let selectedProduct = 'tomatoes';
 let game = null;
 let rafId = null;
-let activeProducts = CONFIG.products; // set per round based on currentHustle
+let activeProducts = CONFIG.products;
 
 const gameAreaEl = document.getElementById('game-area');
 const dynamicLayer = document.getElementById('dynamic-layer');
 
 // =========================================================
-// SHELF RENDERING (dynamic per hustle)
+// TOAST HELPER
+// =========================================================
+function showToastMsg(text) {
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#1F4A2E;color:#F5EBDC;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:900;z-index:150;box-shadow:0 4px 16px rgba(0,0,0,0.3);max-width:90vw;text-align:center';
+  t.textContent = text;
+  document.body.appendChild(t);
+  setTimeout(() => {
+    t.style.transition = 'opacity 0.3s, transform 0.3s';
+    t.style.opacity = '0';
+    t.style.transform = 'translateX(-50%) translateY(-20px)';
+    setTimeout(() => t.remove(), 400);
+  }, 2800);
+}
+
+// =========================================================
+// SHELF RENDERING
 // =========================================================
 function renderShelf() {
   const items = document.querySelector('.shelf-items');
@@ -23,7 +42,7 @@ function renderShelf() {
 
     const stockCount = (currentHustle === 'wig_plug') ? (state.wigStock[key] || 0) : null;
     const stockBadge = (stockCount !== null)
-      ? `<span style="position:absolute;top:-6px;right:-6px;background:${stockCount > 0 ? 'var(--green)' : 'var(--red)'};color:#fff;font-size:9px;font-weight:900;padding:2px 5px;border-radius:10px;min-width:16px;text-align:center">${stockCount}</span>`
+      ? `<span style="position:absolute;top:-6px;right:-6px;background:${stockCount > 0 ? '#2E5B3A' : '#A52818'};color:#fff;font-size:9px;font-weight:900;padding:2px 5px;border-radius:10px;min-width:16px;text-align:center">${stockCount}</span>`
       : '';
     btn.style.position = 'relative';
     btn.innerHTML = `${stockBadge}<span class="icon">${prod.emoji}</span><span class="label">${prod.label || key}</span>`;
@@ -44,20 +63,28 @@ function startRound() {
   showScreen('round');
   clearDynamic();
 
-  // Set active products based on current hustle
   const hustle = CONFIG.hustles[currentHustle];
   activeProducts = hustle.products;
   if (!activeProducts[selectedProduct]) {
     selectedProduct = Object.keys(activeProducts)[0];
   }
 
-  // Render shelf buttons for this hustle
+  // ---- SET SCENE ATTRIBUTE (drives pink scene CSS) ----
+  if (gameAreaEl) gameAreaEl.setAttribute('data-hustle', currentHustle);
+
+  // ---- SWAP TRADER FIGURE ----
+  const traderEl = document.querySelector('.trader');
+  if (traderEl) traderEl.textContent = currentHustle === 'wig_plug' ? '💇🏾‍♀️' : '🧑‍🍳';
+
+  // ---- SWAP TREES ----
+  const treesEl = document.querySelector('.scene-trees');
+  if (treesEl) treesEl.textContent = currentHustle === 'wig_plug' ? '🌸 🌺 🌸 🌺' : '🌴 🌳 🌴 🌳';
+
   renderShelf();
 
   const boosted = state.boostTokens > 0;
   if (boosted) { state.boostTokens--; saveState(); }
 
-  // Apply consumable effects
   const consumables = state.activeConsumables || {};
   game = {
     running: false,
@@ -80,7 +107,6 @@ function startRound() {
     thiefShield: !!consumables.thief_shield
   };
 
-  // Reset consumables after applying
   if (consumables.spawn_boost || consumables.double_spawn || consumables.sale_boost || consumables.thief_shield) {
     state.activeConsumables = { spawn_boost: false, double_spawn: false, sale_boost: false, thief_shield: false };
     saveState();
@@ -116,7 +142,7 @@ function beginPlay() {
   game.startTime = performance.now();
   game.lastSpawn = 0;
   spawnCustomer(false);
-  if (game.doubleSpawn) spawnCustomer(false); // lash glue: extra customer
+  if (game.doubleSpawn) spawnCustomer(false);
   scheduleEvents();
   rafId = requestAnimationFrame(tick);
 }
@@ -163,7 +189,6 @@ function endRound() {
   game.running = false;
 
   if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-
   if (game.eventTimers && game.eventTimers.length) {
     game.eventTimers.forEach(t => { clearTimeout(t); clearInterval(t); });
     game.eventTimers = [];
@@ -201,9 +226,7 @@ function endRound() {
     playBtn.style.opacity = '1';
   }
 
-  // Show/hide watch-ad button
   updateWatchAdButton();
-  // Show vendor banner
   updateResultVendorBanner();
 
   if (typeof syncRoundToServer === 'function') {
@@ -227,11 +250,10 @@ function endRound() {
 function spawnCustomer(isThief) {
   const items = Object.keys(activeProducts);
 
-  // For Wig Plug: filter to products with stock > 0
   let available = items;
   if (currentHustle === 'wig_plug') {
     available = items.filter(k => (state.wigStock[k] || 0) > 0);
-    if (available.length === 0) return; // no stock, no customers
+    if (available.length === 0) return;
   }
 
   const wanted = Math.random() < 0.55 && available.includes(selectedProduct)
@@ -240,17 +262,30 @@ function spawnCustomer(isThief) {
 
   const prod = activeProducts[wanted];
   const id = 'c' + (game.nextId++);
-  const body = BODIES[Math.floor(Math.random() * BODIES.length)];
+
+  // ---- HUSTLE-SPECIFIC CUSTOMERS + BUBBLES ----
+  const bodiesForHustle = (currentHustle === 'wig_plug')
+    ? ['👩🏾', '👩🏿', '👩🏽', '👩🏻', '👩🏾‍🦱', '👩🏿‍🦱', '👩🏽‍🦱']
+    : BODIES;
+  const bubblesForHustle = (currentHustle === 'wig_plug')
+    ? ['Aunty, I want this one!', 'Boss lady, how much?', 'I need quality wig!', 'Which one is best?', 'Give me this one']
+    : BUBBLES;
+
+  const body = bodiesForHustle[Math.floor(Math.random() * bodiesForHustle.length)];
   const isHaggle = !isThief && Math.random() < 0.15;
+
+  const wantedText = isThief
+    ? 'Thief!'
+    : ('I need ' + (prod.label || wanted));
 
   const el = document.createElement('div');
   el.className = 'customer' + (isThief ? ' thief' : '');
   el.style.left = (8 + Math.random() * 74) + '%';
   el.style.top = (8 + Math.random() * 58) + '%';
-    const wantedText = isThief ? 'Thief!' : ('I need ' + (prod.label || wanted));
   el.innerHTML =
     '<div class="bubble">' + wantedText + '</div>' +
     '<div class="wanted">' + (isThief ? '💰' : prod.emoji) + '</div>' +
+    '<div class="body">' + (isThief ? '🕵️' : body) + '</div>' +
     '<div class="patience"><div class="patience-fill" style="width:100%"></div></div>';
 
   el.addEventListener('click', e => { e.stopPropagation(); callCustomer(id); });
@@ -275,7 +310,6 @@ function callCustomer(id) {
   c.el.classList.add('called');
   if (c.isThief) {
     if (game.thiefShield) {
-      // Melt Band: auto-catch, no money lost
       game.served++;
       addFloat(c.el, 'Caught! (Shield)', false);
       c.served = true;
@@ -317,7 +351,6 @@ function completeSale(c, item) {
   game.served++;
   game.combo++;
 
-  // Deplete stock for Wig Plug
   if (currentHustle === 'wig_plug') {
     state.wigStock[item] = Math.max(0, (state.wigStock[item] || 0) - 1);
     saveState();
@@ -336,17 +369,17 @@ function completeSale(c, item) {
   const prod = activeProducts[item];
   const base = prod.baseSale + Math.floor(Math.random() * 60);
   let sale = Math.round(base * game.multiplier);
+  if (c.isInfluencer) sale *= 3;
   if (game.saleBoost && game.saleBoost !== 1) sale = Math.round(sale * game.saleBoost);
   game.money += sale;
   document.getElementById('hud-money').textContent = '₦' + game.money;
-  addFloat(c.el, '+₦' + sale + (game.multiplier > 1 ? ' x' + game.multiplier : ''), false);
+  addFloat(c.el, '+₦' + sale + (c.isInfluencer ? ' 💃' : '') + (game.multiplier > 1 ? ' x' + game.multiplier : ''), false);
   c.el.style.transition = 'transform 0.3s, opacity 0.3s';
   c.el.style.transform = 'translateY(-30px) scale(0.3)';
   c.el.style.opacity = '0';
   setTimeout(() => c.el.remove(), 300);
   game.customers = game.customers.filter(x => x.id !== c.id);
 
-  // Update shelf stock badge
   if (currentHustle === 'wig_plug') renderShelf();
 }
 
@@ -384,12 +417,18 @@ function addFloat(parent, text, negative) {
 }
 
 // =========================================================
-// EVENTS (unchanged)
+// EVENTS
 // =========================================================
 function scheduleEvents() {
-  game.eventTimers.push(setTimeout(() => triggerNEPA(), 20000));
-  game.eventTimers.push(setTimeout(() => triggerRain(), 35000));
-  game.eventTimers.push(setTimeout(() => triggerLevy(), 50000));
+  if (currentHustle === 'wig_plug') {
+    game.eventTimers.push(setTimeout(() => triggerInfluencer(), 15000));
+    game.eventTimers.push(setTimeout(() => triggerBridalRush(), 35000));
+    game.eventTimers.push(setTimeout(() => triggerMarketInspector(), 50000));
+  } else {
+    game.eventTimers.push(setTimeout(() => triggerNEPA(), 20000));
+    game.eventTimers.push(setTimeout(() => triggerRain(), 35000));
+    game.eventTimers.push(setTimeout(() => triggerLevy(), 50000));
+  }
   const thiefTimer = setInterval(() => {
     if (!game || !game.running) { clearInterval(thiefTimer); return; }
     if (Math.random() < 0.5) spawnCustomer(true);
@@ -449,6 +488,78 @@ function triggerLevy() {
   });
 }
 
+function triggerInfluencer() {
+  if (!game || !game.running) return;
+  const items = Object.keys(activeProducts).filter(k => (state.wigStock[k] || 0) > 0);
+  if (!items.length) return;
+  showToastMsg('💃 Influencer don arrive! Serve fast for 3× money!');
+
+  const wanted = items[Math.floor(Math.random() * items.length)];
+  const prod = activeProducts[wanted];
+  const id = 'c' + (game.nextId++);
+
+  const el = document.createElement('div');
+  el.className = 'customer influencer';
+  el.style.left = (30 + Math.random() * 40) + '%';
+  el.style.top = '15%';
+  el.style.zIndex = '10';
+  el.innerHTML =
+    '<div class="bubble" style="background:#D4A017;color:#3A2418;font-size:11px;opacity:1">Influencer! 3× money 💃</div>' +
+    '<div class="wanted">' + prod.emoji + '</div>' +
+    '<div class="body" style="font-size:46px;filter:drop-shadow(0 4px 6px rgba(212,160,23,0.6))">💃</div>' +
+    '<div class="patience"><div class="patience-fill" style="width:100%"></div></div>';
+
+  el.addEventListener('click', e => { e.stopPropagation(); callCustomer(id); });
+  (dynamicLayer || gameAreaEl).appendChild(el);
+
+  game.customers.push({
+    id, wanted,
+    isThief: false,
+    isHaggle: false,
+    isInfluencer: true,
+    spawnedAt: (performance.now() - game.startTime) / 1000,
+    patience: 5 + (game.patienceBonus || 0),
+    served: false,
+    called: false,
+    el
+  });
+}
+
+function triggerBridalRush() {
+  if (!game || !game.running) return;
+  showToastMsg('👰 Bridal party rush! 5 customers coming!');
+  for (let i = 0; i < 5; i++) {
+    setTimeout(() => { if (game && game.running) spawnCustomer(false); }, i * 400);
+  }
+}
+
+function triggerMarketInspector() {
+  if (!game || !game.running) return;
+  const cost = 200;
+  if (game.money < cost) {
+    game.combo = 0;
+    game.multiplier = 1;
+    document.getElementById('hud-combo').textContent = 'x1';
+    showToastMsg('🚫 Inspector don vex! Combo reset (no money to pay).');
+    return;
+  }
+  showModal({
+    title: 'Market Inspector',
+    body: 'Inspector say pay ₦200 or 1-star rating (combo reset). Wetin you go do?',
+    actions: [
+      { label: 'Pay ₦200', primary: true, fn: () => {
+        game.money -= cost;
+        document.getElementById('hud-money').textContent = '₦' + game.money;
+      }},
+      { label: 'Refuse (combo resets)', fn: () => {
+        game.combo = 0;
+        game.multiplier = 1;
+        document.getElementById('hud-combo').textContent = 'x1';
+      }}
+    ]
+  });
+}
+
 function showHaggleModal(customer, item) {
   const prod = activeProducts[item];
   showModal({
@@ -493,7 +604,6 @@ function showHaggleModal(customer, item) {
 
 // =========================================================
 // SHARE / REFERRAL / FEEDBACK / VOTES / WRITE-IN
-// (identical to current — preserved)
 // =========================================================
 document.getElementById('btn-share').addEventListener('click', () => {
   const c = document.createElement('canvas');
@@ -614,7 +724,7 @@ document.querySelectorAll('.lb-tab[data-scope]').forEach(tab => {
   });
 });
 
-// Shelf button delegation (works for any hustle's products)
+// Shelf delegate (survives shelf re-render)
 document.querySelector('.shelf-items').addEventListener('click', (e) => {
   const btn = e.target.closest('.shelf-btn');
   if (!btn) return;
@@ -634,7 +744,6 @@ document.getElementById('btn-home-play').addEventListener('click', () => {
   openSetupForHustle('market_trader');
 });
 
-// Wig Plug play button (added to home in index.html)
 const wigPlayBtn = document.getElementById('btn-home-play-wig');
 if (wigPlayBtn) {
   wigPlayBtn.addEventListener('click', () => {
@@ -643,8 +752,11 @@ if (wigPlayBtn) {
       return;
     }
     currentHustle = 'wig_plug';
-    // Check stock
-    const totalStock = Object.values(state.wigStock || {}).reduce((a, b) => a + b, 0);
+    if (!state.wigStock) {
+      state.wigStock = { bone_straight: 20, deep_wave: 15, braids: 10 };
+      saveState();
+    }
+    const totalStock = Object.values(state.wigStock).reduce((a, b) => a + b, 0);
     if (totalStock === 0) {
       alert('You don sell finish all your wigs! Go to your dashboard to restock.');
       if (typeof showScreen === 'function') showScreen(playerId ? 'dashboard' : 'home');
@@ -658,7 +770,6 @@ function openSetupForHustle(hustleKey) {
   currentHustle = hustleKey;
   const hustle = CONFIG.hustles[hustleKey];
 
-  // Render product cards
   const grid = document.querySelector('.product-grid');
   if (grid) {
     grid.innerHTML = '';
@@ -669,29 +780,24 @@ function openSetupForHustle(hustleKey) {
       btn.innerHTML = `<span class="emoji">${prod.emoji}</span><div><strong>${prod.label || key}</strong><small>₦${prod.baseSale} base · ${prod.patience}s patience</small></div>`;
       grid.appendChild(btn);
     });
-  }
 
-  // Wire selection (delegate)
-  if (grid) {
-    grid.addEventListener('click', (e) => {
-      const card = e.target.closest('.product-card');
-      if (!card) return;
-      grid.querySelectorAll('.product-card').forEach(c => c.classList.remove('selected'));
-      card.classList.add('selected');
-      selectedProduct = card.dataset.product;
-    }, { once: false });
-  }
-
-  // Pre-select first product
-  selectedProduct = Object.keys(hustle.products)[0];
-  setTimeout(() => {
+    selectedProduct = Object.keys(hustle.products)[0];
     const first = grid.querySelector('.product-card');
     if (first) first.classList.add('selected');
-  }, 50);
+  }
 
   document.getElementById('player-name').value = state.playerName || '';
   if (typeof showScreen === 'function') showScreen('setup');
 }
+
+// Setup screen product selection (delegate — wired once)
+document.querySelector('.product-grid').addEventListener('click', (e) => {
+  const card = e.target.closest('.product-card');
+  if (!card) return;
+  document.querySelectorAll('.product-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  selectedProduct = card.dataset.product;
+});
 
 document.getElementById('btn-start-round').addEventListener('click', () => {
   state.playerName = document.getElementById('player-name').value.trim() || state.playerName;
@@ -706,7 +812,7 @@ document.getElementById('btn-play-again').addEventListener('click', () => {
 });
 
 // =========================================================
-// WATCH AD FOR +1 ROUND
+// WATCH AD
 // =========================================================
 function updateWatchAdButton() {
   const btn = document.getElementById('btn-watch-ad');
@@ -728,7 +834,11 @@ document.addEventListener('click', (e) => {
   const bg = document.createElement('div');
   bg.className = 'modal-bg';
   bg.style.zIndex = '200';
-    const adSlot = (typeof brandSlots !== 'undefined' && brandSlots) ? brandSlots['video_ad'] : null;
+  const box = document.createElement('div');
+  box.className = 'modal';
+  box.style.maxWidth = '420px';
+
+  const adSlot = (typeof brandSlots !== 'undefined' && brandSlots) ? brandSlots['video_ad'] : null;
   const seconds = CONFIG.watchAd.durationSeconds;
 
   let adHTML;
@@ -759,9 +869,6 @@ document.addEventListener('click', (e) => {
     `;
   }
 
-  const box = document.createElement('div');
-  box.className = 'modal';
-  box.style.maxWidth = '420px';
   box.innerHTML = `
     <h3>Advertisement</h3>
     ${adHTML}
@@ -770,7 +877,7 @@ document.addEventListener('click', (e) => {
   bg.appendChild(box);
   document.body.appendChild(bg);
 
-  let remaining = CONFIG.watchAd.durationSeconds;
+  let remaining = seconds;
   const timerEl = document.getElementById('ad-timer');
   const inlineEl = document.getElementById('ad-timer-inline');
 
@@ -789,10 +896,8 @@ document.addEventListener('click', (e) => {
       saveState();
 
       if (typeof trackEvent === 'function') trackEvent('ad_watched', { hustle: currentHustle });
-
       alert('🎉 +1 round granted! Play again now.');
 
-      // Refresh result screen buttons
       const playBtn = document.getElementById('btn-play-again');
       if (playBtn) {
         playBtn.textContent = 'PLAY AGAIN';
@@ -815,16 +920,14 @@ function updateResultVendorBanner() {
   if (currentHustle === 'wig_plug') {
     banner.innerHTML = '🛍️ Looking for real wigs? <a href="#" id="result-vendor-link" style="color:var(--oxblood);font-weight:900;text-decoration:underline">Browse verified vendors →</a>';
     banner.style.display = 'block';
-        const link = document.getElementById('result-vendor-link');
+    const link = document.getElementById('result-vendor-link');
     if (link) {
       link.addEventListener('click', (e) => {
         e.preventDefault();
         if (playerId) {
-          // Signed in → straight to marketplace
           if (typeof showScreen === 'function') showScreen('marketplace');
           if (typeof loadMarketplace === 'function') loadMarketplace();
         } else {
-          // Guest → prompt sign-up, then go to marketplace
           sessionStorage.setItem('hc_after_auth', 'marketplace');
           if (typeof showAuthModal === 'function') showAuthModal();
         }
