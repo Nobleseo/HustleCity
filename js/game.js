@@ -247,10 +247,10 @@ function spawnCustomer(isThief) {
   el.className = 'customer' + (isThief ? ' thief' : '');
   el.style.left = (8 + Math.random() * 74) + '%';
   el.style.top = (8 + Math.random() * 58) + '%';
+    const wantedText = isThief ? 'Thief!' : ('I need ' + (prod.label || wanted));
   el.innerHTML =
-    '<div class="bubble">' + (isThief ? 'Thief!' : BUBBLES[Math.floor(Math.random() * BUBBLES.length)]) + '</div>' +
+    '<div class="bubble">' + wantedText + '</div>' +
     '<div class="wanted">' + (isThief ? '💰' : prod.emoji) + '</div>' +
-    '<div class="body">' + (isThief ? '🕵️' : body) + '</div>' +
     '<div class="patience"><div class="patience-fill" style="width:100%"></div></div>';
 
   el.addEventListener('click', e => { e.stopPropagation(); callCustomer(id); });
@@ -728,18 +728,44 @@ document.addEventListener('click', (e) => {
   const bg = document.createElement('div');
   bg.className = 'modal-bg';
   bg.style.zIndex = '200';
+    const adSlot = (typeof brandSlots !== 'undefined' && brandSlots) ? brandSlots['video_ad'] : null;
+  const seconds = CONFIG.watchAd.durationSeconds;
+
+  let adHTML;
+  if (adSlot && adSlot.brand_art_url) {
+    adHTML = `
+      <div id="ad-content" style="background:#000;padding:0;border-radius:12px;overflow:hidden;margin:16px 0;position:relative;aspect-ratio:16/9">
+        <img src="${adSlot.brand_art_url}" alt="" style="width:100%;height:100%;object-fit:cover;display:block">
+        <div style="position:absolute;top:10px;left:10px;background:rgba(0,0,0,0.75);color:#fff;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:900;letter-spacing:1px">SPONSORED</div>
+        <div id="ad-timer" style="position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.8);color:#D4A017;padding:6px 14px;border-radius:20px;font-size:16px;font-weight:900">${seconds}</div>
+      </div>
+    `;
+  } else if (adSlot && adSlot.brand_name) {
+    adHTML = `
+      <div id="ad-content" style="background:${adSlot.brand_color || '#1F4A2E'};color:#F5EBDC;padding:40px 20px;border-radius:12px;margin:16px 0;text-align:center;position:relative">
+        <div style="font-size:12px;font-weight:800;letter-spacing:2px;text-transform:uppercase;opacity:0.7">Sponsored</div>
+        <div style="font-size:24px;font-weight:900;margin:12px 0">${adSlot.brand_name}</div>
+        <div id="ad-timer" style="font-size:36px;font-weight:900;margin-top:16px;color:#D4A017">${seconds}</div>
+      </div>
+    `;
+  } else {
+    adHTML = `
+      <div id="ad-content" style="background:#1F4A2E;color:#F5EBDC;padding:40px 20px;border-radius:12px;margin:16px 0;text-align:center">
+        <div style="font-size:12px;font-weight:800;letter-spacing:2px;text-transform:uppercase;opacity:0.7">Sponsored</div>
+        <div style="font-size:22px;font-weight:900;margin:12px 0">YOUR AD HERE</div>
+        <div style="font-size:12px;opacity:0.85">Reach thousands of Nigerian players</div>
+        <div id="ad-timer" style="font-size:36px;font-weight:900;margin-top:16px;color:#D4A017">${seconds}</div>
+      </div>
+    `;
+  }
+
   const box = document.createElement('div');
   box.className = 'modal';
   box.style.maxWidth = '420px';
   box.innerHTML = `
     <h3>Advertisement</h3>
-    <div id="ad-content" style="background:#1F4A2E;color:#F5EBDC;padding:40px 20px;border-radius:12px;margin:16px 0;text-align:center">
-      <div style="font-size:14px;font-weight:800;letter-spacing:2px;text-transform:uppercase;opacity:0.7">Sponsored</div>
-      <div style="font-size:22px;font-weight:900;margin:12px 0">YOUR AD HERE</div>
-      <div style="font-size:13px;opacity:0.85">Reach thousands of Nigerian players</div>
-      <div id="ad-timer" style="font-size:36px;font-weight:900;margin-top:16px;color:#D4A017">${CONFIG.watchAd.durationSeconds}</div>
-    </div>
-    <p style="font-size:12px;color:var(--muted)">Ad closes in <span id="ad-timer-inline">${CONFIG.watchAd.durationSeconds}</span>s — your extra round will be granted automatically.</p>
+    ${adHTML}
+    <p style="font-size:12px;color:var(--muted)">Ad closes in <span id="ad-timer-inline">${seconds}</span>s — your extra round will be granted automatically.</p>
   `;
   bg.appendChild(box);
   document.body.appendChild(bg);
@@ -789,12 +815,19 @@ function updateResultVendorBanner() {
   if (currentHustle === 'wig_plug') {
     banner.innerHTML = '🛍️ Looking for real wigs? <a href="#" id="result-vendor-link" style="color:var(--oxblood);font-weight:900;text-decoration:underline">Browse verified vendors →</a>';
     banner.style.display = 'block';
-    const link = document.getElementById('result-vendor-link');
+        const link = document.getElementById('result-vendor-link');
     if (link) {
       link.addEventListener('click', (e) => {
         e.preventDefault();
-        if (typeof showScreen === 'function') showScreen(playerId ? 'marketplace' : 'home');
-        if (playerId && typeof loadMarketplace === 'function') loadMarketplace();
+        if (playerId) {
+          // Signed in → straight to marketplace
+          if (typeof showScreen === 'function') showScreen('marketplace');
+          if (typeof loadMarketplace === 'function') loadMarketplace();
+        } else {
+          // Guest → prompt sign-up, then go to marketplace
+          sessionStorage.setItem('hc_after_auth', 'marketplace');
+          if (typeof showAuthModal === 'function') showAuthModal();
+        }
       });
     }
   } else {
