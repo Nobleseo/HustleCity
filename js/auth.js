@@ -48,7 +48,7 @@ document.getElementById('auth-submit').addEventListener('click', async () => {
 
   if (!email || !password) { errEl.textContent = 'Enter email and password.'; return; }
   if (password.length < 6) { errEl.textContent = 'Password must be 6+ characters.'; return; }
-  errEl.textContent = 'Working…';
+  errEl.textContent = 'Working, sending you in…';
 
   const result = (authMode === 'signup')
     ? await sb.auth.signUp({ email, password })
@@ -59,8 +59,15 @@ document.getElementById('auth-submit').addEventListener('click', async () => {
   const user = result.data.user;
   if (!user) { errEl.textContent = 'Check your email to confirm, then Sign In.'; return; }
 
-  playerId = user.id;
+   playerId = user.id;
   localStorage.setItem('hc_player_id', playerId);
+  
+  // FIX: Save name to local state if it's missing
+  if (!state.playerName || !state.playerName.trim()) {
+    state.playerName = (user.email || '').split('@')[0] || 'Hustler';
+    saveState();
+  }
+  
   updateHomeAuthButton();
 
   try {
