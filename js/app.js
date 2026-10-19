@@ -339,3 +339,74 @@ setTimeout(() => {
     });
   }
 }, 300);
+// =========================================================
+// SAFETY WIRING — HUD theme, dashboard nav, signout
+// Idempotent: skips any button that already has a handler via dataset.wired
+// =========================================================
+(function safetyWire() {
+  // HUD theme toggle
+  const hudBtn = document.getElementById('hud-theme-btn');
+  if (hudBtn && !hudBtn.dataset.wired) {
+    hudBtn.dataset.wired = '1';
+    const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    hudBtn.textContent = dark ? '☀️' : '🌙';
+    hudBtn.addEventListener('click', () => {
+      const current = localStorage.getItem('hc_theme') || 'system';
+      const next = current === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('hc_theme', next);
+      document.documentElement.setAttribute('data-theme', next);
+      hudBtn.textContent = next === 'dark' ? '☀️' : '🌙';
+      const homeBtn = document.getElementById('theme-toggle-home');
+      if (homeBtn) homeBtn.textContent = next === 'dark' ? '☀️' : '🌙';
+    });
+  }
+
+  // Dashboard nav buttons — safety-wired so they work even if auth.js is dead
+  const dashShop = document.getElementById('btn-dash-shop');
+  if (dashShop && !dashShop.dataset.wired) {
+    dashShop.dataset.wired = '1';
+    dashShop.addEventListener('click', () => {
+      if (typeof showScreen === 'function') showScreen('shop');
+    });
+  }
+
+  const dashLb = document.getElementById('btn-dash-lb');
+  if (dashLb && !dashLb.dataset.wired) {
+    dashLb.dataset.wired = '1';
+    dashLb.addEventListener('click', () => {
+      if (typeof showScreen === 'function') showScreen('leaderboard');
+    });
+  }
+
+  const dashSettings = document.getElementById('btn-dash-settings');
+  if (dashSettings && !dashSettings.dataset.wired) {
+    dashSettings.dataset.wired = '1';
+    dashSettings.addEventListener('click', () => {
+      if (typeof showScreen === 'function') showScreen('settings');
+    });
+  }
+
+  const dashMarket = document.getElementById('btn-dash-market');
+  if (dashMarket && !dashMarket.dataset.wired) {
+    dashMarket.dataset.wired = '1';
+    dashMarket.addEventListener('click', () => {
+      if (typeof showScreen === 'function') showScreen('marketplace');
+      if (typeof loadMarketplace === 'function') loadMarketplace();
+    });
+  }
+
+  // Sign out — safety net if auth.js dead
+  const btnOut = document.getElementById('btn-sign-out');
+  if (btnOut && !btnOut.dataset.wired) {
+    btnOut.dataset.wired = '1';
+    btnOut.addEventListener('click', async () => {
+      if (!confirm('Sign out? Your progress stays on this device.')) return;
+      if (typeof sb !== 'undefined' && sb) await sb.auth.signOut();
+      playerId = null;
+      localStorage.removeItem('hc_player_id');
+      if (typeof updateHomeAuthButton === 'function') updateHomeAuthButton();
+      if (typeof refreshHome === 'function') refreshHome();
+      if (typeof showScreen === 'function') showScreen('home');
+    });
+  }
+})();
