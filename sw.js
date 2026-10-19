@@ -1,4 +1,4 @@
-const CACHE = 'hustlecity-v8.0';
+const CACHE = 'hustlecity-v10.0';
 
 self.addEventListener('install', e => {
   self.skipWaiting(); // Force the new service worker to take over immediately
