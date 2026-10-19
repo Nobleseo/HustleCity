@@ -820,3 +820,166 @@ body.drawer-open .drawer{transform:translateX(0)}
 .dash-menu.open{display:block;animation:slideDownMenu 0.25s ease-out}
 .dash-hamburger{display:flex !important;align-items:center;justify-content:center}
 .drawer,.drawer-backdrop{display:none !important}
+
+
+/* =====================================================
+   EMERGENCY DASHBOARD FIX — OVERRIDES EVERYTHING ABOVE
+   ===================================================== */
+
+#screen-dashboard {
+  padding: 20px 16px 100px !important;
+  background: var(--bg) !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Header */
+.dash-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  margin-bottom: 16px !important;
+  padding: 0 !important;
+}
+.dash-hamburger {
+  width: 46px !important;
+  height: 46px !important;
+  min-width: 46px !important;
+  border-radius: 12px !important;
+  background: var(--surface) !important;
+  border: 1.5px solid var(--border) !important;
+  font-size: 22px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+}
+.dash-header-text {
+  flex: 1 !important;
+}
+.dash-greeting {
+  font-size: 18px !important;
+  font-weight: 900 !important;
+  color: var(--dash-text, #1F4A2E) !important;
+  margin: 0 0 2px 0 !important;
+}
+.dash-meta {
+  font-size: 10px !important;
+  color: var(--muted) !important;
+  text-transform: uppercase !important;
+  font-weight: 700 !important;
+}
+.dash-signout-btn {
+  background: transparent !important;
+  border: none !important;
+  color: var(--terra) !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  text-decoration: underline !important;
+}
+
+/* The Collapsible Menu */
+.dash-menu {
+  display: none !important;
+}
+.dash-menu.open {
+  display: block !important;
+  animation: slideDownMenu 0.25s ease-out !important;
+}
+
+/* Wallet Card */
+.dash-wallet-card {
+  background: linear-gradient(135deg, #1F4A2E 0%, #2E5B3A 100%) !important;
+  color: #F5EBDC !important;
+  border-radius: 18px !important;
+  padding: 22px 20px !important;
+  margin-bottom: 16px !important;
+  text-align: center !important;
+  box-shadow: 0 8px 24px rgba(31,74,46,0.22) !important;
+}
+.dash-wallet-label {
+  font-size: 10px !important;
+  opacity: 0.72 !important;
+  letter-spacing: 2px !important;
+  text-transform: uppercase !important;
+  font-weight: 800 !important;
+}
+.dash-wallet-value {
+  font-size: 44px !important;
+  font-weight: 900 !important;
+  margin: 10px 0 6px !important;
+  color: #F5EBDC !important;
+}
+.dash-lifetime {
+  font-size: 12px !important;
+  opacity: 0.82 !important;
+  font-weight: 700 !important;
+}
+
+/* Stats Row (3 columns) */
+.dash-stats-row {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 8px !important;
+  margin-bottom: 16px !important;
+}
+.dash-stat {
+  background: var(--surface) !important;
+  border: 1.5px solid var(--border) !important;
+  border-radius: 12px !important;
+  padding: 14px 6px !important;
+  text-align: center !important;
+}
+.dash-stat strong {
+  display: block !important;
+  font-size: 18px !important;
+  font-weight: 900 !important;
+  color: var(--dash-text, #1F4A2E) !important;
+}
+.dash-stat span {
+  display: block !important;
+  font-size: 9px !important;
+  color: var(--muted) !important;
+  text-transform: uppercase !important;
+}
+
+/* Play Buttons */
+.dash-play-btn {
+  width: 100% !important;
+  font-size: 16px !important;
+  padding: 16px !important;
+  margin-bottom: 10px !important;
+  border-radius: 14px !important;
+  font-weight: 900 !important;
+  background: var(--dash-accent, #1F4A2E) !important;
+  color: var(--dash-accent-fg, #F5EBDC) !important;
+  border: none !important;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.14) !important;
+}
+
+/* Bills Panel */
+.dash-bills-panel, .dash-section {
+  background: var(--surface) !important;
+  border: 1.5px solid var(--border) !important;
+  border-radius: 14px !important;
+  padding: 16px !important;
+  margin-bottom: 16px !important;
+  display: block !important;
+}
+
+/* Quick Links */
+.dash-quicklinks {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 8px !important;
+  margin-bottom: 16px !important;
+}
+.dash-quicklink {
+  background: var(--surface) !important;
+  border: 1.5px solid var(--border) !important;
+  border-radius: 12px !important;
+  padding: 12px 8px !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  text-align: center !important;
+}
