@@ -79,55 +79,30 @@ document.getElementById('btn-open-shop').addEventListener('click', () => showScr
 document.getElementById('btn-open-lb').addEventListener('click', () => showScreen('leaderboard'));
 
 // =========================================================
-// HAMBURGER + DRAWER
+// DASHBOARD INLINE HAMBURGER TOGGLE
 // =========================================================
-(function wireDrawer() {
-  const hamburger = document.getElementById('hamburger-btn');
-  const backdrop = document.getElementById('drawer-backdrop');
-  const drawerClose = document.getElementById('drawer-close');
-  const drawer = document.getElementById('drawer');
+(function wireDashMenu() {
+  const btn = document.getElementById('dash-hamburger-btn');
+  const menu = document.getElementById('dash-menu');
+  if (!btn || !menu) return;
 
-  function openDrawer() {
-    document.body.classList.add('drawer-open');
-  }
-  function closeDrawer() {
-    document.body.classList.remove('drawer-open');
-  }
+  // Start collapsed
+  menu.classList.remove('open');
+  btn.textContent = '☰';
+  btn.classList.remove('open');
 
-  if (hamburger) hamburger.addEventListener('click', openDrawer);
-  if (backdrop) backdrop.addEventListener('click', closeDrawer);
-  if (drawerClose) drawerClose.addEventListener('click', closeDrawer);
-
-  if (drawer) {
-    drawer.querySelectorAll('.drawer-nav-item[data-nav]').forEach(item => {
-      item.addEventListener('click', () => {
-        const nav = item.dataset.nav;
-        closeDrawer();
-        setTimeout(() => {
-          if (nav === 'marketplace') {
-            showScreen('marketplace');
-            if (typeof loadMarketplace === 'function') loadMarketplace();
-          } else {
-            showScreen(nav);
-          }
-        }, 150);
-      });
-    });
-  }
-
-  const drawerSignout = document.getElementById('drawer-signout');
-  if (drawerSignout) {
-    drawerSignout.addEventListener('click', async () => {
-      closeDrawer();
-      if (!confirm('Sign out? Your progress stays on this device.')) return;
-      if (sb) await sb.auth.signOut();
-      playerId = null;
-      localStorage.removeItem('hc_player_id');
-      if (typeof updateHomeAuthButton === 'function') updateHomeAuthButton();
-      refreshHome();
-      showScreen('home');
-    });
-  }
+  btn.addEventListener('click', () => {
+    const isOpen = menu.classList.contains('open');
+    if (isOpen) {
+      menu.classList.remove('open');
+      btn.textContent = '☰';
+      btn.classList.remove('open');
+    } else {
+      menu.classList.add('open');
+      btn.textContent = '✕';
+      btn.classList.add('open');
+    }
+  });
 })();
 
 // =========================================================
