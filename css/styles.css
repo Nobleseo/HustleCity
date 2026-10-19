@@ -758,3 +758,5 @@ body.drawer-open .drawer{transform:translateX(0)}
 
 /* Kill the old absolute hamburger (in case cache serves old button) */
 .hamburger:not(.dash-hamburger){display:none!important}
+/* Kill switch: hide any leftover drawer elements from cache */
+.drawer, .drawer-backdrop { display: none !important; }
