@@ -232,14 +232,6 @@ updateActivity('home');
   if (dash) dash.setAttribute('data-dash-color', color);
 })();
 
-// If signed in, land on dashboard
-setTimeout(() => {
-  if (playerId) {
-    refreshDashboard();
-    showScreen('dashboard');
-  }
-}, 400);
-
 // Claim referral rewards
 setTimeout(() => {
   if (typeof claimPendingReferrals === 'function') claimPendingReferrals();
