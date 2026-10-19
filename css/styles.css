@@ -760,3 +760,63 @@ body.drawer-open .drawer{transform:translateX(0)}
 .hamburger:not(.dash-hamburger){display:none!important}
 /* Kill switch: hide any leftover drawer elements from cache */
 .drawer, .drawer-backdrop { display: none !important; }
+/* =====================================================
+   FINAL POLISH — warmer dark mode, always-visible bubbles,
+   HUD theme toggle, dashboard safety
+   ===================================================== */
+
+/* ---- Warmer, softer dark mode (no harsh orange) ---- */
+[data-theme="dark"]{
+  --bg:#181310;
+  --surface:#252018;
+  --text:#F0E5D8;
+  --muted:#9E917E;
+  --oxblood:#A87A56;
+  --terra:#C4936A;
+  --border:#382C24;
+  --shadow:rgba(0,0,0,0.5);
+  --cream:#252018;
+  --sand:#382C24;
+  --gold:#D9B14E;
+  --green:#7FB389;
+  --red:#C87A6A;
+}
+
+/* ---- Customer bubbles always visible (never require tap) ---- */
+.customer .bubble{
+  opacity:1 !important;
+  z-index:15;
+  transform:translateX(-50%) !important;
+}
+.customer.called .bubble{
+  background:var(--gold);
+  color:#3A2418;
+}
+
+/* ---- HUD theme toggle button ---- */
+.hud-theme-btn{
+  background:rgba(255,255,255,0.18);
+  border:none;
+  color:#F5EBDC;
+  width:32px;
+  height:32px;
+  min-width:32px;
+  border-radius:50%;
+  cursor:pointer;
+  font-size:14px;
+  padding:0;
+  line-height:1;
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:inherit;
+}
+.hud-theme-btn:active{transform:scale(0.92)}
+
+/* ---- Dashboard safety: kill anything stale, keep new layout ---- */
+#screen-dashboard{background:var(--bg)}
+.dash-menu{display:none}
+.dash-menu.open{display:block;animation:slideDownMenu 0.25s ease-out}
+.dash-hamburger{display:flex !important;align-items:center;justify-content:center}
+.drawer,.drawer-backdrop{display:none !important}
