@@ -281,7 +281,7 @@ function spawnCustomer(isThief) {
   const el = document.createElement('div');
   el.className = 'customer' + (isThief ? ' thief' : '');
   el.style.left = (8 + Math.random() * 74) + '%';
-  el.style.top = (8 + Math.random() * 58) + '%';
+  el.style.top = (22 + Math.random() * 40) + '%';
   el.innerHTML =
     '<div class="bubble">' + wantedText + '</div>' +
     '<div class="wanted">' + (isThief ? '💰' : prod.emoji) + '</div>' +
