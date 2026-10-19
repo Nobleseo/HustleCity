@@ -410,3 +410,13 @@ setTimeout(() => {
     });
   }
 })();
+
+// =========================================================
+// FORCE PWA UPDATE
+// =========================================================
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    // Check for updates every time the app opens
+    reg.update();
+  });
+}
