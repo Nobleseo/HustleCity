@@ -253,3 +253,89 @@ if (typeof endRound === 'function') {
     setTimeout(maybeOfferInstall, 1500);
   };
 }
+// =========================================================
+// AUTH SAFETY NET
+// If auth.js fails to load (404, syntax error, cache issue),
+// this takes over so login still works. If auth.js loads fine,
+// this does nothing.
+// =========================================================
+setTimeout(() => {
+  console.log('[HUSTLE AUTH CHECK]', {
+    showAuthModal: typeof window.showAuthModal,
+    authScriptTag: document.querySelector('script[src*="auth.js"]')?.src || 'NO TAG FOUND IN HTML'
+  });
+
+  if (typeof window.showAuthModal === 'function') {
+    console.log('[HUSTLE] auth.js loaded fine. Fallback not needed.');
+    return;
+  }
+
+  console.warn('[HUSTLE] auth.js did NOT load. Activating fallback.');
+
+  window.showAuthModal = function (mode) {
+    const m = document.getElementById('auth-modal');
+    if (m) m.style.display = 'flex';
+    if (mode === 'signin' || mode === 'signup') {
+      const isSignup = mode === 'signup';
+      const tabUp = document.getElementById('auth-tab-signup');
+      const tabIn = document.getElementById('auth-tab-signin');
+      const sub = document.getElementById('auth-submit');
+      if (tabUp) tabUp.classList.toggle('active', isSignup);
+      if (tabIn) tabIn.classList.toggle('active', !isSignup);
+      if (sub) sub.textContent = isSignup ? 'Create Account' : 'Sign In';
+    }
+  };
+
+  const pill = document.getElementById('btn-signin-pill');
+  if (pill) {
+    pill.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      window.showAuthModal('signin');
+    });
+  }
+
+  const resBtn = document.getElementById('btn-signin-result');
+  if (resBtn) resBtn.addEventListener('click', () => window.showAuthModal('signin'));
+
+  const tabUp = document.getElementById('auth-tab-signup');
+  const tabIn = document.getElementById('auth-tab-signin');
+  if (tabUp) tabUp.addEventListener('click', () => window.showAuthModal('signup'));
+  if (tabIn) tabIn.addEventListener('click', () => window.showAuthModal('signin'));
+
+  const skipBtn = document.getElementById('auth-skip');
+  if (skipBtn) {
+    skipBtn.addEventListener('click', () => {
+      const m = document.getElementById('auth-modal');
+      if (m) m.style.display = 'none';
+    });
+  }
+
+  const submitBtn = document.getElementById('auth-submit');
+  if (submitBtn) {
+    submitBtn.addEventListener('click', async () => {
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+      const errEl = document.getElementById('auth-error');
+      const isSignup = document.getElementById('auth-tab-signup').classList.contains('active');
+
+      if (!email || !password) { errEl.textContent = 'Enter email and password.'; return; }
+      if (password.length < 6) { errEl.textContent = 'Password must be 6+ characters.'; return; }
+      errEl.textContent = 'Working…';
+
+      const result = isSignup
+        ? await sb.auth.signUp({ email, password })
+        : await sb.auth.signInWithPassword({ email, password });
+
+      if (result.error) { errEl.textContent = result.error.message; return; }
+      if (result.data.user) {
+        playerId = result.data.user.id;
+        localStorage.setItem('hc_player_id', playerId);
+        if (typeof updateHomeAuthButton === 'function') updateHomeAuthButton();
+        document.getElementById('auth-modal').style.display = 'none';
+        if (typeof refreshDashboard === 'function') refreshDashboard();
+        if (typeof showScreen === 'function') showScreen('dashboard');
+      }
+    });
+  }
+}, 300);
