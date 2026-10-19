@@ -222,59 +222,61 @@
   </div>
 </div>
 
-<!-- DASHBOARD — new layout -->
+<!-- DASHBOARD -->
 <div id="screen-dashboard" class="screen" data-dash-color="green">
-  <button class="hamburger" id="hamburger-btn" aria-label="Open menu">☰</button>
-
   <div class="dash-header">
-    <div>
+    <button class="dash-hamburger" id="dash-hamburger-btn" aria-label="Toggle menu">☰</button>
+    <div class="dash-header-text">
       <div class="dash-greeting" id="dash-greeting">Hi 👋</div>
       <div class="dash-meta" id="dash-meta">Street Trader · LAGOS</div>
     </div>
+    <button class="dash-signout-btn" id="btn-sign-out">Sign out</button>
   </div>
 
-  <div class="dash-wallet-card">
-    <div class="dash-wallet-label">Wallet</div>
-    <div class="dash-wallet-value" id="dash-wallet">₦0</div>
-    <div class="dash-lifetime" id="dash-lifetime">Lifetime ₦0</div>
+  <div class="dash-menu" id="dash-menu">
+    <div class="dash-wallet-card">
+      <div class="dash-wallet-label">Wallet</div>
+      <div class="dash-wallet-value" id="dash-wallet">₦0</div>
+      <div class="dash-lifetime" id="dash-lifetime">Lifetime ₦0</div>
+    </div>
+
+    <div class="dash-stats-row">
+      <div class="dash-stat"><strong id="dash-rank-today">#--</strong><span>Today</span></div>
+      <div class="dash-stat"><strong id="dash-rounds">0</strong><span>Rounds</span></div>
+      <div class="dash-stat"><strong id="dash-best">₦0</strong><span>Best</span></div>
+    </div>
+
+    <button class="dash-play-btn" id="btn-dash-play">▶ Market Trader</button>
+    <button class="dash-play-btn" id="btn-dash-play-wig" style="background:#C2185B;color:#fff">▶ Wig Plug</button>
+
+    <div class="dash-bills-panel">
+      <div class="dash-section-title">💰 Bills &amp; Payments</div>
+      <div id="dash-bills-list"></div>
+    </div>
+
+    <div class="dash-section">
+      <div class="dash-section-title">🎁 Referral Rewards</div>
+      <div class="dash-stats-row" style="margin-bottom:0">
+        <div class="dash-stat"><strong id="dash-referrals">0</strong><span>Refs</span></div>
+        <div class="dash-stat"><strong id="dash-boost-tokens">0</strong><span>Boost</span></div>
+        <div class="dash-stat"><strong id="dash-bonus-rounds">0</strong><span>Bonus</span></div>
+      </div>
+    </div>
+
+    <div class="dash-quicklinks">
+      <button class="dash-quicklink" id="btn-dash-shop">🛍️ Shop</button>
+      <button class="dash-quicklink" id="btn-dash-lb">🏆 Board</button>
+      <button class="dash-quicklink" id="btn-dash-settings">⚙️ Settings</button>
+    </div>
+
+    <button class="dash-market-btn" id="btn-dash-market">🛒 Vendor Marketplace</button>
+    <div id="dash-vendor-banner" style="display:none;background:var(--surface);border:1.5px solid var(--gold);border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;text-align:center;font-weight:700"></div>
   </div>
 
-  <div class="dash-stats-row">
-    <div class="dash-stat"><strong id="dash-rank-today">#--</strong><span>Today</span></div>
-    <div class="dash-stat"><strong id="dash-rounds">0</strong><span>Rounds</span></div>
-    <div class="dash-stat"><strong id="dash-best">₦0</strong><span>Best</span></div>
-  </div>
-
-  <button class="dash-play-btn" id="btn-dash-play">▶ Market Trader</button>
-  <button class="dash-play-btn" id="btn-dash-play-wig" style="background:#C2185B;color:#fff">▶ Wig Plug</button>
-
-  <div class="dash-bills-panel" id="dash-bills-panel">
-    <div class="dash-section-title">💰 Bills &amp; Payments</div>
-    <div id="dash-bills-list"></div>
-  </div>
-
-  <div class="dash-section">
+  <div class="dash-section" style="margin-top:0">
     <div id="dash-wig-stock"></div>
     <button class="dash-restock-btn" id="btn-restock">🔄 Restock All</button>
   </div>
-
-  <div class="dash-section">
-    <div class="dash-section-title">🎁 Referral Rewards</div>
-    <div class="dash-stats-row" style="margin-bottom:0">
-      <div class="dash-stat"><strong id="dash-referrals">0</strong><span>Refs</span></div>
-      <div class="dash-stat"><strong id="dash-boost-tokens">0</strong><span>Boost</span></div>
-      <div class="dash-stat"><strong id="dash-bonus-rounds">0</strong><span>Bonus</span></div>
-    </div>
-  </div>
-
-  <div class="dash-quicklinks">
-    <button class="dash-quicklink" id="btn-dash-shop">🛍️ Shop</button>
-    <button class="dash-quicklink" id="btn-dash-lb">🏆 Board</button>
-    <button class="dash-quicklink" id="btn-dash-settings">⚙️ Settings</button>
-  </div>
-
-  <button class="dash-market-btn" id="btn-dash-market">🛒 Vendor Marketplace</button>
-  <div id="dash-vendor-banner" style="display:none;background:var(--surface);border:1.5px solid var(--gold);border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;text-align:center;font-weight:700"></div>
 
   <div class="dash-coming">
     <p class="dash-coming-title">🔒 Coming soon</p>
@@ -283,8 +285,6 @@
     <div class="dash-coming-item">🏙️ State vs State weekly competition</div>
     <div class="dash-coming-item">👗 Fashion Boutique, 💄 Makeup &amp; Spa, 🍲 Buka, 🧵 Tailor, 💳 POS</div>
   </div>
-
-  <p class="small" style="text-align:center;margin-top:auto;padding-top:14px;color:var(--muted)">Hustle City v1.0.0 · Made in Nigeria</p>
 </div>
 
 <!-- LEADERBOARD -->
