@@ -5,7 +5,8 @@
 // =========================================================
 let authMode = 'signup';
 
-function showAuthModal() {
+function showAuthModal(mode = null) {
+  if (mode === 'signup' || mode === 'signin') authMode = mode;
   document.getElementById('auth-modal').style.display = 'flex';
   updateAuthUI();
 }
@@ -28,7 +29,7 @@ function updateAuthUI() {
 document.getElementById('auth-tab-signup').addEventListener('click', () => { authMode = 'signup'; updateAuthUI(); });
 document.getElementById('auth-tab-signin').addEventListener('click', () => { authMode = 'signin'; updateAuthUI(); });
 document.getElementById('auth-skip').addEventListener('click', hideAuthModal);
-document.getElementById('btn-signin-result').addEventListener('click', showAuthModal);
+document.getElementById('btn-signin-result').addEventListener('click', () => showAuthModal('signin'));
 
 // Sign-in pill (top-left home) — safe-guarded in case DOM changes
 const pill = document.getElementById('btn-signin-pill');
@@ -36,7 +37,7 @@ if (pill) {
   pill.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
-    showAuthModal();
+    showAuthModal('signin');
   });
 }
 document.getElementById('auth-submit').addEventListener('click', async () => {
