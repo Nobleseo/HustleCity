@@ -94,6 +94,7 @@ document.getElementById('auth-submit').addEventListener('click', async () => {
   } else {
     if (typeof showScreen === 'function') showScreen('dashboard');
   }
+});
 // =========================================================
 // SESSION LISTENER
 // =========================================================
