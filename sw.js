@@ -1,4 +1,4 @@
-const CACHE = 'hustlecity-v0.7.1';
+const CACHE = 'hustlecity-v0.7.3';
 const ASSETS = ['./', './manifest.webmanifest', './terms.html', './privacy.html', './faq.html'];
 
 self.addEventListener('install', e => {
