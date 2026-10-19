@@ -671,3 +671,90 @@ body.drawer-open .drawer{transform:translateX(0)}
   #screen-dashboard{max-width:600px}
   .hamburger{display:none}
 }
+/* ===== DASHBOARD INLINE HAMBURGER + COLLAPSIBLE MENU ===== */
+#screen-dashboard{
+  padding:20px 16px 100px;
+  background:var(--bg);
+  position:relative;
+}
+
+.dash-header{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:16px;
+}
+
+.dash-hamburger{
+  width:46px;
+  height:46px;
+  min-width:46px;
+  border-radius:12px;
+  background:var(--surface);
+  border:1.5px solid var(--border);
+  font-size:22px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  font-family:inherit;
+  color:var(--text);
+  box-shadow:0 2px 6px rgba(0,0,0,0.08);
+  transition:all 0.2s;
+  padding:0;
+  line-height:1;
+}
+.dash-hamburger:active{transform:scale(0.94)}
+.dash-hamburger.open{
+  background:var(--dash-accent,#1F4A2E);
+  color:var(--dash-accent-fg,#F5EBDC);
+  border-color:var(--dash-accent,#1F4A2E);
+}
+
+.dash-header-text{
+  flex:1;
+  min-width:0;
+}
+.dash-greeting{
+  font-size:18px;
+  font-weight:900;
+  color:var(--dash-text,#1F4A2E);
+  line-height:1.2;
+  word-break:break-word;
+  letter-spacing:-0.2px;
+  margin-bottom:2px;
+}
+.dash-meta{
+  font-size:10px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:0.6px;
+  font-weight:700;
+}
+.dash-signout-btn{
+  background:transparent;
+  border:none;
+  color:var(--terra);
+  font-size:11px;
+  font-weight:800;
+  padding:6px 8px;
+  font-family:inherit;
+  cursor:pointer;
+  text-decoration:underline;
+  flex-shrink:0;
+}
+
+.dash-menu{
+  display:none;
+}
+.dash-menu.open{
+  display:block;
+  animation:slideDownMenu 0.25s ease-out;
+}
+@keyframes slideDownMenu{
+  from{opacity:0;transform:translateY(-8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* Kill the old absolute hamburger (in case cache serves old button) */
+.hamburger:not(.dash-hamburger){display:none!important}
