@@ -54,18 +54,17 @@ function refreshHome() {
 // =========================================================
 // SCREEN NAV
 // =========================================================
-function showScreen(id) {
-  document.body.classList.remove('drawer-open');
-
-  if (id === 'home' && playerId) {
-    id = 'dashboard';
-  }
-
+ function showScreen(id) {
+  // 1. Remove active from ALL screens
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  
+  // 2. Add active ONLY to the requested screen
   const target = document.getElementById('screen-' + id);
   if (target) target.classList.add('active');
+  
   document.body.classList.toggle('in-round', id === 'round');
 
+  // 3. Refresh data for the specific screen
   if (id === 'home') refreshHome();
   if (id === 'shop') refreshShop();
   if (id === 'leaderboard') refreshLeaderboard();
@@ -74,7 +73,6 @@ function showScreen(id) {
 
   if (typeof updateActivity === 'function') updateActivity(id);
 }
-
 // =========================================================
 // BILLS
 // =========================================================
