@@ -177,7 +177,7 @@ body.in-round .theme-toggle { display: none; }
 .result-actions { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 280px; }
 
 /* --- 7. DASHBOARD (CLEAN & INLINE MENU) --- */
-#screen-dashboard { padding: 20px 16px 100px; background: var(--bg); display: flex; flex-direction: column; }
+#screen-dashboard { padding: 20px 16px 100px; background: var(--bg); }
 [data-dash-color="green"] { --dash-accent: #1F4A2E; --dash-accent-2: #2E5B3A; --dash-accent-fg: #F5EBDC; --dash-text: #1F4A2E; }
 [data-dash-color="pink"] { --dash-accent: #C2185B; --dash-accent-2: #E91E63; --dash-accent-fg: #FFFFFF; --dash-text: #C2185B; }
 
