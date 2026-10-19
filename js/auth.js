@@ -7,7 +7,8 @@ let authMode = 'signup';
 
 function showAuthModal(mode = null) {
   if (mode === 'signup' || mode === 'signin') authMode = mode;
-  document.getElementById('auth-modal').style.display = 'flex';
+  const m = document.getElementById('auth-modal');
+  if (m) m.style.display = 'flex';
   updateAuthUI();
 }
 
