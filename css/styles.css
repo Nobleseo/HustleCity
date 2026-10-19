@@ -252,3 +252,57 @@ body.in-round .theme-toggle { display: none; }
 .fab svg { width: 28px; height: 28px; fill: currentColor; }
 body.in-round .fab { display: none; }
 .toast-referral { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--green); color: #fff; padding: 14px 22px; border-radius: 12px; font-weight: 800; z-index: 120; box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+
+/* =====================================================
+   LEADERBOARD ROWS (MISSING FIX)
+   ===================================================== */
+.lb-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.lb-row:last-child {
+  border-bottom: none;
+}
+.lb-row.self {
+  background: var(--surface);
+  border-radius: 8px;
+  font-weight: 800;
+}
+.lb-rank {
+  width: 26px;
+  font-weight: 900;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.lb-rank.top {
+  color: var(--gold);
+}
+.lb-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--sand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  color: var(--brown);
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.lb-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lb-score {
+  font-weight: 900;
+  color: var(--oxblood);
+  font-variant-numeric: tabular-nums;
+}
