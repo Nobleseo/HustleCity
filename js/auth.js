@@ -1,8 +1,5 @@
 'use strict';
 
-// =========================================================
-// AUTH STATE
-// =========================================================
 let authMode = 'signup';
 
 function showAuthModal(mode = null) {
@@ -13,34 +10,42 @@ function showAuthModal(mode = null) {
 }
 
 function hideAuthModal() {
-  document.getElementById('auth-modal').style.display = 'none';
+  const m = document.getElementById('auth-modal');
+  if (m) m.style.display = 'none';
 }
 
 function updateAuthUI() {
   const isSignup = authMode === 'signup';
-  document.getElementById('auth-tab-signup').classList.toggle('active', isSignup);
-  document.getElementById('auth-tab-signin').classList.toggle('active', !isSignup);
-  document.getElementById('auth-submit').textContent = isSignup ? 'Create Account' : 'Sign In';
-  document.getElementById('auth-error').textContent = '';
+  const tabUp = document.getElementById('auth-tab-signup');
+  const tabIn = document.getElementById('auth-tab-signin');
+  const sub = document.getElementById('auth-submit');
+  const err = document.getElementById('auth-error');
+  if (tabUp) tabUp.classList.toggle('active', isSignup);
+  if (tabIn) tabIn.classList.toggle('active', !isSignup);
+  if (sub) sub.textContent = isSignup ? 'Create Account' : 'Sign In';
+  if (err) err.textContent = '';
 }
 
-// =========================================================
-// AUTH WIRING
-// =========================================================
+// Wire Auth Modal
 document.getElementById('auth-tab-signup').addEventListener('click', () => { authMode = 'signup'; updateAuthUI(); });
 document.getElementById('auth-tab-signin').addEventListener('click', () => { authMode = 'signin'; updateAuthUI(); });
 document.getElementById('auth-skip').addEventListener('click', hideAuthModal);
 document.getElementById('btn-signin-result').addEventListener('click', () => showAuthModal('signin'));
 
-// Sign-in pill (top-left home) — safe-guarded in case DOM changes
 const pill = document.getElementById('btn-signin-pill');
 if (pill) {
   pill.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
-    showAuthModal('signin');
+    if (playerId) {
+      showScreen('dashboard'); // If logged in, go to dashboard
+    } else {
+      showAuthModal('signin'); // If guest, show sign in
+    }
   });
 }
+
+// Submit Auth
 document.getElementById('auth-submit').addEventListener('click', async () => {
   const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value;
@@ -48,33 +53,31 @@ document.getElementById('auth-submit').addEventListener('click', async () => {
 
   if (!email || !password) { errEl.textContent = 'Enter email and password.'; return; }
   if (password.length < 6) { errEl.textContent = 'Password must be 6+ characters.'; return; }
-  errEl.textContent = 'Working, sending you in…';
+  errEl.textContent = 'Working…';
 
   const result = (authMode === 'signup')
     ? await sb.auth.signUp({ email, password })
     : await sb.auth.signInWithPassword({ email, password });
 
   if (result.error) { errEl.textContent = result.error.message; return; }
-
   const user = result.data.user;
   if (!user) { errEl.textContent = 'Check your email to confirm, then Sign In.'; return; }
 
-   playerId = user.id;
+  playerId = user.id;
   localStorage.setItem('hc_player_id', playerId);
   
-  // FIX: Save name to local state if it's missing
+  // Save name to local state if missing
   if (!state.playerName || !state.playerName.trim()) {
     state.playerName = (user.email || '').split('@')[0] || 'Hustler';
     saveState();
   }
-  
   updateHomeAuthButton();
 
   try {
-        await sb.from('players').upsert({
+    await sb.from('players').upsert({
       id: user.id,
       email: user.email,
-      display_name: state.playerName || (user.email || '').split('@')[0] || 'Player',
+      display_name: state.playerName || 'Player',
       wallet_balance: state.wallet,
       lifetime_earned: state.lifetime,
       division: state.division,
@@ -89,24 +92,13 @@ document.getElementById('auth-submit').addEventListener('click', async () => {
     }, { onConflict: 'guest_id' });
   } catch (e) { console.warn('player upsert failed', e); }
 
-    if (typeof trackEvent === 'function') trackEvent('signup_done', { method: authMode });
   hideAuthModal();
-  if (typeof refreshHome === 'function') refreshHome();
-  if (typeof refreshDashboard === 'function') refreshDashboard();
-
-  // After auth: check if user was trying to reach a specific screen
-  const nextScreen = sessionStorage.getItem('hc_after_auth');
-  sessionStorage.removeItem('hc_after_auth');
-  if (nextScreen === 'marketplace') {
-    if (typeof showScreen === 'function') showScreen('marketplace');
-    if (typeof loadMarketplace === 'function') loadMarketplace();
-  } else {
-    if (typeof showScreen === 'function') showScreen('dashboard');
-  }
+  refreshHome();
+  refreshDashboard();
+  showScreen('dashboard'); // Go to dashboard after successful sign-in
 });
-// =========================================================
-// SESSION LISTENER
-// =========================================================
+
+// Session Listener
 if (sb) {
   sb.auth.onAuthStateChange((event, session) => {
     playerId = session && session.user ? session.user.id : null;
@@ -129,9 +121,7 @@ if (sb) {
   updateHomeAuthButton();
 }
 
-// =========================================================
-// SIGN OUT
-// =========================================================
+// Sign Out
 document.getElementById('btn-sign-out').addEventListener('click', async () => {
   if (!confirm('Sign out? Your progress stays on this device.')) return;
   if (sb) await sb.auth.signOut();
@@ -142,9 +132,7 @@ document.getElementById('btn-sign-out').addEventListener('click', async () => {
   showScreen('home');
 });
 
-// =========================================================
-// DASHBOARD NAV BUTTONS
-// =========================================================
+// Dashboard Buttons
 document.getElementById('btn-dash-play').addEventListener('click', () => {
   if (state.roundsToday >= totalRoundsToday()) {
     alert('You don finish your rounds for today. Come back tomorrow!');
@@ -163,81 +151,39 @@ document.getElementById('btn-dash-market').addEventListener('click', () => {
   loadMarketplace();
 });
 
-// =========================================================
-// REFERRAL REWARD CLAIM
-// ---------------------------------------------------------
-// Called on boot. Finds all referrals where this device is
-// the referrer, marks them rewarded, and credits:
-//   +1 Boost Token  (capped at 5)
-//   +1 bonus round  (capped at 5 per day)
-// =========================================================
+// Referral Claim
 async function claimPendingReferrals() {
   if (!sb) return;
-
   try {
-    const { data, error } = await sb.from('referrals')
-      .select('id')
-      .eq('referrer_id', GUEST_ID)
-      .eq('status', 'completed')
-      .or('rewarded.is.null,rewarded.eq.false')
-      .limit(20);
+    const ids = [GUEST_ID];
+    if (state.playerName && state.playerName.trim()) ids.push(state.playerName.trim());
+    const { data, error } = await sb.from('referrals').select('id').in('referrer_id', ids).eq('status', 'completed').or('rewarded.is.null,rewarded.eq.false').limit(20);
+    if (error || !data || !data.length) return;
 
-    if (error) {
-      // rewarded column might not exist yet — silently skip
-      console.warn('referral claim skipped:', error.message);
-      return;
-    }
-
-    if (!data || !data.length) return;
-
-    const ids = data.map(r => r.id);
+    const refIds = data.map(r => r.id);
     let tokensAwarded = 0;
     let bonusAwarded = 0;
 
-    for (let i = 0; i < ids.length; i++) {
-      const canAwardToken = state.boostTokens < CONFIG.referral.boostTokensCap;
-      const canAwardBonus = state.bonusRoundsToday < CONFIG.referral.bonusRoundsCap;
-      if (!canAwardToken && !canAwardBonus) break;
-
-      if (canAwardToken) { state.boostTokens++; tokensAwarded++; }
-      if (canAwardBonus) { state.bonusRoundsToday++; bonusAwarded++; }
+    for (let i = 0; i < refIds.length; i++) {
+      if (state.boostTokens < CONFIG.referral.boostTokensCap) { state.boostTokens++; tokensAwarded++; }
+      if (state.bonusRoundsToday < CONFIG.referral.bonusRoundsCap) { state.bonusRoundsToday++; bonusAwarded++; }
     }
-
-    // Mark all as rewarded so we don't claim them again
-    await sb.from('referrals')
-      .update({ rewarded: true })
-      .in('id', ids);
-
+    await sb.from('referrals').update({ rewarded: true }).in('id', refIds);
     if (tokensAwarded > 0 || bonusAwarded > 0) {
-      state.referralCount = (state.referralCount || 0) + ids.length;
+      state.referralCount = (state.referralCount || 0) + refIds.length;
       saveState();
       showReferralToast(tokensAwarded, bonusAwarded);
     }
-  } catch (e) {
-    console.warn('referral claim failed', e);
-  }
+  } catch (e) {}
 }
 
 function showReferralToast(tokens, bonus) {
   const toast = document.createElement('div');
   toast.className = 'toast-referral';
   const parts = [];
-  if (tokens > 0) parts.push('+' + tokens + ' Boost Token' + (tokens > 1 ? 's' : ''));
-  if (bonus > 0) parts.push('+' + bonus + ' bonus round' + (bonus > 1 ? 's' : ''));
+  if (tokens > 0) parts.push('+' + tokens + ' Boost Token');
+  if (bonus > 0) parts.push('+' + bonus + ' bonus round');
   toast.textContent = '🎁 ' + parts.join(' · ') + ' from referrals!';
   document.body.appendChild(toast);
-  setTimeout(() => {
-    toast.style.transition = 'opacity 0.3s';
-    toast.style.opacity = '0';
-    setTimeout(() => toast.remove(), 400);
-  }, 5000);
-}
-
-// =========================================================
-// UI SYNC ON AUTH STATE CHANGE
-// =========================================================
-if (sb) {
-  sb.auth.onAuthStateChange(() => {
-    if (typeof refreshDashboard === 'function') refreshDashboard();
-  });
+  setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 5000);
 }
