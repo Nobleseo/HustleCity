@@ -1,10 +1,9 @@
-const CACHE = 'hustlecity-v0.6.2';
-const ASSETS = ['./', './index.html', './manifest.webmanifest', './terms.html', './privacy.html', './faq.html'];
+const CACHE = 'hustlecity-v0.7.0';
+const ASSETS = ['./', './manifest.webmanifest', './terms.html', './privacy.html', './faq.html'];
+
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE)
-      .then(c => c.addAll(ASSETS))
-      .then(() => self.skipWaiting())
+    caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())
   );
 });
 
@@ -18,16 +17,49 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
-  if (url.hostname.includes('supabase')) return; // API always goes to network
-  if (url.pathname.includes('admin')) return;    // admin always goes to network
+  if (url.hostname.includes('supabase')) return;
+  if (url.pathname.includes('admin')) return;
+
+  if (e.request.mode === 'navigate' || url.pathname === '/' || url.pathname.endsWith('.html')) {
+    e.respondWith(
+      fetch(e.request)
+        .then(resp => {
+          if (resp.status === 200) {
+            const copy = resp.clone();
+            caches.open(CACHE).then(c => c.put(e.request, copy));
+          }
+          return resp;
+        })
+        .catch(() => caches.match(e.request) || caches.match('./'))
+    );
+    return;
+  }
+
+  if (url.pathname.endsWith('.css') || url.pathname.endsWith('.js')) {
+    e.respondWith(
+      caches.match(e.request).then(cached => {
+        const fetchPromise = fetch(e.request).then(resp => {
+          if (resp.status === 200) {
+            const copy = resp.clone();
+            caches.open(CACHE).then(c => c.put(e.request, copy));
+          }
+          return resp;
+        }).catch(() => cached);
+        return cached || fetchPromise;
+      })
+    );
+    return;
+  }
 
   e.respondWith(
     caches.match(e.request).then(r =>
       r || fetch(e.request).then(resp => {
-        const copy = resp.clone();
-        caches.open(CACHE).then(c => c.put(e.request, copy));
+        if (resp.status === 200) {
+          const copy = resp.clone();
+          caches.open(CACHE).then(c => c.put(e.request, copy));
+        }
         return resp;
-      }).catch(() => caches.match('./index.html'))
+      }).catch(() => caches.match('./'))
     )
   );
 });
