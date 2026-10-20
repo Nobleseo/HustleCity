@@ -184,7 +184,7 @@ function payBill(key) {
   state.wallet -= bill.amount;
 
   if (key === 'rent') state.lastRentPaid = today;
-  if (key === 'neppa') state.lastNeppaPaid = today;
+  if (key === 'nepa') state.lastNepaPaid = today;
   if (key === 'sanitation') state.lastSanitationPaid = today;
 
   saveState();
@@ -283,6 +283,8 @@ function refreshStockBars() {
       restockBtn.textContent = allFull ? 'Store Full (Max 100)' : '🔄 Restock all (+20 each) — ₦' + cost.toLocaleString('en-NG');
       restockBtn.style.opacity = (!canAfford || allFull) ? '0.5' : '1';
     }
+   }
+  
 
 function refreshVendorBanner() {
   const vendorBanner = document.getElementById('dash-vendor-banner');
