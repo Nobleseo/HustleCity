@@ -306,3 +306,37 @@ body.in-round .fab { display: none; }
   color: var(--oxblood);
   font-variant-numeric: tabular-nums;
 }
+
+/* =====================================================
+   MARKETPLACE BUTTONS FIX
+   ===================================================== */
+.vendor-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+.vendor-btn {
+  flex: 1;
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: none;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #FFF;
+}
+.vendor-btn.call {
+  background: var(--oxblood);
+  color: #F5EBDC;
+}
+.vendor-btn.wa {
+  background: #25D366; /* WhatsApp Green */
+  color: #fff;
+}
