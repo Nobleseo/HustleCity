@@ -347,3 +347,11 @@ setTimeout(() => {
     });
   }
 }, 300);
+
+// Wire the new Home Dashboard button
+const btnHomeDash = document.getElementById('btn-home-dashboard');
+if (btnHomeDash) {
+  btnHomeDash.addEventListener('click', () => {
+    if (typeof showScreen === 'function') showScreen('dashboard');
+  });
+}
