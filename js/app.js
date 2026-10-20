@@ -385,3 +385,34 @@ if (btnHomeDash) {
     if (typeof showScreen === 'function') showScreen('dashboard');
   });
 }
+
+// =========================================================
+// FETCH DASHBOARD ANNOUNCEMENT
+// =========================================================
+async function loadDashboardAnnouncement() {
+  if (typeof sb === 'undefined' || !sb) return;
+
+  try {
+    const { data, error } = await sb
+      .from('announcements')
+      .select('message')
+      .eq('active', true)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (data && data.message) {
+      const banner = document.getElementById('dash-announcement-banner');
+      const textEl = document.getElementById('dash-announcement-text');
+      if (banner && textEl) {
+        textEl.textContent = data.message;
+        banner.style.display = 'block';
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to load dashboard announcement', e);
+  }
+}
+
+// Call this function after the dashboard is shown
+// (We can call it in the showScreen function in ui.js)
