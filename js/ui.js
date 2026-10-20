@@ -72,6 +72,10 @@ function refreshHome() {
   if (id === 'dashboard') refreshDashboard();
 
   if (typeof updateActivity === 'function') updateActivity(id);
+    // NEW: Load the announcement when they open the dashboard
+  if (id === 'dashboard') {
+    if (typeof loadDashboardAnnouncement === 'function') loadDashboardAnnouncement();
+  }
 }
 // =========================================================
 // BILLS
