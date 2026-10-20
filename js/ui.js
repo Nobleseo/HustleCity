@@ -92,7 +92,7 @@ function getBills() {
   const bills = [];
   const cfg = CONFIG.bills.bills;
 
-  // Rent — weekly, first due on day 3
+  // Rent — weekly, first due on day 2
   if (firstPlayDays >= CONFIG.bills.rentFirstDueDay) {
     const lastRent = state.lastRentPaid;
     const daysSinceRent = lastRent ? (daysSince(lastRent) || 0) : CONFIG.bills.rentFirstDueDay;
@@ -102,18 +102,18 @@ function getBills() {
         name: cfg.rent.name,
         amount: cfg.rent.amount,
         description: cfg.rent.description,
-        overdue: (daysSinceRent || 0) > cfg.rent.cycleDays + 3
+        overdue: (daysSinceRent || 0) > cfg.rent.cycleDays + 2
       });
     }
   }
 
   // NEPA — daily
-  if (state.lastNeppaPaid !== today) {
+  if (state.lastNepaPaid !== today) {
     bills.push({
-      key: 'neppa',
-      name: cfg.neppa.name,
-      amount: cfg.neppa.amount,
-      description: cfg.neppa.description,
+      key: 'nepa',
+      name: cfg.nepa.name,
+      amount: cfg.nepa.amount,
+      description: cfg.nepa.description,
       overdue: false
     });
   }
@@ -267,15 +267,18 @@ function refreshStockBars() {
 
   stockBox.innerHTML = html;
 
-  const restockBtn = document.getElementById('btn-restock');
-  if (restockBtn) {
-    const cost = CONFIG.hustles.wig_plug.restockCost;
-    const canAfford = state.wallet >= cost;
-    restockBtn.disabled = !canAfford;
-    restockBtn.textContent = '🔄 Restock All (+' + max + ' each) — ₦' + cost.toLocaleString('en-NG');
-    restockBtn.style.opacity = canAfford ? '1' : '0.5';
-  }
-}
+     // Restock button with limit
+    const restockBtn = document.getElementById('btn-restock');
+    if (restockBtn) {
+      const cost = CONFIG.hustles.wig_plug.restockCost;
+      const maxStock = 100;
+      const allFull = Object.keys(stock).every(k => (stock[k] || 0) >= maxStock);
+      const canAfford = state.wallet >= cost;
+      
+      restockBtn.disabled = !canAfford || allFull;
+      restockBtn.textContent = allFull ? 'Store Full (Max 100)' : '🔄 Restock all (+20 each) — ₦' + cost.toLocaleString('en-NG');
+      restockBtn.style.opacity = (!canAfford || allFull) ? '0.5' : '1';
+    }
 
 function refreshVendorBanner() {
   const vendorBanner = document.getElementById('dash-vendor-banner');
@@ -293,24 +296,31 @@ function refreshVendorBanner() {
   }
 }
 
-// Restock handler
+// Restock button handler with limit
 (function wireRestock() {
   const btn = document.getElementById('btn-restock');
   if (!btn) return;
   btn.addEventListener('click', () => {
     const cost = CONFIG.hustles.wig_plug.restockCost;
+    const maxStock = 100;
+    
+    const allFull = Object.keys(state.wigStock || {}).every(k => (state.wigStock[k] || 0) >= maxStock);
+    if (allFull) return alert('Your store is full! Sell some wigs before restocking.');
+    
     if (state.wallet < cost) return;
     state.wallet -= cost;
+    
     Object.keys(state.wigStock || {}).forEach(k => {
-      state.wigStock[k] = (state.wigStock[k] || 0) + CONFIG.hustles.wig_plug.restockAmount;
+      const current = state.wigStock[k] || 0;
+      state.wigStock[k] = Math.min(maxStock, current + CONFIG.hustles.wig_plug.restockAmount);
     });
+    
     saveState();
     refreshDashboard();
-    alert('✅ Restocked! +20 of each wig.');
+    alert('✅ Restocked!');
     if (typeof trackEvent === 'function') trackEvent('restock', { cost });
   });
 })();
-
 // =========================================================
 // LEADERBOARD
 // =========================================================
