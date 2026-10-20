@@ -11,8 +11,22 @@ let playerId = localStorage.getItem('hc_player_id') || null;
 function updateHomeAuthButton() {
   const signedIn = !!playerId;
   document.body.classList.toggle('is-signed-in', signedIn);
-  const homeSignin = document.getElementById('btn-signin-home');
-  if (homeSignin) homeSignin.style.display = signedIn ? 'none' : 'block';
+  
+  const homeDashBtn = document.getElementById('btn-home-dashboard');
+  if (homeDashBtn) {
+    homeDashBtn.style.display = signedIn ? 'block' : 'none';
+  }
+
+  const pill = document.getElementById('btn-signin-pill');
+  if (pill) {
+    if (signedIn) {
+      pill.textContent = '📊 Dashboard';
+      pill.onclick = (e) => { e.preventDefault(); if (typeof showScreen === 'function') showScreen('dashboard'); };
+    } else {
+      pill.textContent = '👤 Sign In';
+      pill.onclick = (e) => { e.preventDefault(); if (typeof showAuthModal === 'function') showAuthModal('signin'); };
+    }
+  }
 }
 
 function getGuestId() {
@@ -51,16 +65,16 @@ const CONFIG = {
 
   watchAd: {
     maxPerDay: 3,
-    durationSeconds: 15
+    durationSeconds: 30
   },
 
   bills: {
-    graceDays: 2,
-    rentFirstDueDay: 3,
+    graceDays: 1,
+    rentFirstDueDay: 2,
     bills: {
-      rent:       { name: '🏪 Shop Rent',  amount: 3000, description: 'Weekly stall rent',    cycleDays: 7 },
-      neppa:      { name: '💡 NEPA Bill',  amount: 200,  description: 'Daily electricity',    cycleDays: 1 },
-      sanitation: { name: '🧹 Sanitation', amount: 100,  description: 'Daily cleanup fee',    cycleDays: 1 }
+      rent:       { name: '🏪 Shop Rent',  amount: 8000, description: 'Weekly stall rent',    cycleDays: 7 },
+      nepa:      { name: '💡 NEPA Bill',  amount: 2000,  description: 'Daily electricity',    cycleDays: 1 },
+      sanitation: { name: '🧹 Sanitation', amount: 1500,  description: 'Daily cleanup fee',    cycleDays: 1 }
     }
   },
 
@@ -86,8 +100,8 @@ const CONFIG = {
       description: 'Sell premium wigs to your customers.',
       products: {
         bone_straight: { emoji: '👱🏾‍♀️', label: 'Bone Straight', baseSale: 200, patience: 6.0, stock: 20 },
-        deep_wave:     { emoji: '💇🏾‍♀️', label: 'Deep Wave',    baseSale: 350, patience: 5.0, stock: 15 },
-        braids:        { emoji: '🧑🏾‍🦱', label: 'Braids',       baseSale: 250, patience: 7.0, stock: 10 }
+        deep_wave:     { emoji: '💇🏾‍♀️', label: 'Deep Wave',    baseSale: 250, patience: 5.0, stock: 15 },
+        braids:        { emoji: '🧑🏾‍🦱', label: 'Braids',       baseSale: 220, patience: 7.0, stock: 10 }
       },
       hasStock: true,
       restockCost: 3000,
@@ -99,17 +113,17 @@ const CONFIG = {
     edge_control: { name: 'Edge Control', icon: '🧴', cost: 500,  effect: 'spawn_boost',  desc: '+20% customer spawn rate next round' },
     lash_glue:    { name: 'Lash Glue',    icon: '💧', cost: 800,  effect: 'double_spawn', desc: '+1 extra customer next round' },
     hair_oil:     { name: 'Hair Oil',     icon: '🧈', cost: 1200, effect: 'sale_boost',   desc: '+30% sale value next round' },
-    melt_band:    { name: 'Melt Band',    icon: '🎀', cost: 300,  effect: 'thief_shield', desc: 'Thief caught automatically next round' }
+    melt_band:    { name: 'Melt Band',    icon: '🎀', cost: 600,  effect: 'thief_shield', desc: 'Thief caught automatically next round' }
   },
 
   upgrades: {
     bigger_shelf: { name: 'Bigger Shelf', icon: '📦', cost: 2000, desc: '+1 product slot in round' },
-    loudspeaker:  { name: 'Loudspeaker',  icon: '📢', cost: 5000, desc: '+1.5s customer patience' }
+    loudspeaker:  { name: 'Loudspeaker',  icon: '📢', cost: 6000, desc: '+1.5s customer patience' }
   },
 
   divisions: [
-    { key: 'street_trader', name: 'Street', min: 0,        max: 50000 },
-    { key: 'stall_owner',   name: 'Stall',  min: 50001,    max: 250000 },
+    { key: 'street_trader', name: 'Street', min: 0,        max: 49999 },
+    { key: 'stall_owner',   name: 'Stall',  min: 50000,    max: 250000 },
     { key: 'market_king',   name: 'King',   min: 250001,   max: 1000000 },
     { key: 'mogul',         name: 'Mogul',  min: 1000001,  max: 5000000 },
     { key: 'tycoon',        name: 'Tycoon', min: 5000001,  max: Infinity }
