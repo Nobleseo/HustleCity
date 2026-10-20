@@ -196,12 +196,42 @@ if (hudThemeBtn) {
 // =========================================================
 let deferredInstall = null;
 
+// =========================================================
+// PWA AUTO-UPDATE (FORCE)
+// =========================================================
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').then(reg => {
-    reg.update();
-  }).catch(() => {});
-}
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').then(registration => {
+      // 1. Check for updates immediately when the app loads
+      registration.update();
 
+      // 2. Listen for a new service worker taking over
+      registration.onupdatefound = () => {
+        const installingWorker = registration.installing;
+        if (installingWorker == null) return;
+        installingWorker.onstatechange = () => {
+          if (installingWorker.state === 'installed') {
+            // If an old service worker is still controlling the page, reload.
+            if (navigator.serviceWorker.controller) {
+              console.log('New update available. Reloading...');
+              window.location.reload();
+            }
+          }
+        };
+      };
+    }).catch(err => {
+      console.log('ServiceWorker registration failed: ', err);
+    });
+  });
+
+  // 3. Also reload if the user navigates back to the app after it was updated
+  let refreshing;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return;
+    window.location.reload();
+    refreshing = true;
+  });
+}
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredInstall = e;
