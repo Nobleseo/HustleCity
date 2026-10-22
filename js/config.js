@@ -72,9 +72,9 @@ const CONFIG = {
     graceDays: 1,
     rentFirstDueDay: 2,
     bills: {
-      rent:       { name: '🏪 Shop Rent',  amount: 8000, description: 'Weekly stall rent',    cycleDays: 7 },
-      nepa:      { name: '💡 NEPA Bill',  amount: 2000,  description: 'Daily electricity',    cycleDays: 1 },
-      sanitation: { name: '🧹 Sanitation', amount: 1500,  description: 'Daily cleanup fee',    cycleDays: 1 }
+      rent:       { name: '🏪 Shop Rent',  amount: 30000, description: 'Weekly stall rent',    cycleDays: 7 },
+      nepa:      { name: '💡 NEPA Bill',  amount: 15000,  description: 'Daily electricity',    cycleDays: 1 },
+      sanitation: { name: '🧹 Sanitation', amount: 4500,  description: 'Daily cleanup fee',    cycleDays: 1 }
     }
   },
 
