@@ -340,3 +340,26 @@ body.in-round .fab { display: none; }
   background: #25D366; /* WhatsApp Green */
   color: #fff;
 }
+/* =====================================================
+   BILLS BUTTONS (MISSING FIX)
+   ===================================================== */
+.bill-pay-btn {
+  flex-shrink: 0;
+  padding: 9px 16px;
+  border-radius: 9px;
+  background: var(--oxblood); /* Uses your primary green color */
+  color: #F5EBDC;
+  border: none;
+  font-family: inherit;
+  font-weight: 900;
+  font-size: 11px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+}
+.bill-pay-btn:active {
+  transform: scale(0.95);
+}
+.bill-pay-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
