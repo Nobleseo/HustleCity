@@ -110,10 +110,10 @@ const CONFIG = {
   },
 
   consumables: {
-    edge_control: { name: 'Edge Control', icon: '🧴', cost: 500,  effect: 'spawn_boost',  desc: '+20% customer spawn rate next round' },
-    lash_glue:    { name: 'Lash Glue',    icon: '💧', cost: 800,  effect: 'double_spawn', desc: '+1 extra customer next round' },
-    hair_oil:     { name: 'Hair Oil',     icon: '🧈', cost: 1200, effect: 'sale_boost',   desc: '+30% sale value next round' },
-    melt_band:    { name: 'Melt Band',    icon: '🎀', cost: 600,  effect: 'thief_shield', desc: 'Thief caught automatically next round' }
+    edge_control: { name: 'Edge Control', icon: '🧴', cost: 5800,  effect: 'spawn_boost',  desc: '+20% customer spawn rate next round' },
+    lash_glue:    { name: 'Lash Glue',    icon: '💧', cost: 6000,  effect: 'double_spawn', desc: '+1 extra customer next round' },
+    hair_oil:     { name: 'Hair Oil',     icon: '🧈', cost: 4000, effect: 'sale_boost',   desc: '+30% sale value next round' },
+    melt_band:    { name: 'Melt Band',    icon: '🎀', cost: 1300,  effect: 'thief_shield', desc: 'Thief caught automatically next round' }
   },
 
   upgrades: {
